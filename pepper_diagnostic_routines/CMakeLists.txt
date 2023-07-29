@@ -8,7 +8,7 @@ add_compile_options(-std=c++11)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 
-##Needed for ros packages
+## Needed for ros packages
 catkin_package(CATKIN_DEPENDS rospy naoqi_dcm_driver)
 catkin_package()
 
@@ -57,7 +57,6 @@ install(DIRECTORY data/
 add_executable       (${PROJECT_NAME}_depth_camera src/depth_camera.cpp)
 add_executable       (${PROJECT_NAME}_bottom_camera src/bottom_camera.cpp)
 add_executable       (${PROJECT_NAME}_front_camera src/front_camera.cpp)
-add_executable       (${PROJECT_NAME}_goToPosition src/goToPosition.cpp)
 add_executable       (${PROJECT_NAME}_handTouch src/handTouch.cpp)
 add_executable       (${PROJECT_NAME}_headTouch src/headTouch.cpp)
 add_executable       (${PROJECT_NAME}_front_sonar src/front_sonar.cpp)
@@ -71,14 +70,13 @@ add_executable       (${PROJECT_NAME}_head_control src/head_control.cpp)
 add_executable       (${PROJECT_NAME}_pelvis_control src/pelvis_control.cpp)
 add_executable       (${PROJECT_NAME}_right_hand_control src/right_hand_control.cpp)
 add_executable       (${PROJECT_NAME}_left_hand_control src/left_hand_control.cpp)
-
+add_executable       (${PROJECT_NAME}_baseTranslationAndRotation src/baseTranslationAndRotation.cpp)
 
 
 
 set_target_properties(${PROJECT_NAME}_depth_camera PROPERTIES OUTPUT_NAME depth_camera PREFIX "")
 set_target_properties(${PROJECT_NAME}_bottom_camera PROPERTIES OUTPUT_NAME bottom_camera PREFIX "")
 set_target_properties(${PROJECT_NAME}_front_camera PROPERTIES OUTPUT_NAME front_camera PREFIX "")
-set_target_properties(${PROJECT_NAME}_goToPosition PROPERTIES OUTPUT_NAME goToPosition PREFIX "")
 set_target_properties(${PROJECT_NAME}_handTouch PROPERTIES OUTPUT_NAME handTouch PREFIX "")
 set_target_properties(${PROJECT_NAME}_headTouch PROPERTIES OUTPUT_NAME headTouch PREFIX "")
 set_target_properties(${PROJECT_NAME}_front_sonar PROPERTIES OUTPUT_NAME front_sonar PREFIX "")
@@ -92,13 +90,12 @@ set_target_properties(${PROJECT_NAME}_head_control PROPERTIES OUTPUT_NAME head_c
 set_target_properties(${PROJECT_NAME}_pelvis_control PROPERTIES OUTPUT_NAME pelvis_control PREFIX "")
 set_target_properties(${PROJECT_NAME}_right_hand_control PROPERTIES OUTPUT_NAME right_hand_control PREFIX "")
 set_target_properties(${PROJECT_NAME}_left_hand_control PROPERTIES OUTPUT_NAME left_hand_control PREFIX "")
-
+set_target_properties(${PROJECT_NAME}_baseTranslationAndRotation PROPERTIES OUTPUT_NAME baseTranslationAndRotation PREFIX "")
 
 
 target_link_libraries(${PROJECT_NAME}_depth_camera ${OpenCV_LIBS} ${catkin_LIBRARIES})
 target_link_libraries(${PROJECT_NAME}_bottom_camera ${OpenCV_LIBS} ${catkin_LIBRARIES})
 target_link_libraries(${PROJECT_NAME}_front_camera ${OpenCV_LIBS} ${catkin_LIBRARIES})
-target_link_libraries(${PROJECT_NAME}_goToPosition ${catkin_LIBRARIES})
 target_link_libraries(${PROJECT_NAME}_handTouch ${catkin_LIBRARIES})
 target_link_libraries(${PROJECT_NAME}_headTouch ${catkin_LIBRARIES})
 target_link_libraries(${PROJECT_NAME}_front_sonar ${catkin_LIBRARIES})
@@ -112,6 +109,9 @@ target_link_libraries(${PROJECT_NAME}_head_control ${catkin_LIBRARIES})
 target_link_libraries(${PROJECT_NAME}_pelvis_control ${catkin_LIBRARIES})
 target_link_libraries(${PROJECT_NAME}_right_hand_control ${catkin_LIBRARIES})
 target_link_libraries(${PROJECT_NAME}_left_hand_control ${catkin_LIBRARIES})
+target_link_libraries(${PROJECT_NAME}_baseTranslationAndRotation ${catkin_LIBRARIES})
+
+
 
 
 

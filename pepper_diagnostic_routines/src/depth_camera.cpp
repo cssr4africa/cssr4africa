@@ -1,3 +1,22 @@
+/********************************************************************************************************************************************
+ *  Pepper diagnostic routines: Range reading with Pepper's depth camera sensor
+ *  @file depth_camera.cpp
+ *  @details The program subscribes to the topic /naoqi_driver/camera/depth/image_raw which publishes 
+ *           the depth camera data. We subscribes to /naoqi_driver/camera/depth/image_raw through
+ *           an image_transport object. This object is an image handler that transports raw image. After 
+ *           getting the image, we convert it from ROS sensor_msgs/Image format to OpenCv cv::Mat format 
+ *           with the cv_bridge package. We display a gray scale image from OpenCv.
+ *  
+ *  @author Pamely ZANTOU
+ *  @version 1.0 
+ *  @date August 2022
+ * 
+ *  Audit Trail
+ *  -----------
+ * 
+ * 
+ * ********************************************************************************************************************************************/
+
 # include <ros/ros.h>
 # include <ros/package.h>
 # include <std_msgs/Float64.h>

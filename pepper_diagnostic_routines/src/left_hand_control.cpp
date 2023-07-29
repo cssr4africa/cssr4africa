@@ -6,7 +6,7 @@
  *  code we planned a motion using actions. Basically, we have a predefine set of waypoints that the robot will follow with regarding its actuators. 
  *  Before reaching the goal position,  we are able to follow the positions  the robot before reaching the goal position.
  *  @file left_hand_control.cpp
- *  @details The program  aims to move the Pepper humanoid head. This is done by defining a set of way points that 
+ *  @details The program  aims to move the Pepper humanoid hand. This is done by defining a set of way points that 
  *           the robot will follow to move it head to a certain position in space.
  *            
  *  @author Pamely ZANTOU. This program has been adapted from ROS tutorial on moving the ARI robot head. There is another useful tutorial on moving

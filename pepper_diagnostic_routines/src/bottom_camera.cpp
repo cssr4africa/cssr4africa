@@ -1,11 +1,11 @@
 /********************************************************************************************************************************************
- *  Pepper diagnostic routines: Range reading with Pepper's laser sensor
- *  @file front_camera.cpp
+ *  Pepper diagnostic routines: Range reading with Pepper's bottom camera sensor
+ *  @file bottom_camera.cpp
  *  @details The program subscribes to the topic /naoqi_driver/camera/bottom/image_raw which publishes 
- *           the bottom camera data. We subscribes to /naoqi_driver/camera/bottom/image_raw through to
+ *           the bottom camera data. We subscribes to /naoqi_driver/camera/bottom/image_raw through
  *           an image_transport object. This object is an image handler that transports raw image. After 
  *           getting the image, we convert it from ROS sensor_msgs/Image format to OpenCv cv::Mat format 
- *           with the cv_bridge package. We display an BRG images from OpenCv. 
+ *           with the cv_bridge package. We display a BGR images from OpenCv. 
  *  
  *  @author Pamely ZANTOU
  *  @version 1.0 
