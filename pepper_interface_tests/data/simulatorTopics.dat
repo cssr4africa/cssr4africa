@@ -1,0 +1,11 @@
+BackSonar           /pepper/sonar_back
+FrontSonar          /pepper/sonar_front
+FrontCamera         /pepper/camera/front/image_raw
+BottomCamera        /pepper/camera/bottom/image_raw
+DepthCamera         /pepper/camera/depth/image_raw
+LaserSensor         /pepper/laser_2
+Head                /pepper/Head_controller/command
+RArm                /pepper/RightArm_controller/command
+LArm                /pepper/LeftArm_controller/command
+Leg                 /pepper/Pelvis_controller/command
+Wheels              /pepper/cmd_vel

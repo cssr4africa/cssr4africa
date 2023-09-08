@@ -4,4 +4,4 @@ Based on ethnographic research to acquire cultural knowledge about acceptable mo
 
 The CSSR4Africa software repository is under construction.  Currently, there is just one ROS package. 
 
-pepper_actuator_tests
+pepper_interface_tests

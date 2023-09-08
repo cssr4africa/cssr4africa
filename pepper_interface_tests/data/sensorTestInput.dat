@@ -1,0 +1,6 @@
+BackSonar           True
+FrontSonar          True
+FrontCamera         True
+BottomCamera        True
+DepthCamera         True
+LaserSensor         True
