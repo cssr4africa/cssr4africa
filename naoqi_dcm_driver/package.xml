@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<package>
+  <name>naoqi_dcm_driver</name>
+  <version>0.0.3</version>
+  <description>Package containing the hardware interface to connect to Nao, Romeo, or Pepper robots.</description>
+
+  <author email="costashatz@gmail.com">Konstantinos Chatzilygeroudis</author>
+  <author email="mikael.arguedas@gmail.com">Mikael Arguedas</author>
+  <author email="karsten.knese@gmail.com">Karsten Knese</author>
+  <author email="natalia.lyubova@gmail.com">Natalia Lyubova</author>
+
+  <maintainer email="natalia.lyubova@gmail.com">Natalia Lyubova</maintainer>
+
+  <license>BSD</license>
+
+  <url type="repository">https://github.com/ros-naoqi/naoqi_dcm_driver</url>
+  <url type="bugtracker">https://github.com/ros-naoqi/naoqi_dcm_driver/issues</url>
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>roscpp</build_depend>
+  <build_depend>rospy</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_depend>controller_manager</build_depend>
+  <build_depend>hardware_interface</build_depend>
+  <build_depend>geometry_msgs</build_depend>
+  <build_depend>tf</build_depend>
+  <build_depend>sensor_msgs</build_depend>
+  <build_depend>naoqi_libqi</build_depend>
+  <build_depend>naoqi_libqicore</build_depend>
+  <build_depend>diagnostic_msgs</build_depend>
+  <build_depend>diagnostic_updater</build_depend>
+
+  <run_depend>roscpp</run_depend>
+  <run_depend>rospy</run_depend>
+  <run_depend>std_msgs</run_depend>
+  <run_depend>geometry_msgs</run_depend>
+  <run_depend>controller_manager</run_depend>
+  <run_depend>hardware_interface</run_depend>
+  <run_depend>tf</run_depend>
+  <run_depend>sensor_msgs</run_depend>
+  <run_depend>naoqi_libqi</run_depend>
+  <run_depend>naoqi_libqicore</run_depend>
+
+</package>
