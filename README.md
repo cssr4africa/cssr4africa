@@ -8,10 +8,10 @@ pepper_interface_tests
 
 There are dependencies on four other repositories:
 
-gazebo_model_velocity_plugin
-naoqi_dcm_driver
-naoqi_driver
-pepper_dcm_robot
+1. gazebo_model_velocity_plugin
+1. naoqi_dcm_driver
+1. naoqi_driver
+1. pepper_dcm_robot
 
 Details on how to install these and the CSSR4Africa software can be found in the software installation manual is [here](https://cssr4africa.github.io/deliverables/CSSR4Africa_Deliverable_D3.3.pdf).
 
