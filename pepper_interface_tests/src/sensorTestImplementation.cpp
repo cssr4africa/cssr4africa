@@ -29,7 +29,7 @@ int totalSamples = 0;
 std::string currentChannel = "rearLeft";
 
 // Global variables to handle the video file 
-bool saveVideo = true;
+bool saveVideo = false;
 cv::VideoWriter videoWriter;
 bool isVideoWriterInitialized = false;
 
@@ -1148,7 +1148,7 @@ string extractTopic(string key){
     if (debug) printf("Topic file: %s\n", topicFileName.c_str());
 
     // set the topic path and file
-    topicPathFile = packagePath + "/config/" + topicFileName;
+    topicPathFile = packagePath + "/data/" + topicFileName;
 
     if (debug) printf("Topic file is %s\n", topicPathFile.c_str());
 
