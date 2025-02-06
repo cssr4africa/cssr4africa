@@ -1,0 +1,106 @@
+Gesture Execution Test Report: robot
+======================================
+Date: 2025-01-27 15:40:47
+
+Iconic Gesture 01 : Welcome Gesture
+	Joint Names   :	LShoulderPitch LShoulderRoll LElbowYaw LElbowRoll LWristYaw 
+	Joint Angles  :	1.7625 0.09970 -1.7150 -0.1334 0.06592 
+					1.047197 0.2618 -1.5708 -0.0087 -1.047198 
+					1.7625 0.09970 -1.7150 -0.1334 0.06592 
+	Joint Names   :	RShoulderPitch RShoulderRoll RElbowYaw RElbowRoll RWristYaw 
+	Joint Angles  :	1.7410 -0.09664 1.6981 0.09664 -0.05679 
+					1.047197 -0.2618 1.5708 0.0087 1.047198 
+					1.7410 -0.09664 1.6981 0.09664 -0.05679 
+	Result        : PASSED
+
+Iconic Gesture 02 : Welcome Gesture
+	Joint Names   :	LShoulderPitch LShoulderRoll LElbowYaw LElbowRoll LWristYaw 
+	Joint Angles  :	1.7625 0.09970 -1.7150 -0.1334 0.06592 
+					1.047197 0.2618 -1.5708 -0.0087 -1.047198 
+					1.7625 0.09970 -1.7150 -0.1334 0.06592 
+	Joint Names   :	RShoulderPitch RShoulderRoll RElbowYaw RElbowRoll RWristYaw 
+	Joint Angles  :	1.7410 -0.09664 1.6981 0.09664 -0.05679 
+					1.047197 -0.2618 1.5708 0.0087 1.047198 
+					1.7410 -0.09664 1.6981 0.09664 -0.05679 
+	Result        : PASSED
+
+Iconic Gesture 03 : Wave Right Hand
+	Joint Names   :	RShoulderPitch RShoulderRoll RElbowYaw RElbowRoll RWristYaw 
+	Joint Angles  :	1.7410 -0.09664 1.6981 0.09664 -0.05679 
+					0.04139658848768486 -0.7725247646974353 1.4899726916768 0.5236 0.0 
+					0.04139658848768486 -0.7725247646974353 1.4899726916768 1.308996 0.0 
+					0.04139658848768486 -0.7725247646974353 1.4899726916768 0.5236 0.0 
+					0.04139658848768486 -0.7725247646974353 1.4899726916768 1.308996 0.0 
+					0.04139658848768486 -0.7725247646974353 1.4899726916768 0.5236 0.0 
+					0.04139658848768486 -0.7725247646974353 1.4899726916768 1.308996 0.0 
+					0.04139658848768486 -0.7725247646974353 1.4899726916768 0.5236 0.0 
+					0.04139658848768486 -0.7725247646974353 1.4899726916768 1.308996 0.0 
+					1.7410 -0.09664 1.6981 0.09664 -0.05679 
+	Result        : PASSED
+
+Iconic Gesture 04 : Shake Gesture
+	Joint Names   :	LShoulderPitch LShoulderRoll LElbowYaw LElbowRoll LWristYaw 
+	Joint Angles  :	1.7625 0.09970 -1.7150 -0.1334 0.06592 
+					0.358 0.15 0.066 -1.333 -1.8 
+					0.358 0.15 0.066 -1.333 -1.8 
+					1.7625 0.09970 -1.7150 -0.1334 0.06592 
+	Joint Names   :	RShoulderPitch RShoulderRoll RElbowYaw RElbowRoll RWristYaw 
+	Joint Angles  :	1.7410 -0.09664 1.6981 0.09664 -0.05679 
+					0.183 -0.02 -0.082 0.5 1.634 
+					0.183 -0.02 -0.082 0.5 1.634 
+					1.7410 -0.09664 1.6981 0.09664 -0.05679 
+	Result        : PASSED
+
+Iconic Gesture 05 : Shake Gesture
+	Joint Names   :	LShoulderPitch LShoulderRoll LElbowYaw LElbowRoll LWristYaw 
+	Joint Angles  :	1.7625 0.09970 -1.7150 -0.1334 0.06592 
+					0.358 0.15 0.066 -1.333 -1.8 
+					0.358 0.15 0.066 -1.333 -1.8 
+					1.7625 0.09970 -1.7150 -0.1334 0.06592 
+	Joint Names   :	RShoulderPitch RShoulderRoll RElbowYaw RElbowRoll RWristYaw 
+	Joint Angles  :	1.7410 -0.09664 1.6981 0.09664 -0.05679 
+					0.183 -0.02 -0.082 0.5 1.634 
+					0.183 -0.02 -0.082 0.5 1.634 
+					1.7410 -0.09664 1.6981 0.09664 -0.05679 
+	Result        : PASSED
+
+Deictic Gesture 
+	To			  : 0.6 5.1 0.82
+	Result        : PASSED
+
+Deictic Gesture 
+	To			  : 6.8 4.8 0.82
+	Result        : PASSED
+
+Deictic Gesture 
+	To			  : 5.0 1.8 0.82
+	Result        : PASSED
+
+Deictic Gesture 
+	To			  : 6.8 9.6 0.82
+	Result        : PASSED
+
+Bow Gesture 
+	Degree		  : 15
+	Result        : PASSED
+
+Bow Gesture 
+	Degree		  : 30
+	Result        : PASSED
+
+Bow Gesture 
+	Degree		  : 45
+	Result        : PASSED
+
+Nod Gesture 
+	Degree		  : 15
+	Result        : PASSED
+
+Nod Gesture 
+	Degree		  : 30
+	Result        : PASSED
+
+Nod Gesture 
+	Degree		  : 45
+	Result        : PASSED
+

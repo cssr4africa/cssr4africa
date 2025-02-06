@@ -1,0 +1,5 @@
+Head                /pepper_dcm/Head_controller/follow_joint_trajectory
+Wheels              /pepper_dcm/cmd_moveto
+RobotPose           /robotLocalization/pose
+JointStates         /joint_states
+Odometry            /naoqi_driver/odom

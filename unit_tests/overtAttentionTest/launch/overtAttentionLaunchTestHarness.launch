@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="overt_attention_namespace"           default="overtAttention" />
+  <arg name="robot_localization_namespace"        default="robotLocalization" />
+  <arg name="face_detection_namespace"            default="faceDetection" />
+  <arg name="overt_attention_driver_namespace"    default="overtAttentionDriver" />
+  <arg name="overt_attention_stub_namespace"      default="overtAttentionStub" />
+  <arg name="overt_attention_test_namespace"      default="overtAttentionTest" />
+  <arg name="launch_drivers"                      default="true" />
+  <arg name="launch_test"                         default="true" />
+
+  <arg name="initial_robot_x"                     default="0.0" />
+  <arg name="initial_robot_y"                     default="0.0" />
+  <arg name="initial_robot_theta"                 default="0.0" />
+
+  <arg name="face_detection_env_path"             default="/home/cssr4a/face_gaze_detection" />
+
+  <param name="initial_robot_x"                   value="$(arg initial_robot_x)" />
+  <param name="initial_robot_y"                   value="$(arg initial_robot_y)" />
+  <param name="initial_robot_theta"               value="$(arg initial_robot_theta)" />
+
+  <!-- Conditionally Launch overt_attention driver and stub -->
+  <group if="$(arg launch_drivers)">
+    <!-- Launch overt_attention_drivers node -->
+    <node pkg="unit_tests" type="overtAttentionTestDriver" name="$(arg overt_attention_driver_namespace)" required="true"
+      output="screen" launch-prefix="bash -c 'sleep 2; $0 $@'" />
+  </group>
+
+  <!-- Conditionally Launch faceDetection, soundDetection and robotLocalization -->
+  <group unless="$(arg launch_drivers)">
+      <!-- Launch the faceDetection node within the virtual environment -->
+      <node pkg="face_detection" type="face_detection_application.py" name="$(arg face_detection_namespace)" output="screen" launch-prefix="bash -c 'sleep 0; source $(arg face_detection_env_path)/bin/activate; rosrun face_detection face_detection_application.py'" />
+
+  <!-- Launch the speechEvent node within the virtual environment -->
+    <!-- <node pkg="speech_event" type="transcription.py" name="$(arg speech_event_namespace)" output="screen" launch-prefix="bash -c 'sleep 5; source $(arg speech_recognition_env_path)/bin/activate; python3 $0; rosrun speech_event transcription.py'" /> -->
+  
+    <!-- Launch robot_localization node // Change package name to cssr_system later -->
+    <node pkg="robot_localization" type="$(arg robot_localization_namespace)" name="$(arg robot_localization_namespace)" 
+      required="true" output="screen" launch-prefix="bash -c 'sleep 0; $0 $@'" />
+    </group>
+
+  <!-- Launch overt_attention node -->
+  <node pkg="cssr_system" type="overtAttention" name="$(arg overt_attention_namespace)" required="true"
+    output="screen" launch-prefix="bash -c 'sleep 10; $0 $@'" />
+
+  <!-- Conditionally Launch overt_attention_unit_tests node -->
+  <group if="$(arg launch_test)">
+    <node pkg="unit_tests" type="overtAttentionTest" name="$(arg overt_attention_test_namespace)" required="true"
+      output="screen" launch-prefix="bash -c 'sleep 12; $0 $@'" />
+  </group>
+
+	
+</launch>
