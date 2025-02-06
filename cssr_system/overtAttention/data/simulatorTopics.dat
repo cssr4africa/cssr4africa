@@ -1,0 +1,12 @@
+BackSonar           /pepper/sonar_back
+FrontSonar          /pepper/sonar_front
+FrontCamera         /pepper/camera/front/image_raw
+BottomCamera        /pepper/camera/bottom/image_raw
+DepthCamera         /pepper/camera/depth/image_raw
+LaserSensor         /pepper/laser_2
+Head                /pepper/Head_controller/follow_joint_trajectory
+RArm                /pepper/RightArm_controller/follow_joint_trajectory
+LArm                /pepper/LeftArm_controller/follow_joint_trajectory
+Leg                 /pepper/Pelvis_controller/follow_joint_trajectory
+Wheels              /pepper/cmd_vel
+RobotLocation       /robotLocalization/pose

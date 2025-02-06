@@ -1,0 +1,366 @@
+Wed Jan 22 11:43:19 2025
+Configuration file opened successfully: /home/emati/workspace/pepper_rob_ws/src/cssr4africa/cssr_system/animateBehaviour/config/animateBehaviourConfiguration.ini
+Wed Jan 22 11:43:19 2025
+Config: armMaximumRange = 0.15,0.15,0.2,0.35,0.2
+Wed Jan 22 11:43:19 2025
+Config: behaviour = body
+Wed Jan 22 11:43:19 2025
+Config: gestureDuration = 1.0
+Wed Jan 22 11:43:19 2025
+Config: handMaximumRange = 0.7
+Wed Jan 22 11:43:19 2025
+Config: legMaximumRange = 0.1,0.1,0.08
+Wed Jan 22 11:43:19 2025
+Config: legRepeatFactor = 8
+Wed Jan 22 11:43:19 2025
+Config: numPoints = 100
+Wed Jan 22 11:43:19 2025
+Config: numPointsLeg = 2
+Wed Jan 22 11:43:19 2025
+Config: platform = robot
+Wed Jan 22 11:43:19 2025
+Config: robotTopics = pepperTopics.dat
+Wed Jan 22 11:43:19 2025
+Config: rotMaximumRange = 0.3
+Wed Jan 22 11:43:19 2025
+Config: selectedRange = 0.5
+Wed Jan 22 11:43:19 2025
+Config: simulatorTopics = simulatorTopics.dat
+Wed Jan 22 11:43:19 2025
+Config: verboseMode = false
+Wed Jan 22 11:43:19 2025
+animateBehaviour node started. Waiting for activation...
+Wed Jan 22 11:44:13 2025
+Configuration file opened successfully: /home/emati/workspace/pepper_rob_ws/src/cssr4africa/cssr_system/animateBehaviour/config/animateBehaviourConfiguration.ini
+Wed Jan 22 11:44:13 2025
+Config: armMaximumRange = 0.15,0.15,0.2,0.35,0.2
+Wed Jan 22 11:44:13 2025
+Config: behaviour = body
+Wed Jan 22 11:44:13 2025
+Config: gestureDuration = 1.0
+Wed Jan 22 11:44:13 2025
+Config: handMaximumRange = 0.7
+Wed Jan 22 11:44:13 2025
+Config: legMaximumRange = 0.1,0.1,0.08
+Wed Jan 22 11:44:13 2025
+Config: legRepeatFactor = 8
+Wed Jan 22 11:44:13 2025
+Config: numPoints = 100
+Wed Jan 22 11:44:13 2025
+Config: numPointsLeg = 2
+Wed Jan 22 11:44:13 2025
+Config: platform = robot
+Wed Jan 22 11:44:13 2025
+Config: robotTopics = pepperTopics.dat
+Wed Jan 22 11:44:13 2025
+Config: rotMaximumRange = 0.3
+Wed Jan 22 11:44:13 2025
+Config: selectedRange = 0.5
+Wed Jan 22 11:44:13 2025
+Config: simulatorTopics = simulatorTopics.dat
+Wed Jan 22 11:44:13 2025
+Config: verboseMode = false
+Wed Jan 22 11:44:13 2025
+Configuration reloaded on enable
+Wed Jan 22 11:44:13 2025
+Animate behaviour enabled.
+Wed Jan 22 11:44:14 2025
+animateBehaviour node is active. Ready to animate.
+Wed Jan 22 11:44:14 2025
+Key: LArm, Value: /pepper_dcm/LeftArm_controller/follow_joint_trajectory
+Wed Jan 22 11:44:14 2025
+Key: LHand, Value: /pepper_dcm/LeftHand_controller/follow_joint_trajectory
+Wed Jan 22 11:44:14 2025
+Key: Leg, Value: /pepper_dcm/Pelvis_controller/follow_joint_trajectory
+Wed Jan 22 11:44:14 2025
+Key: RArm, Value: /pepper_dcm/RightArm_controller/follow_joint_trajectory
+Wed Jan 22 11:44:14 2025
+Key: RHand, Value: /pepper_dcm/RightHand_controller/follow_joint_trajectory
+Wed Jan 22 11:44:14 2025
+Key: Wheels, Value: /pepper_dcm/cmd_moveto
+Wed Jan 22 11:44:14 2025
+Data loaded successfully for platform: robot
+Wed Jan 22 11:44:14 2025
+Platform configuration loaded successfully: robot
+Wed Jan 22 11:44:14 2025
+Configuration loaded and data initialized.
+Wed Jan 22 11:44:14 2025
+[START SUBTLE BODY MOVEMENT]
+Wed Jan 22 11:44:15 2025
+----------[START RIGHT HAND ANIMATE MOVEMENT]-----------
+Wed Jan 22 11:44:15 2025
+The topic name for the right hand is /pepper_dcm/RightHand_controller/follow_joint_trajectory
+Wed Jan 22 11:44:15 2025
+The joint names for the right hand are: ["RHand"]
+Wed Jan 22 11:44:15 2025
+The home position of the right hand is [0.66608]
+Wed Jan 22 11:44:15 2025
+The random positions of the right hand are:
+Wed Jan 22 11:44:15 2025
+The size of the generated random positions are: 20
+Wed Jan 22 11:44:15 2025
+[0.52666]
+Wed Jan 22 11:44:15 2025
+[0.698426]
+Wed Jan 22 11:44:15 2025
+[0.581488]
+Wed Jan 22 11:44:15 2025
+[0.790535]
+Wed Jan 22 11:44:15 2025
+[0.571992]
+Wed Jan 22 11:44:15 2025
+[0.592457]
+Wed Jan 22 11:44:15 2025
+[0.543779]
+Wed Jan 22 11:44:15 2025
+[0.748903]
+Wed Jan 22 11:44:15 2025
+[0.608167]
+Wed Jan 22 11:44:15 2025
+[0.529286]
+Wed Jan 22 11:44:15 2025
+[0.697742]
+Wed Jan 22 11:44:15 2025
+[0.599735]
+Wed Jan 22 11:44:15 2025
+[0.513512]
+Wed Jan 22 11:44:15 2025
+[0.819375]
+Wed Jan 22 11:44:15 2025
+[0.525843]
+Wed Jan 22 11:44:15 2025
+[0.665419]
+Wed Jan 22 11:44:15 2025
+[0.827706]
+Wed Jan 22 11:44:15 2025
+[0.518145]
+Wed Jan 22 11:44:15 2025
+[0.756228]
+Wed Jan 22 11:44:15 2025
+[0.664211]
+Wed Jan 22 11:44:15 2025
+----------[END RIGHT HAND ANIMATE MOVEMENT]-----------
+Wed Jan 22 11:44:15 2025
+----------[START LEG ANIMATE MOVEMENT]-----------
+Wed Jan 22 11:44:15 2025
+The topic name for the leg is /pepper_dcm/Pelvis_controller/follow_joint_trajectory
+Wed Jan 22 11:44:15 2025
+The joint names for the leg are: ["HipPitch", "HipRoll", "KneePitch"]
+Wed Jan 22 11:44:15 2025
+The home position of the leg is [-0.0107, -0.00766, 0.03221]
+Wed Jan 22 11:44:15 2025
+The random position of the leg are:
+Wed Jan 22 11:44:15 2025
+The size of the generated random positions are: 20
+Wed Jan 22 11:44:15 2025
+[-0.105021, 0.00427868, 0.0300014]
+Wed Jan 22 11:44:15 2025
+[-0.0721456, -0.0023752, 0.0400578]
+Wed Jan 22 11:44:15 2025
+[-0.1107, -0.00766, 0.03221]
+Wed Jan 22 11:44:15 2025
+[-0.1107, -0.00766, 0.03221]
+Wed Jan 22 11:44:15 2025
+[-0.1107, -0.00766, 0.03221]
+Wed Jan 22 11:44:15 2025
+[-0.1107, -0.00766, 0.03221]
+Wed Jan 22 11:44:15 2025
+[-0.1107, -0.00766, 0.03221]
+Wed Jan 22 11:44:15 2025
+[-0.1107, -0.00766, 0.03221]
+Wed Jan 22 11:44:15 2025
+[-0.1107, -0.00766, 0.03221]
+Wed Jan 22 11:44:15 2025
+[-0.1107, -0.00766, 0.03221]
+Wed Jan 22 11:44:15 2025
+[-0.1107, -0.00766, 0.03221]
+Wed Jan 22 11:44:15 2025
+[-0.1107, -0.00766, 0.03221]
+Wed Jan 22 11:44:15 2025
+[-0.131746, 0.00756993, 0.0228718]
+Wed Jan 22 11:44:15 2025
+[-0.0786426, -0.0283515, 0.0390159]
+Wed Jan 22 11:44:15 2025
+[-0.1107, -0.00766, 0.03221]
+Wed Jan 22 11:44:15 2025
+[-0.1107, -0.00766, 0.03221]
+Wed Jan 22 11:44:15 2025
+[-0.1107, -0.00766, 0.03221]
+Wed Jan 22 11:44:15 2025
+[-0.1107, -0.00766, 0.03221]
+Wed Jan 22 11:44:15 2025
+[-0.1107, -0.00766, 0.03221]
+Wed Jan 22 11:44:15 2025
+[-0.1107, -0.00766, 0.03221]
+Wed Jan 22 11:44:15 2025
+----------[END LEG ANIMATE MOVEMENT]-----------
+Wed Jan 22 11:44:15 2025
+----------[START RIGHT ARM ANIMATE MOVEMENT]-----------
+Wed Jan 22 11:44:15 2025
+The topic name for the right arm is /pepper_dcm/RightArm_controller/follow_joint_trajectory
+Wed Jan 22 11:44:15 2025
+The joint names for the right arm are: ["RShoulderPitch", "RShoulderRoll", "RElbowRoll", "RElbowYaw", "RWristYaw"]
+Wed Jan 22 11:44:15 2025
+The home position of the right arm is [1.741, -0.09664, 0.09664, 1.6981, -0.05679]
+Wed Jan 22 11:44:15 2025
+The random position of the right arm are
+Wed Jan 22 11:44:15 2025
+The size of the generated random positions are: 20
+Wed Jan 22 11:44:15 2025
+[1.51588, -0.0467307, 0.326239, 1.4372, -0.115272]
+Wed Jan 22 11:44:15 2025
+[1.50122, -0.135705, 0.265953, 1.60114, -0.0190632]
+Wed Jan 22 11:44:15 2025
+[1.49836, -0.0620994, 0.310696, 1.344, -0.0900015]
+Wed Jan 22 11:44:15 2025
+[1.39882, -0.0874589, 0.300194, 1.62724, 0.0671479]
+Wed Jan 22 11:44:15 2025
+[1.45937, -0.095952, 0.373652, 1.55019, -0.154164]
+Wed Jan 22 11:44:15 2025
+[1.45187, -0.0954632, 0.255232, 1.63165, 0.0252552]
+Wed Jan 22 11:44:15 2025
+[1.60237, -0.0600276, 0.323251, 1.5087, -0.206207]
+Wed Jan 22 11:44:15 2025
+[1.58644, -0.105283, 0.23412, 2.00359, -0.225]
+Wed Jan 22 11:44:15 2025
+[1.65718, -0.101637, 0.255687, 1.62958, -0.22177]
+Wed Jan 22 11:44:15 2025
+[1.52973, -0.0541067, 0.370917, 1.93017, 0.0499556]
+Wed Jan 22 11:44:15 2025
+[1.60458, -0.149132, 0.32033, 1.41806, -0.0475073]
+Wed Jan 22 11:44:15 2025
+[1.44498, -0.151554, 0.288499, 1.92595, -0.151795]
+Wed Jan 22 11:44:15 2025
+[1.40991, -0.117263, 0.308992, 1.34004, 0.0666332]
+Wed Jan 22 11:44:15 2025
+[1.5468, -0.148136, 0.230807, 1.91205, -0.175178]
+Wed Jan 22 11:44:15 2025
+[1.39661, -0.0544743, 0.373982, 1.70733, 0.0716145]
+Wed Jan 22 11:44:15 2025
+[1.42193, -0.141946, 0.317914, 1.50575, -0.0248719]
+Wed Jan 22 11:44:15 2025
+[1.64106, -0.132695, 0.348494, 1.83934, 0.054444]
+Wed Jan 22 11:44:15 2025
+[1.68349, -0.122587, 0.344795, 1.64879, -0.209369]
+Wed Jan 22 11:44:15 2025
+[1.44803, -0.151125, 0.316005, 1.94494, 0.00519305]
+Wed Jan 22 11:44:15 2025
+[1.69473, -0.114353, 0.360498, 1.55983, -0.193333]
+Wed Jan 22 11:44:15 2025
+----------[END RIGHT ARM ANIMATE MOVEMENT]-----------
+Wed Jan 22 11:44:15 2025
+----------[START LEFT ARM ANIMATE MOVEMENT]-----------
+Wed Jan 22 11:44:15 2025
+The topic name for the left arm is /pepper_dcm/LeftArm_controller/follow_joint_trajectory
+Wed Jan 22 11:44:15 2025
+The joint names for the left arm are: ["LShoulderPitch", "LShoulderRoll", "LElbowRoll", "LElbowYaw", "LWristYaw"]
+Wed Jan 22 11:44:15 2025
+The home position of the left arm is [1.7625, 0.0997, -0.1334, -1.715, 0.06592]
+Wed Jan 22 11:44:15 2025
+The random position of the left arm are
+Wed Jan 22 11:44:15 2025
+The size of the generated random positions are: 20
+Wed Jan 22 11:44:15 2025
+[1.432, 0.116517, -0.417375, -1.81906, 0.195025]
+Wed Jan 22 11:44:15 2025
+[1.49241, 0.0540765, -0.266981, -1.9387, 0.136372]
+Wed Jan 22 11:44:15 2025
+[1.41642, 0.0724837, -0.35512, -1.56689, -0.0592488]
+Wed Jan 22 11:44:15 2025
+[1.69289, 0.108254, -0.35244, -1.85714, 0.025099]
+Wed Jan 22 11:44:15 2025
+[1.65485, 0.0672327, -0.322937, -1.54616, 0.151253]
+Wed Jan 22 11:44:15 2025
+[1.42161, 0.141461, -0.27094, -1.85144, 0.167929]
+Wed Jan 22 11:44:15 2025
+[1.59143, 0.12245, -0.416377, -1.82685, 0.00941671]
+Wed Jan 22 11:44:15 2025
+[1.53511, 0.0660777, -0.379803, -1.68801, 0.123974]
+Wed Jan 22 11:44:15 2025
+[1.60838, 0.112065, -0.384113, -2.05827, 0.217307]
+Wed Jan 22 11:44:15 2025
+[1.70842, 0.1215, -0.283184, -1.56844, 0.103296]
+Wed Jan 22 11:44:15 2025
+[1.56227, 0.152058, -0.289299, -1.51217, -0.0278428]
+Wed Jan 22 11:44:15 2025
+[1.50852, 0.114487, -0.320391, -1.89942, 0.0295704]
+Wed Jan 22 11:44:15 2025
+[1.67942, 0.131187, -0.284752, -1.87171, -0.0317671]
+Wed Jan 22 11:44:15 2025
+[1.50747, 0.141478, -0.38946, -1.70255, 0.171838]
+Wed Jan 22 11:44:15 2025
+[1.53711, 0.15294, -0.338477, -1.67913, -0.0311114]
+Wed Jan 22 11:44:15 2025
+[1.56933, 0.1002, -0.311824, -1.69561, -0.0916482]
+Wed Jan 22 11:44:15 2025
+[1.58289, 0.0692606, -0.355884, -1.76453, 0.172409]
+Wed Jan 22 11:44:15 2025
+[1.6176, 0.0959738, -0.326098, -1.40169, 0.144266]
+Wed Jan 22 11:44:15 2025
+[1.46347, 0.0588448, -0.281915, -1.57087, -0.0222159]
+Wed Jan 22 11:44:15 2025
+[1.67703, 0.139435, -0.41091, -1.4253, -0.0198589]
+Wed Jan 22 11:44:15 2025
+----------[END LEFT ARM ANIMATE MOVEMENT]-----------
+Wed Jan 22 11:44:15 2025
+----------[START LEFT HAND ANIMATE MOVEMENT]-----------
+Wed Jan 22 11:44:15 2025
+The topic name for the left hand is /pepper_dcm/LeftHand_controller/follow_joint_trajectory
+Wed Jan 22 11:44:15 2025
+The joint names for the left hand are: ["LHand"]
+Wed Jan 22 11:44:15 2025
+The home position of the left hand is [0.6695]
+Wed Jan 22 11:44:15 2025
+The random position of the left hand are
+Wed Jan 22 11:44:15 2025
+The size of the generated random positions are: 20
+Wed Jan 22 11:44:15 2025
+[0.791112]
+Wed Jan 22 11:44:15 2025
+[0.550712]
+Wed Jan 22 11:44:15 2025
+[0.760986]
+Wed Jan 22 11:44:15 2025
+[0.552878]
+Wed Jan 22 11:44:15 2025
+[0.614166]
+Wed Jan 22 11:44:15 2025
+[0.684591]
+Wed Jan 22 11:44:15 2025
+[0.65278]
+Wed Jan 22 11:44:15 2025
+[0.805388]
+Wed Jan 22 11:44:15 2025
+[0.704416]
+Wed Jan 22 11:44:15 2025
+[0.615421]
+Wed Jan 22 11:44:15 2025
+[0.612015]
+Wed Jan 22 11:44:15 2025
+[0.706237]
+Wed Jan 22 11:44:15 2025
+[0.513947]
+Wed Jan 22 11:44:15 2025
+[0.56659]
+Wed Jan 22 11:44:15 2025
+[0.560309]
+Wed Jan 22 11:44:15 2025
+[0.712045]
+Wed Jan 22 11:44:15 2025
+[0.844289]
+Wed Jan 22 11:44:15 2025
+[0.819556]
+Wed Jan 22 11:44:15 2025
+[0.697855]
+Wed Jan 22 11:44:15 2025
+[0.809858]
+Wed Jan 22 11:44:15 2025
+----------[END LEFT HAND ANIMATE MOVEMENT]-----------
+Wed Jan 22 11:44:22 2025
+Animate behaviour disabled.
+Wed Jan 22 11:44:24 2025
+Animate behaviour disabled and goals cancelled.
+Wed Jan 22 11:44:24 2025
+[END SUBTLE BODY MOVEMENT]
+Wed Jan 22 11:44:25 2025
+animateBehaviour node is inactive. Activate to start animating.

@@ -1,0 +1,9 @@
+Head                /pepper_dcm/Head_controller/follow_joint_trajectory
+RArm                /pepper_dcm/RightArm_controller/follow_joint_trajectory
+LArm                /pepper_dcm/LeftArm_controller/follow_joint_trajectory
+RHand               /pepper_dcm/RightHand_controller/follow_joint_trajectory
+LHand               /pepper_dcm/LeftHand_controller/follow_joint_trajectory
+Leg                 /pepper_dcm/Pelvis_controller/follow_joint_trajectory
+Wheels              /pepper_dcm/cmd_moveto
+RobotPose           /robotLocalization/pose
+JointStates         /joint_states

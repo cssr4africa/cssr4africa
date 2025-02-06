@@ -1,0 +1,5 @@
+01  LArm    lArmWelcomeGestureDescriptors.dat
+02  RArm    rArmWelcomeGestureDescriptors.dat
+03  RArm    waveGestureDescriptors.dat
+04  LArm    lArmShakeGestureDescriptors.dat
+05  RArm    rArmShakeGestureDescriptors.dat
