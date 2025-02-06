@@ -2,7 +2,7 @@
 
 <img src="CSSR4AfricaLogo.svg" alt="CSSR4Africa Logo" style="width:90%; height:auto;">
 
-Based on ethnographic research to acquire cultural knowledge about acceptable modes of communication, the CSSR4Africa project aims to equip robots with the ability to interact sensitively and politely with people in Africa using spatial, non-verbal, and verbal modes of communication. 
+Based on an ethnographic research to acquire cultural knowledge about acceptable modes of communication, the CSSR4Africa project aims to equip robots with the ability to interact sensitively and politely with people in Africa using spatial, non-verbal, and verbal modes of communication. 
 
 The project has the following objectives. 
 
