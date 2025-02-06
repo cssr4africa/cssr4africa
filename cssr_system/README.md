@@ -1,6 +1,6 @@
 ### The CSSR4Africa Project -- CSSR System
 
-<img src="CSSR4AfricaLogo.svg" alt="CSSR4Africa Logo" style="width:90%; height:auto;">
+<img src="../CSSR4AfricaLogo.svg" alt="CSSR4Africa Logo" style="width:90%; height:auto;">
 
 The is directory contains the code and resources for the CSSR4Africa project, based on the system architecture which is available in the [CSSR4Africa System Architecture](https://cssr4africa.github.io/deliverables/CSSR4Africa_Deliverable_D3.1.pdf). As of now, the available nodes are [animateBehaviour](/animateBehaviour/), [gestureExecution](/gestureExecution/), and [overtAttention](\overtAttention/). These software have been passed through the software integration process as reported in the [System Integration and Quality Assurance](https://cssr4africa.github.io/deliverables/CSSR4Africa_Deliverable_D3.5.pdf). This integration process is based on the standards set out in the [Software Engineering Standards Manual](https://cssr4africa.github.io/deliverables/CSSR4Africa_Deliverable_D3.2.pdf) and the [System Integration and Quality Assurance Manual](https://cssr4africa.github.io/deliverables/CSSR4Africa_Deliverable_D3.4.pdf). 
 
