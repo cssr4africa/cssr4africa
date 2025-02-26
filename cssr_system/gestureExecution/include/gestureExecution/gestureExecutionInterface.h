@@ -41,7 +41,7 @@
 #include "cssr_system/performGesture.h"
 #include <gestureExecution/pepperKinematicsUtilitiesInterface.h>
 #include <geometry_msgs/Pose2D.h>                       // Include for the Pose2D message of the /robotLocalization/pose topic
-#include <cssr_system/set_mode.h>                       // Include for /overtAttention/set_mode service
+#include <cssr_system/setMode.h>                       // Include for /overtAttention/set_mode service
 
 
 using namespace boost::algorithm;
