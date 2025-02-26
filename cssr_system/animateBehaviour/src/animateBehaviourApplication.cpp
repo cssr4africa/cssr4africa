@@ -139,7 +139,7 @@
  * Website: www.cssr4africa.org
  */
 
-#include "animate_behaviour/animateBehaviourInterface.h"
+#include "cssr_system/animateBehaviourInterface.h"
 
 int main(int argc, char **argv) {
     

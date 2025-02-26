@@ -14,7 +14,7 @@
 * This program comes with ABSOLUTELY NO WARRANTY.
 */
 
-#include "gestureExecution/gestureExecutionInterface.h"
+#include "cssr_system/gestureExecutionInterface.h"
 
 /* --------------------------------------------------
             GLOBAL VARIABLES 

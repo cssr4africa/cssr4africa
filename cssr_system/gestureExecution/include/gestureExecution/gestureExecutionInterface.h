@@ -39,7 +39,7 @@
 #include <csignal>
 
 #include "cssr_system/performGesture.h"
-#include <gestureExecution/pepperKinematicsUtilitiesInterface.h>
+#include <cssr_system/pepperKinematicsUtilitiesInterface.h>
 #include <geometry_msgs/Pose2D.h>                       // Include for the Pose2D message of the /robotLocalization/pose topic
 #include <cssr_system/setMode.h>                       // Include for /overtAttention/set_mode service
 

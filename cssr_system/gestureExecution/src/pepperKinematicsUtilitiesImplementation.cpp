@@ -14,7 +14,7 @@
 * This program comes with ABSOLUTELY NO WARRANTY.
 */
 
-#include <gestureExecution/pepperKinematicsUtilitiesInterface.h>
+#include <cssr_system/pepperKinematicsUtilitiesInterface.h>
 
 
 

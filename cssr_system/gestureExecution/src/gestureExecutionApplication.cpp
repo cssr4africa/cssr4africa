@@ -137,7 +137,7 @@
 *
 */
 
-#include "gestureExecution/gestureExecutionInterface.h"
+#include "cssr_system/gestureExecutionInterface.h"
 
 int main(int argc, char **argv){
     // Initialize the ROS node

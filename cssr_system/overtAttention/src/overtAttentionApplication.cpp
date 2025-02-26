@@ -145,7 +145,7 @@
 *
 */
 
-# include "overt_attention/overtAttentionInterface.h"
+# include "cssr_system/overtAttentionInterface.h"
 
 int main(int argc, char** argv) {
     // Initialize ROS
