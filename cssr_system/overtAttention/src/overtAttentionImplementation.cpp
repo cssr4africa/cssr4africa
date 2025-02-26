@@ -15,7 +15,7 @@
 * This program comes with ABSOLUTELY NO WARRANTY.
 */
 
-# include "overt_attention/overtAttentionInterface.h"
+# include "cssr_system/overtAttentionInterface.h"
 
 // Home positions for the robot head
 std::vector<double> head_home_position = {0.0, 0.0};                    // Head pitch and yaw
