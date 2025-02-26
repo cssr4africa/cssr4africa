@@ -13,7 +13,6 @@
 */
 
 #include "animateBehaviour/animateBehaviourInterface.h"
-#include "cssr_system/setActivation.h"
 
 /* Global variables */
 std::ofstream logFile;                                      // Runtime logs (auto-deleted after 10 minutes)
