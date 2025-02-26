@@ -12,7 +12,7 @@
 * Website: www.cssr4africa.org
 */
 
-#include "cssr_system/animateBehaviourInterface.h"
+#include "animateBehaviour/animateBehaviourInterface.h"
 #include "cssr_system/setActivation.h"
 
 /* Global variables */

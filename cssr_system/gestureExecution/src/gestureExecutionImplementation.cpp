@@ -14,7 +14,7 @@
 * This program comes with ABSOLUTELY NO WARRANTY.
 */
 
-#include "cssr_system/gestureExecutionInterface.h"
+#include "gestureExecution/gestureExecutionInterface.h"
 
 /* --------------------------------------------------
             GLOBAL VARIABLES 
@@ -37,7 +37,7 @@ std::vector<double> left_arm_joint_states = {0.0, 0.0, 0.0, 0.0, 0.0};
 std::vector<double> robot_pose = {0.0, 0.0, 0.0};
 
 ros::ServiceClient overt_attention_client;                                                              // Client for the overtAttention/set_mode service
-cssr_system::setmode overt_attention_srv;                                                              // Service object for the overtAttention/set_mode service
+cssr_system::setMode overt_attention_srv;                                                              // Service object for the overtAttention/set_mode service
 
 std::string node_name;                                                                                  // Stores the name of the node
 
@@ -148,7 +148,7 @@ void robot_pose_message_received(const geometry_msgs::Pose2D& msg) {
  *   The function receives a request to execute a gesture on the robot
  *   and executes the gesture based on the request parameters.
  */
-bool execute_gesture(cssr_system::perform_gesture::Request  &service_request, cssr_system::perform_gesture::Response &service_response){
+bool execute_gesture(cssr_system::performGesture::Request  &service_request, cssr_system::performGesture::Response &service_response){
     int execution_status = 0;                                                       //Stores the status of the gesture execution
     bool debug = true;                                                              //Debug mode flag
 

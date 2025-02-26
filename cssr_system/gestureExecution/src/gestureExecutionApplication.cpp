@@ -137,7 +137,7 @@
 *
 */
 
-#include "cssr_system/gestureExecutionInterface.h"
+#include "gestureExecution/gestureExecutionInterface.h"
 
 int main(int argc, char **argv){
     // Initialize the ROS node
@@ -222,7 +222,7 @@ int main(int argc, char **argv){
         ros::Duration(1).sleep();
     }
     ROS_INFO("%s: created client for the %s service.", node_name.c_str(), overt_attention_service_name.c_str());
-    overt_attention_client = n.serviceClient<cssr_system::set_mode>(overt_attention_service_name); 
+    overt_attention_client = n.serviceClient<cssr_system::setMode>(overt_attention_service_name); 
 
     // Advertise the /gestureExecution/perform_gesture service
     std::string perform_gesture_service_name = "/gestureExecution/perform_gesture";
