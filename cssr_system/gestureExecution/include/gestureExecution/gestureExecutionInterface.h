@@ -162,7 +162,7 @@ extern std::vector<double> robot_pose;
 extern ros::ServiceClient overt_attention_client;                 
 
 // Service object for the overtAttention/set_mode service
-extern cssr_system::set_mode overt_attention_srv;           
+extern cssr_system::setMode overt_attention_srv;           
 
 using namespace std;
 
@@ -216,7 +216,7 @@ void robot_pose_message_received(const geometry_msgs::Pose2D& msg) ;
  *   The function receives a request to execute a gesture on the robot
  *   and executes the gesture based on the request parameters.
  */
-bool execute_gesture(cssr_system::perform_gesture::Request  &service_request, cssr_system::perform_gesture::Response &service_response);
+bool execute_gesture(cssr_system::performGesture::Request  &service_request, cssr_system::performGesture::Response &service_response);
 
 
 /*  --------------------------------------------------

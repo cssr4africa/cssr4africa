@@ -37,7 +37,7 @@ std::vector<double> left_arm_joint_states = {0.0, 0.0, 0.0, 0.0, 0.0};
 std::vector<double> robot_pose = {0.0, 0.0, 0.0};
 
 ros::ServiceClient overt_attention_client;                                                              // Client for the overtAttention/set_mode service
-cssr_system::set_mode overt_attention_srv;                                                              // Service object for the overtAttention/set_mode service
+cssr_system::setmode overt_attention_srv;                                                              // Service object for the overtAttention/set_mode service
 
 std::string node_name;                                                                                  // Stores the name of the node
 
