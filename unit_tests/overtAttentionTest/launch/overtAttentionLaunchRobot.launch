@@ -2,6 +2,7 @@
 <launch>
   <arg name="robot_ip"                            default="172.29.111.240" /> <!-- 127.0.0.1 -->
   <arg name="nao_ip"                              default="$(optenv NAO_IP)" />
+  <arg name="nao_port"                            default="$(optenv NAO_PORT 9559)" />
   <arg name="robot_port"                          default="9559" />
   <arg name="roscore_ip"                          default="172.29.111.237" />
   <arg name="network_interface"                   default="wlp0s20f3" />
@@ -31,7 +32,7 @@
 
   <!-- Launch naoqi_driver_node -->
     <node pkg="naoqi_driver" type="naoqi_driver_node" name="$(arg naoqi_driver_namespace)" required="true"
-        args="--qi-url=tcp://$(arg robot_ip):$(arg robot_port) --roscore_ip=$(arg roscore_ip) --network_interface=$(arg network_interface) --namespace=$(arg naoqi_driver_namespace)"
+        args="--qi-url=tcp://$(arg nao_ip):$(arg nao_port) --roscore_ip=$(arg roscore_ip) --network_interface=$(arg network_interface) --namespace=$(arg naoqi_driver_namespace)"
         output="screen" launch-prefix="bash -c 'sleep 15; $0 $@'" />
 
 
