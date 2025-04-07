@@ -10,7 +10,7 @@
 ## Overview
 The dashboard Questionnaire Dashboard is an interactive data visualization tool built using Dash and Plotly. It displays survey responses dynamically, supports bar charts, and provides insights into cultural knowledge based on Google Sheets or Excel files.
 # Documentation
-Accompnaying this code, there are deliverable reports that provides a detailed explanation of the code and how to run the tests. The deliverable reports are can be found in [D1.2 Rwandan Cultural Knowledge, version 1](https://cssr4africa.github.io/deliverables/CSSR4Africa_Deliverable_D1.2.pdf)
+Accompanying this code, there are deliverable reports that provides a detailed explanation of the code and how to run the tests. The deliverable reports are can be found in [D1.2 Rwandan Cultural Knowledge, version 1](https://cssr4africa.github.io/deliverables/CSSR4Africa_Deliverable_D1.2.pdf)
 
 ## Features
 - Fetches survey data from Google Sheets or Excel
