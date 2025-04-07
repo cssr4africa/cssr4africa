@@ -4,7 +4,7 @@
 </div>
 
 <div align="center">
-  <img src="CSSR4AfricaLogo.svg" alt="CSSR4Africa Logo" style="width:80%; height:auto;">
+  <img src="../CSSR4AfricaLogo.svg" alt="CSSR4Africa Logo" style="width:80%; height:auto;">
 </div>
 
 ## Overview
@@ -43,8 +43,17 @@ Accompnaying this code, there are deliverable reports that provides a detailed e
 ## Clone the Repository
 - Clone the CSSR4Africa software from the GitHub repository
      ``` bash 
+         cd ~/workspace/pepper_rob_ws/src
          git clone https://github.com/cssr4africa/cssr4africa.git
-         cd dashboard
+     ```
+- Create a Python virtual environment
+     ``` bash 
+         Python3 -m venv dashboard_env
+         cd cssr4africa/dashboard
+     ```
+- Activate the virtual environment
+     ``` bash 
+         source ~/workspace/pepper_rob_ws/src/dashboard_env/bin/activate
      ```
 - Install Dependencies
      ``` bash 
@@ -52,28 +61,30 @@ Accompnaying this code, there are deliverable reports that provides a detailed e
      ```
      
 - Configure Data Source: Modify the config/dashboard_configuration file to use Google Sheets or Excel:
-
-    - Option 1: Use Google Sheets
-    Set up a Google Service Account and download the JSON credentials file. Move the file to the data/ folder, then update dashboard_configuration.ini in the config/ folder as follows.
-        ``` bash 
-            use_spreadsheet             false                                            # Set this to true
-            use_excel                   true                                             # Set this to false
-            spreadsheet_id              1nWPZX65-UQ-4nUGiKPIyPFY5AmtvW8ZdeyXEP-K5Vv      # Update this 
-            excel_file                  Cultural Knowledge Survey.xlsx                   # default
-            excel_sheet                 Sheet1_English_Version                           # default
-       ```
-    - Option 2: Use Excel File
-   The Excel version of the data is in the data/ folder, and if Google Sheets is not needed, update dashboard_configuration.ini in the config/ folder as follows.
+    - Option 1: Use Excel File (Default configuration)
+    
+        The Excel version of the data is in the data/ folder, and if Google Sheets is not needed, update dashboard_configuration.ini in the config/ folder as follows.
          ``` bash 
-            use_spreadsheet             false                                            # Set this to false
-            use_excel                   true                                             # Set this to true
-            spreadsheet_id              1nWPZX65-UQ-4nUGiKPIyPFY5AmtvW8ZdeyXEP-K5Vv      # default
-            excel_file                  Cultural Knowledge Survey.xlsx                   # Update with the appropriate Excel file name
-            excel_sheet                 Sheet1_English_Version                           # This is the first sheet name of the Excel file.
+            useSpreadsheet             false                                            # Set this to false
+            useExcel                   true                                             # Set this to true
+            spreadsheetId              1nWPZX65-UQ-4nUGiKPIyPFY5AmtvW8ZdeyXEP-K5Vv      # default
+            excelFile                  Cultural Knowledge Survey.xlsx                   # Update with the appropriate Excel file name
+            excelSheet                 Sheet1_English_Version                           # This is the first sheet name of the Excel file.
        ```
+    - Option 2: Use Google Sheets
+
+        Set up a Google Service Account and download the JSON credentials file. Move the file to the data/ folder, then update dashboard_configuration.ini in the config/ folder as follows.
+        ``` bash 
+            useSpreadsheet             false                                            # Set this to true
+            useExcel                   true                                             # Set this to false
+            spreadsheetId              1nWPZX65-UQ-4nUGiKPIyPFY5AmtvW8ZdeyXEP-K5Vv      # Update this 
+            excelFile                  Cultural Knowledge Survey.xlsx                   # default
+            excelSheet                 Sheet1_English_Version                           # default
+       ```
+    
 - Running the Dashboard
     ``` bash 
-       python .\src\dashboard_application.py
+       python ./src/dashboard_application.py
     ```
 -  Open http://127.0.0.1:8050/ in your browser.
 

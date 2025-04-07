@@ -195,4 +195,4 @@ def update_extra(selected_question):
     return update_extra_section(selected_question)  # Calls the imported function
 
 if __name__ == "__main__":
-    app.run_server(debug=True)
+    app.run(debug=True)

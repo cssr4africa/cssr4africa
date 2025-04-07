@@ -49,12 +49,13 @@ def read_config(file_path):
 # Read config values
 config = read_config(config_path)
 
-# Get configuration values
-use_spreadsheet = config.get("use_spreadsheet", "false").lower() == "true"
-use_excel = config.get("use_excel", "true").lower() == "true"
-spreadsheet_id = config.get("spreadsheet_id", "")
-excel_file_name = config.get("excel_file", "Cultural Knowledge Survey.xlsx")
-excel_sheet_name = config.get("excel_sheet", "Sheet1_English_Version")
+# Get configuration values (camelCase)
+use_spreadsheet = config.get("useSpreadsheet", "false").lower() == "true"
+use_excel = config.get("useExcel", "true").lower() == "true"
+spreadsheet_id = config.get("spreadsheetId", "")
+excel_file_name = config.get("excelFile", "Cultural Knowledge Survey.xlsx")
+excel_sheet_name = config.get("excelSheet", "Sheet1_English_Version")
+
 
 # Initialize dataframe
 CSSR4all = None

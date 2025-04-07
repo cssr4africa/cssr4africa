@@ -161,9 +161,10 @@ def update_table(selected_question):
                                                   'margin-top': '200px'})))
     if column_name in three_ans_list:
         # the value of the column
-        description_column_1 = CSSR4all.iloc[:, column_index + 1].astype(str)
-        description_column_2 = CSSR4all.iloc[:, column_index + 2].astype(str)
-        description_column_3 = CSSR4all.iloc[:, column_index + 3].astype(str)
+        description_column_1 = CSSR4all.iloc[:, column_index + 1].fillna('').astype(str)
+        description_column_2 = CSSR4all.iloc[:, column_index + 2].fillna('').astype(str)
+        description_column_3 = CSSR4all.iloc[:, column_index + 3].fillna('').astype(str)
+
 
         # column name or title
         description_column_nam_1 = CSSR4all.columns[column_index + 1]
@@ -171,7 +172,7 @@ def update_table(selected_question):
         description_column_nam_3 = CSSR4all.columns[column_index + 3]
 
         for desc1, desc2, desc3 in zip(description_column_1, description_column_2, description_column_3):
-            description_column.append(f'{desc1}. {desc2}. {desc3}.' if desc1 != 'nan' and desc2 != 'nan' and desc2 != 'nan' else '')
+            description_column.append(f'{desc1}. {desc2}. {desc3}.' if desc1 != 'nan' and desc2 != 'nan' and desc3 != 'nan' else '')
 
         dynamic_columns = [{'name': description_column_nam_1, 'id': description_column_nam_1},
                            {'name': description_column_nam_2, 'id': description_column_nam_2},
@@ -182,19 +183,22 @@ def update_table(selected_question):
                       if desc1 != '' or desc2 != '' or desc3 != '']
 
     elif column_name in two_ans_list:
-        description_column_1 = CSSR4all.iloc[:, column_index + 1].astype(str)
-        description_column_2 = CSSR4all.iloc[:, column_index + 2].astype(str)
+        description_column_1 = CSSR4all.iloc[:, column_index + 1].fillna('').astype(str)
+        description_column_2 = CSSR4all.iloc[:, column_index + 2].fillna('').astype(str)
+
         description_column_nam_1 = CSSR4all.columns[column_index + 1]
         description_column_nam_2 = CSSR4all.columns[column_index + 2]
+
         for desc1, desc2 in zip(description_column_1, description_column_2):
-            description_column.append(f'{desc1}. {desc2}.' if desc1 != 'nan' and desc2 != 'nan' else '')
+            if desc1.strip() or desc2.strip():
+                description_column.append(f'{desc1}. {desc2}.')
 
         dynamic_columns = [{'name': description_column_nam_1, 'id': description_column_nam_1},
-                           {'name': description_column_nam_2, 'id': description_column_nam_2}]
+                        {'name': description_column_nam_2, 'id': description_column_nam_2}]
 
         table_data = [{dynamic_columns[0]['name']: desc1, dynamic_columns[1]['name']: desc2}
-                      for desc1, desc2 in zip(description_column_1, description_column_2)
-                      if desc1 != '' or desc2 != '']
+                    for desc1, desc2 in zip(description_column_1, description_column_2)
+                    if desc1.strip() or desc2.strip()]
 
     elif column_name in one_ans_list:
         description_column = [f'{result}' for result in CSSR4all.iloc[:, column_index + 1].astype(str)]
