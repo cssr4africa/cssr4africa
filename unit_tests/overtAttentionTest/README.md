@@ -1,13 +1,9 @@
-# Overt Attention Tests
-<a href="https://cssr4africa.github.io/"> <img src="https://github.com/cssr4africa/cssr4africa.github.io/blob/main/docs/images/CSSRforAfrica_logo_red.png?raw=true" alt="CSSR4Africa" height=20> </a>
-
-
 <div align="center">
   <h1>Overt Attention Unit Test</h1>
 </div>
 
 <div align="center">
-  <img src="CSSR4AfricaLogo.svg" alt="CSSR4Africa Logo" style="width:50%; height:auto;">
+  <img src="../../CSSR4AfricaLogo.svg" alt="CSSR4Africa Logo" style="width:50%; height:auto;">
 </div>
 
 This module provides unit tests for the `overtAttention` node within the CSSR4Africa project (`cssr_system` package). The node evaluate the execution of various attention modes on the Pepper humanoid robot. These tests ensure the accuracy and consistency of attention modes such as scanning, social, location, disabled, and seeking.

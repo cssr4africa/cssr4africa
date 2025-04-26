@@ -4,7 +4,7 @@
 </div>
 
 <div align="center">
-  <img src="CSSR4AfricaLogo.svg" alt="CSSR4Africa Logo" style="width:50%; height:auto;">
+  <img src="../../CSSR4AfricaLogo.svg" alt="CSSR4Africa Logo" style="width:50%; height:auto;">
 </div>
 
 This module provides unit tests for the `gestureExecution` node within the CSSR4Africa project (`cssr_system` package). The node evaluate the execution of various gestures on the Pepper humanoid robot. These tests ensure the accuracy and consistency of gestures such as deictic (pointing), iconic, bow, and nod gestures.

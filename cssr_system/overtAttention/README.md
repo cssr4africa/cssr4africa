@@ -4,7 +4,7 @@
 
 
 <div align="center">
-  <img src="CSSR4AfricaLogo.svg" alt="CSSR4Africa Logo" style="width:50%; height:auto;">
+  <img src="../../CSSR4AfricaLogo.svg" alt="CSSR4Africa Logo" style="width:50%; height:auto;">
 </div>
 
 The `overtAttention` ROS node enhances the Pepper humanoid robot's ability to perform meaningful and dynamic attention behaviors, improving its interactive capabilities. This ROS node hosts a service that allows users to invoke a variety of attention behaviors, including looking at faces, scanning the environment, and focusing on a particular location.

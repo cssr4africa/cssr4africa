@@ -1,10 +1,10 @@
 <div align="center">
-  <h1>Animate Behaviour Module for ROS</h1>
+  <h1>Animate Behaviour</h1>
 </div>
 
 
 <div align="center">
-  <img src="CSSR4AfricaLogo.svg" alt="CSSR4Africa Logo" style="width:50%; height:auto;">
+  <img src="../../CSSR4AfricaLogo.svg" alt="CSSR4Africa Logo" style="width:50%; height:auto;">
 </div>
 
 The animateBehaviour ROS node enhances robot interactions by creating lifelike presence through subtle, continuous movements. It achieves this by generating random patterns of body movements, hand flexing, and base rotation while keeping joint positions close to their default home values. The node controls all joints except headYaw and headPitch, and supports base rotation without forward movement. Movement ranges are configurable, with actual motions randomly sampled within specified limits. To respect culturally sensitive social interactions, these animations can be selectively enabled or disabled through a ROS service, allowing individual or combined activation of body, hand, and rotational movements. The system is designed to work seamlessly with both physical robots and simulators through platform-specific topic mapping configurations.

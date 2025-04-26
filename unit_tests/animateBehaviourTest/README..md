@@ -1,8 +1,8 @@
 
-# Animate Behaviour Unit Test for ROS
+# Animate Behaviour Unit Test
 
 <div align="center">
-  <img src="CSSR4AfricaLogo.svg" alt="CSSR4Africa Logo" style="width:50%; height:auto;">
+  <img src="../../CSSR4AfricaLogo.svg" alt="CSSR4Africa Logo" style="width:50%; height:auto;">
 </div>
 
 This module provides unit tests for the animateBehaviour ROS node within the CSSR4Africa project. The node enhances robot interactions by creating a lifelike presence through subtle, continuous movements. It achieves this by generating random patterns of body movements, hand flexing, and base rotation while keeping joint positions close to their default home values for robotic or simulator platforms. The tests verify the correct execution of animations in various modes: animate behaviours, hands, body, rotation, or all components combined.
