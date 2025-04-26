@@ -9,6 +9,7 @@ project(cssr_system)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   roscpp
+  rospy
   roslib
   cv_bridge
   image_transport
@@ -16,6 +17,10 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   actionlib
   control_msgs
+  geometry_msgs
+  nav_msgs
+  tf
+  angles
   message_generation
 )
 
@@ -58,6 +63,9 @@ find_package(catkin REQUIRED COMPONENTS
 # file(GLOB MSG_FILES ${PROJECT_NAME}/gestureExecution/msg/*.msg)
 # file(GLOB SRV_FILES ${PROJECT_NAME}/gestureExecution/srv/*.srv)
 
+
+# catkin_python_setup()  # Needs to be called before generate_messages()
+
 # Generate messages in the 'msg' folder
 add_message_files(
   DIRECTORY
@@ -75,6 +83,23 @@ add_message_files(
   Status.msg
   # Message2.msg
 )
+
+add_message_files(
+  DIRECTORY
+  face_detection/msg
+  FILES
+  face_detection_msg_file.msg
+  # Message2.msg
+)
+
+## Add service and message files
+add_message_files(
+  DIRECTORY
+  person_detection/msg
+  FILES
+  person_detection_msg_file.msg
+)
+
 
 
 ## Generate services in the 'srv' folder
@@ -102,6 +127,7 @@ add_service_files(
   # Service2.srv
 )
 
+
 ## Generate actions in the 'action' folder
 # add_action_files(
 #   FILES
@@ -113,6 +139,8 @@ add_service_files(
 generate_messages(
   DEPENDENCIES
   std_msgs  # Or other packages containing msgs
+  sensor_msgs
+  geometry_msgs
 )
 
 ################################################
@@ -145,7 +173,7 @@ generate_messages(
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
- INCLUDE_DIRS gestureExecution overtAttention animateBehaviour
+ INCLUDE_DIRS gestureExecution overtAttention animateBehaviour robotNavigation mapGeneration
  LIBRARIES ${PROJECT_NAME}
 #  CATKIN_DEPENDS roscpp
 #  DEPENDS system_lib
@@ -156,12 +184,13 @@ catkin_package(
 # find_package(Boost REQUIRED COMPONENTS system)
 find_package(OpenCV REQUIRED)
     catkin_package(
-    CATKIN_DEPENDS cv_bridge image_transport roscpp sensor_msgs std_msgs
+    CATKIN_DEPENDS cv_bridge image_transport roscpp sensor_msgs std_msgs geometry_msgs rospy sensor_msgs roslib nav_msgs tf angles message_runtime
 )
 
 ###########
 ## Build ##
 ###########
+
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations

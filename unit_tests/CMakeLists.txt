@@ -9,6 +9,7 @@ project(unit_tests)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
 roscpp
+rospy
 roslib
 cv_bridge
 image_transport
@@ -67,6 +68,22 @@ add_message_files(
   faceDetection.msg
 )
 
+
+add_message_files(
+  DIRECTORY
+  face_detection_test/msg
+  FILES
+  face_detection_test_msg_file.msg
+)
+
+add_message_files(
+  DIRECTORY
+  person_detection_test/msg
+  FILES
+  person_detection_test_msg_file.msg
+)
+
+
 add_service_files(
   DIRECTORY
   gestureExecutionTest/srv
@@ -88,12 +105,15 @@ add_service_files(
 #   Action2.action
 # )
 
+# catkin_python_setup()  # Needs to be called before generate_messages()
+
 ## Generate added messages and services with any dependencies listed here
 generate_messages(
   DEPENDENCIES
   std_msgs  # Or other packages containing msgs
   geometry_msgs
   sensor_msgs
+  nav_msgs
 )
 
 ################################################
@@ -128,6 +148,7 @@ generate_messages(
 catkin_package(
  INCLUDE_DIRS gestureExecutionTest
  INCLUDE_DIRS overtAttentionTest
+ INCLUDE_DIRS animateBehaviourTest
  LIBRARIES ${PROJECT_NAME}
 #  CATKIN_DEPENDS roscpp
 #  DEPENDS system_lib
@@ -138,7 +159,7 @@ catkin_package(
 # find_package(Boost REQUIRED COMPONENTS system)
 find_package(OpenCV REQUIRED)
     catkin_package(
-      CATKIN_DEPENDS roscpp roslib std_msgs nav_msgs geometry_msgs sensor_msgs image_transport cv_bridge tf angles message_runtime
+      CATKIN_DEPENDS roscpp roslib std_msgs nav_msgs geometry_msgs sensor_msgs image_transport cv_bridge tf angles message_runtime rospy
 )
 
 ###########

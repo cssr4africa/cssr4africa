@@ -1,0 +1,8 @@
+opencv-python==4.10.0.84
+mediapipe==0.10.10
+numpy==1.26.3
+onnxruntime-gpu==1.19.0
+scipy==1.14.1
+rospkg==1.5.1
+lap==0.5.12
+filterpy==1.4.5

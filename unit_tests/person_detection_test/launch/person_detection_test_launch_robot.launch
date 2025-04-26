@@ -1,0 +1,42 @@
+<launch>
+    <!-- Declare arguments -->
+    <arg name="camera"              default="video" doc="Set realsense for realsense camera, pepper for pepper camera, video for recorded video data" />
+    <arg name="bag_file"            default="single_person" doc="Choose which bag file to play (e.g., 'single_person' for file ending in _single_person.bag)" />
+    <arg name="robot_ip"            default="172.29.111.230" />
+    <arg name="roscore_ip"          default="127.0.0.1" />
+    <arg name="robot_port"          default="9559" />
+    <arg name="network_interface"   default="wlp0s20f3" />
+    <arg name="namespace"           default="naoqi_driver" />
+    
+    <!-- Set the /faceDetectionTest/camera parameter based on the selected camera -->
+    <param name="/personDetection/camera"     value="$(arg camera)" />
+    <param name="/personDetection/unit_tests"  value="true" />
+
+    <!-- Compute full path dynamically for rosbag -->
+    <arg name="bag_file_path" default="$(find unit_tests)/person_detection_test/data/person_detection_test_input_realsense_$(arg bag_file).bag"/>
+
+    <!-- If RealSense is selected, launch both RealSense and naoqi_driver -->
+    <group if="$(eval arg('camera') == 'realsense')">
+        <include file="$(find realsense2_camera)/launch/rs_camera.launch">
+            <arg name="color_width"     value="640" />
+            <arg name="color_height"    value="480" />
+            <arg name="color_fps"       value="15" />
+            <arg name="depth_width"     value="640" />
+            <arg name="depth_height"    value="480" />
+            <arg name="depth_fps"       value="15" />
+            <arg name="align_depth"     value="true" />
+        </include>
+    </group>
+
+    <!-- If Pepper camera is selected, launch only naoqi_driver -->
+    <group if="$(eval arg('camera') == 'pepper')">
+        <node pkg="naoqi_driver" type="naoqi_driver_node" name="$(arg namespace)" required="true"
+            args="--qi-url=tcp://$(arg robot_ip):$(arg robot_port) --roscore_ip $(arg roscore_ip) --network_interface $(arg network_interface) --namespace $(arg namespace)"
+            output="screen" />
+    </group>
+
+    <!-- If using recorded video, play rosbag -->
+    <group if="$(eval arg('camera') == 'video')">
+        <node pkg="rosbag" type="play" name="rosbag_play" args="$(arg bag_file_path)" required="true"/>
+    </group>
+</launch>
