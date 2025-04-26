@@ -1,6 +1,6 @@
 # Pepper Interface Tests
 
-<img src="CSSR4AfricaLogo.svg" alt="CSSR4Africa Logo" style="width:100%; height:auto;">
+<img src="../CSSR4AfricaLogo.svg" alt="CSSR4Africa Logo" style="width:100%; height:auto;">
 
 The Pepper interface tests package is a ROS package designed to test the sensors and actuators of the Pepper robot on both physical and simulated platforms. After setting up the development environment using the software installation document as outlined in the [D3.3 Software Installation Manual](https://cssr4africa.github.io/deliverables/CSSR4Africa_Deliverable_D3.3.pdf), the package can be installed and run on the Pepper robot.
 
