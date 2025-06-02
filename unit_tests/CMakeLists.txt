@@ -61,6 +61,7 @@ message_generation
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
+
 add_message_files(
   DIRECTORY
   overtAttentionTest/msg
@@ -83,6 +84,13 @@ add_message_files(
   person_detection_test_msg_file.msg
 )
 
+# Add message files
+add_message_files(
+  DIRECTORY
+  sound_detection_test/msg
+  FILES
+  sound_detection_test_microphone_msg_file.msg
+)
 
 add_service_files(
   DIRECTORY
@@ -91,11 +99,19 @@ add_service_files(
   setMode.srv
 )
 
+
 add_service_files(
   DIRECTORY
   gestureExecutionTest/srv
   FILES
   setPose.srv
+)
+
+add_service_files(
+  DIRECTORY
+  speech_event_test/srv
+  FILES
+  set_next_test_file.srv
 )
 
 ## Generate actions in the 'action' folder

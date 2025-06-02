@@ -1,0 +1,13 @@
+<launch>
+
+    <!-- Define the virtual environment path -->
+    <arg name="sound_detection_env_path" default="~/workspace/pepper_rob_ws/src/cssr4africa_virtual_envs/cssr4africa_sound_detection_env" />
+
+
+    <!-- Start the main sound detection node -->
+    <node pkg="cssr_system" type="sound_detection_application.py" name="soundDetection" output="screen" required="true"
+        launch-prefix="bash -c 'source $(arg sound_detection_env_path)/bin/activate; $0 $@'"/>
+    
+    <!-- Start the sound detection test node -->
+    <node pkg="unit_tests" type="sound_detection_test_application.py" name="soundDetectionTest" output="screen" />
+</launch>
