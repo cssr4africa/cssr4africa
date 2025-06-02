@@ -44,12 +44,13 @@
 #include <signal.h>
 #include <csignal>
 #include <std_msgs/Float64.h>                                   // For publishing Float64 messages
+#include "std_msgs/Float32.h"                                   // For publishing Float32 messages
 #include <trajectory_msgs/JointTrajectory.h>
 #include <trajectory_msgs/JointTrajectoryPoint.h>
 #include <fstream>
 #include <sstream>
 #include <iostream>
-#include "unit_tests/faceDetection.h"                            // For subscribing to the /face_detection/data topic
+#include "cssr_system/face_detection_msg_file.h"                            // For subscribing to the /face_detection/data topic
 #include <geometry_msgs/Pose2D.h>                       // Include for the Pose2D message of the /robotLocalization/pose topic
 #include "geometry_msgs/Point.h"                                // For storing the centroids of the detected faces
 #include "cssr_system/setMode.h"                               // For advertising the /overAttention/set_mode service
@@ -282,13 +283,13 @@ extern bool node_initialized;                                                   
  *   Callback function for the face detection data received from the /face_detection/data topic
  *   The function receives the face detection data and computes the required head angles to look at the detected faces
  */
-void face_detection_data_received(const unit_tests::faceDetection& data_msg);
+void face_detection_data_received(const cssr_system::face_detection_msg_file& data_msg);
 
 /* 
  *   Callback function for the sound localization data received from the /soundDetection/direction topic
  *   The function receives the sound localization data and stores the angle of the sound source
  */
-void sound_localization_data_received(const std_msgs::Float64& data_msg);
+void sound_localization_data_received(const std_msgs::Float32& data_msg);
 
 /* 
  *   Callback function for the camera image received from the /camera/color/image_raw topic

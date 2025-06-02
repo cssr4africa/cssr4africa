@@ -150,6 +150,13 @@ int main(int argc, char **argv) {
 
     // Capture the node name and version
     nodeName = ros::this_node::getName();
+
+    // Remove leading slash from node name
+    if (!nodeName.empty() && nodeName[0] == '/') {
+        nodeName.erase(0, 1);
+    }
+    
+    // Define the software version
     std::string softwareVersion = "Version: 1.0";
 
     ROS_INFO("\n%s and %s\n"

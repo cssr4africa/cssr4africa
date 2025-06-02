@@ -146,6 +146,10 @@ int main(int argc, char **argv){
 
     // Get the name of the node
     node_name = ros::this_node::getName();
+    // Remove leading slash from node name
+    if (!node_name.empty() && node_name[0] == '/') {
+        node_name.erase(0, 1);
+    }
 
     // Register the signal handler
     signal(SIGINT, shut_down_handler);                                                      // The signal handler for the interrupt signal

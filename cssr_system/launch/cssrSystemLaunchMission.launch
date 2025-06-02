@@ -12,26 +12,52 @@
   <arg name="robot_navigation_namespace"          default="robotNavigation" />
   <arg name="animate_behaviour_namespace"         default="animateBehaviour" />
   <arg name="face_detection_namespace"            default="faceDetection" />
+  <arg name="person_detection_namespace"          default="personDetection" />
+  <arg name="sound_detection_namespace"           default="soundDetection" />
   <arg name="speech_event_namespace"              default="speechEvent" />
-  <arg name="behavior_mission_interpreter_namespace" default="behaviorMissionInterpreter" />
+  <arg name="behavior_mission_interpreter_namespace" default="behaviorController" />
 
   <arg name="initial_robot_x"                     default="0.0" />
   <arg name="initial_robot_y"                     default="0.0" />
   <arg name="initial_robot_theta"                 default="0.0" />
 
+
   <!-- Define the virtual environment path -->
-  <!-- <arg name="face_detection_env_path" default="/home/cssr4a/face_gaze_detection" />
-  <arg name="speech_recognition_env_path" default="/home/cssr4a/speech_env" /> -->
+  <arg name="face_person_detection_env_path" default="~/workspace/pepper_rob_ws/src/cssr4africa_virtual_envs/cssr4africa_face_person_detection_env" />
+
+  <!-- Define the virtual environment path -->
+  <arg name="sound_detection_env_path" default="~/workspace/pepper_rob_ws/src/cssr4africa_virtual_envs/cssr4africa_sound_detection_env" />
+
+  <!-- Define the virtual environment path -->
+  <arg name="speech_event_env_path" default="~/workspace/pepper_rob_ws/src/cssr4africa_virtual_envs/cssr4africa_speech_event_env" />
+
 
   <!-- Launch the animateBehaviour node -->
   <node pkg="$(arg cssr_system_namespace)" type="$(arg animate_behaviour_namespace)" name="$(arg animate_behaviour_namespace)" 
-    required="true" output="screen" launch-prefix="bash -c 'sleep 0; $0 $@'" />
+      required="true" output="screen" launch-prefix="bash -c 'sleep 0; $0 $@'" />
 
-    <!-- Launch the faceDetection node within the virtual environment -->
-    <!-- <node pkg="face_detection" type="face_detection_application.py" name="$(arg face_detection_namespace)" output="screen" launch-prefix="bash -c 'sleep 0; source $(arg face_detection_env_path)/bin/activate; rosrun face_detection face_detection_application.py'" /> -->
+  <!-- Start the sound detection node -->
+  <node pkg="$(arg cssr_system_namespace)" type="sound_detection_application.py" name="$(arg sound_detection_namespace)" output="screen" required="true"
+      launch-prefix="bash -c 'source $(arg sound_detection_env_path)/bin/activate; $0 $@'"/>
 
-  <!-- Launch the speechEvent node within the virtual environment -->
-    <!-- <node pkg="speech_event" type="transcription.py" name="$(arg speech_event_namespace)" output="screen" launch-prefix="bash -c 'sleep 5; source $(arg speech_recognition_env_path)/bin/activate; python3 $0; rosrun speech_event transcription.py'" /> -->
+  <!-- Run the Face Detection Node -->
+  <node name="$(arg face_detection_namespace)" pkg="$(arg cssr_system_namespace)" type="face_detection_application.py" output="screen" required="true"
+      launch-prefix="bash -c 'source $(arg face_person_detection_env_path)/bin/activate; $0 $@'"/>
+  
+  <!-- Run the Person Detection Node -->
+  <node name="$(arg person_detection_namespace)" pkg="$(arg cssr_system_namespace)" type="person_detection_application.py" output="screen" required="true"
+      launch-prefix="bash -c 'source $(arg face_person_detection_env_path)/bin/activate; $0 $@'"/>
+
+  <node pkg="$(arg cssr_system_namespace)" type="speech_event_application.py" name="$(arg speech_event_namespace)" output="screen" required="true"
+      launch-prefix="bash -c 'source $(arg speech_event_env_path)/bin/activate; sleep 15; $0 $@'"/>
+
+  <!-- Launch overt_attention node -->
+  <node pkg="$(arg cssr_system_namespace)" type="$(arg overt_attention_namespace)" name="$(arg overt_attention_namespace)" 
+      required="true" output="screen" launch-prefix="bash -c 'sleep 20; $0 $@'" />
+
+  <!-- Launch gesture_execution node -->
+  <node pkg="$(arg cssr_system_namespace)" type="$(arg gesture_execution_namespace)" name="$(arg gesture_execution_namespace)" 
+      required="true" output="screen" launch-prefix="bash -c 'sleep 30; $0 $@'" />
   
     <!-- Launch robot_localization node // Change package name to cssr_system later -->
   <!-- <node pkg="robot_localization" type="$(arg robot_localization_namespace)" name="$(arg robot_localization_namespace)" 
@@ -40,14 +66,7 @@
       <param name="initial_robot_y"                   value="$(arg initial_robot_y)" />
       <param name="initial_robot_theta"               value="$(arg initial_robot_theta)" /> -->
 
-  <!-- Launch overt_attention node -->
-  <node pkg="$(arg cssr_system_namespace)" type="$(arg overt_attention_namespace)" name="$(arg overt_attention_namespace)" 
-    required="true" output="screen" launch-prefix="bash -c 'sleep 10; $0 $@'" />
-
-  <!-- Launch gesture_execution node -->
-  <node pkg="$(arg cssr_system_namespace)" type="$(arg gesture_execution_namespace)" name="$(arg gesture_execution_namespace)" 
-    required="true" output="screen" launch-prefix="bash -c 'sleep 15; $0 $@'" />
-
+  
   <!-- Launch robot_navigation node // Change package name to cssr_system later -->
   <!-- <node pkg="robot_navigation" type="$(arg robot_navigation_namespace)" name="$(arg robot_navigation_namespace)" 
     required="true" output="screen" launch-prefix="bash -c 'sleep 20; $0 $@'" /> -->

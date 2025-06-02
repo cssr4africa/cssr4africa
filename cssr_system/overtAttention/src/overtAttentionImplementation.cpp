@@ -121,7 +121,7 @@ bool node_initialized = false;                                         // Flag t
  *   Callback function for the face detection data received from the /face_detection/data topic
  *   The function receives the face detection data and computes the required head angles to look at the detected faces
  */
-void face_detection_data_received(const unit_tests::faceDetection& data_msg){
+void face_detection_data_received(const cssr_system::face_detection_msg_file& data_msg){
     size_t message_length = data_msg.centroids.size();                  // Get the number of faces detected
 
     if (message_length == 0) {                                          // Check if no face is detected
@@ -203,7 +203,7 @@ void face_detection_data_received(const unit_tests::faceDetection& data_msg){
  *   Callback function for the sound localization data received from the /soundDetection/direction topic
  *   The function receives the sound localization data and stores the angle of the sound source
  */
-void sound_localization_data_received(const std_msgs::Float64& data_msg){
+void sound_localization_data_received(const std_msgs::Float32& data_msg){
     if(isnan(std::abs(data_msg.data))){                                 // Check if the sound localization data is NaN
         angle_of_sound = previous_angle_of_sound;                       // Set the angle of sound to the previous angle of sound
         return;
@@ -301,6 +301,7 @@ bool set_mode(cssr_system::setMode::Request  &service_request, cssr_system::setM
         mutual_gaze_detected = false;                                   // Reset the mutual gaze detected status
         seeking_index = -1;                                              // Reset the seeking index to 0
         seeking_rotation_count = 0;
+        seeking_completed = false;
         service_response.mode_set_success = 1;                          // Attention mode set to scanning successfully
     } 
     else if(attention_system_state == ATTENTION_LOCATION_STATE){

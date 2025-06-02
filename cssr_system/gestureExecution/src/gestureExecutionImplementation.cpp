@@ -2608,9 +2608,9 @@ int deictic_gesture(float point_x, float point_y, float point_z, int gesture_dur
 
     // Set the required fields to the overtAttention/set_mode service request
     overt_attention_srv.request.state = "location";
-    overt_attention_srv.request.location_x = pointing_x / 1000;
-    overt_attention_srv.request.location_y = pointing_y / 1000;
-    overt_attention_srv.request.location_z = pointing_z / 1000;
+    overt_attention_srv.request.location_x = point_x;
+    overt_attention_srv.request.location_y = point_y;
+    overt_attention_srv.request.location_z = point_z;
 
     // Execute the pointing gesture
     if(pointing_arm == RIGHT_ARM){                                                  // Right arm pointing gesture

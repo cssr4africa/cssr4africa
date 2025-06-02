@@ -173,7 +173,7 @@ generate_messages(
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
- INCLUDE_DIRS gestureExecution overtAttention animateBehaviour robotNavigation mapGeneration
+ INCLUDE_DIRS gestureExecution overtAttention animateBehaviour
  LIBRARIES ${PROJECT_NAME}
 #  CATKIN_DEPENDS roscpp
 #  DEPENDS system_lib

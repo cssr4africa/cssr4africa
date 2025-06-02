@@ -198,6 +198,7 @@ int main(int argc, char** argv) {
 
     // Create an image transport subscriber
     image_transport::ImageTransport it(nh);
+    // image_transport::TransportHints th("compressed");
     ROS_INFO("%s: subscribing to %s...", node_name.c_str(), camera_topic.c_str());
     image_transport::Subscriber sub = it.subscribe(camera_topic, 1, front_camera_message_received);
     ROS_INFO("%s: subscribed to %s.", node_name.c_str(), camera_topic.c_str());

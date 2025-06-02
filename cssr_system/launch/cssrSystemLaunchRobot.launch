@@ -6,41 +6,77 @@
   <arg name="network_interface"                   default="wlp0s20f3" />
   <arg name="naoqi_driver_namespace"              default="naoqi_driver" />
   <arg name="launch_audio_nodes"                  default="true" />  <!-- Flag to control audio nodes -->
+  <arg name="camera"                              default="pepper" doc="Set 'pepper' for Pepper, 'realsense' for RealSense" />
+  <arg name="launch_actuators"                    default="true" doc="Set to true to launch actuators" />
+  <arg name="launch_sensors"                      default="true" doc="Set to true to launch sensors" />
 
- 	<!-- Call Robot publisher -->
-  <include file="$(find pepper_description)/launch/pepper_upload.launch" />
 
-  <!-- Call Robot Trajectory Controller -->
-  <include file="$(find pepper_control)/launch/pepper_control_trajectory.launch"/>
+  <!-- Set it on Parameter Server which camera I'm using -->
+  <param name="/faceDetection/camera" value="$(arg camera)"/>
+  <param name="/faceDetection/unit_tests" value="false"/>
 
-  <!-- Call Robot Driver -->
-  <node pkg="naoqi_dcm_driver" type="naoqi_dcm_driver" name="naoqi_dcm_driver" respawn="false" output="screen" >
-    <!-- Load configurations from YAML file to parameter server -->
-    <rosparam file="$(find pepper_dcm_bringup)/config/pepper_dcm.yaml" command="load"/>
-    <rosparam file="$(find pepper_control)/config/pepper_trajectory_control.yaml" command="load"/>
-    <param name="RobotIP"             value="$(arg robot_ip)" />
-    <param name="RobotPort"           value="$(arg robot_port)" />
-    <param name="DriverBrokerIP"      value="$(arg roscore_ip)" />
-    <param name="network_interface"   value="$(arg network_interface)" />
-    <param name="Prefix"              value="pepper_dcm" />
-    <param name="motor_groups"        value="Body" /> <!-- either "Body" or separate groups in the order "Head LArm RArm" -->
-    <param name="use_dcm"             value="false" />
-    <param name="max_stiffness"       value="0.9" />
-  </node>
+  <!-- Set it on Parameter Server which unit test I'm using -->
+  <param name="/soundDetection/unit_test" value="false"/>
+  
+  <!-- Launch the actuators -->
+  <group if="$(arg launch_actuators)">
 
-  <!-- Launch naoqi_driver_node -->
-  <node pkg="naoqi_driver" type="naoqi_driver_node" name="$(arg naoqi_driver_namespace)" required="true"
-        args="--qi-url=tcp://$(arg robot_ip):$(arg robot_port) --roscore_ip=$(arg roscore_ip) --network_interface=$(arg network_interface) --namespace=$(arg naoqi_driver_namespace)"
-        output="screen" launch-prefix="bash -c 'sleep 15; $0 $@'" />
+    <!-- Call Robot publisher -->
+    <include file="$(find pepper_description)/launch/pepper_upload.launch" />
 
-  <!-- Conditionally launch naoqiAudioPublisher.py (Python 3 script) -->
-  <group if="$(arg launch_audio_nodes)">
-    <node pkg="naoqi_driver" type="naoqiAudioPublisher.py" name="naoqiAudioPublisher" output="screen" launch-prefix="bash -c 'sleep 15; $0 $@'" />
+    <!-- Call Robot Trajectory Controller -->
+    <include file="$(find pepper_control)/launch/pepper_control_trajectory.launch"/>
+
+    <!-- Call Robot Driver -->
+    <node pkg="naoqi_dcm_driver" type="naoqi_dcm_driver" name="naoqi_dcm_driver" respawn="false" output="screen" >
+      <!-- Load configurations from YAML file to parameter server -->
+      <rosparam file="$(find pepper_dcm_bringup)/config/pepper_dcm.yaml" command="load"/>
+      <rosparam file="$(find pepper_control)/config/pepper_trajectory_control.yaml" command="load"/>
+      <param name="RobotIP"             value="$(arg robot_ip)" />
+      <param name="RobotPort"           value="$(arg robot_port)" />
+      <param name="DriverBrokerIP"      value="$(arg roscore_ip)" />
+      <param name="network_interface"   value="$(arg network_interface)" />
+      <param name="Prefix"              value="pepper_dcm" />
+      <param name="motor_groups"        value="Body" /> <!-- either "Body" or separate groups in the order "Head LArm RArm" -->
+      <param name="use_dcm"             value="false" />
+      <param name="max_stiffness"       value="0.9" />
+    </node>
+
   </group>
 
-  <!-- Conditionally launch naoqiAudio.py (Python 2 script) using run_naoqiAudio.sh -->
-  <group if="$(arg launch_audio_nodes)">
-    <node pkg="naoqi_driver" type="run_naoqiAudio.sh" name="naoqiAudio" args="--ip=$(arg robot_ip) --port=$(arg robot_port)" launch-prefix="bash -c 'sleep 15; $0 $@'"/>
+  <!-- Launch the sensors -->
+  <group if="$(arg launch_sensors)">
+
+    <node pkg="naoqi_driver" type="naoqi_driver_node" name="$(arg naoqi_driver_namespace)" required="true"
+        args="--qi-url=tcp://$(arg robot_ip):$(arg robot_port) --roscore_ip=$(arg roscore_ip) --network_interface $(arg network_interface) --namespace $(arg naoqi_driver_namespace)"
+        output="screen" />
+
+    <!-- Conditionally launch naoqiAudioPublisher.py (Python 3 script) -->
+    <group if="$(arg launch_audio_nodes)">
+      <node pkg="naoqi_driver" type="naoqiAudioPublisher.py" name="naoqiAudioPublisher" output="screen" launch-prefix="bash -c 'sleep 15; $0 $@'" />
+    </group>
+
+    <!-- Conditionally launch naoqiAudio.py (Python 2 script) using run_naoqiAudio.sh -->
+    <group if="$(arg launch_audio_nodes)">
+      <node pkg="naoqi_driver" type="run_naoqiAudio.sh" name="naoqiAudio" args="--ip=$(arg robot_ip) --port=$(arg robot_port)" launch-prefix="bash -c 'sleep 15; $0 $@'"/>
+    </group>
+    
+  </group>
+
+  <!-- Launch Intel RealSense Camera if camera=realsense -->
+  <group if="$(eval arg('camera') == 'realsense')">
+
+      <include file="$(find realsense2_camera)/launch/rs_camera.launch">
+          <arg name="color_width"     value="640" />
+          <arg name="color_height"    value="480" />
+          <arg name="color_fps"       value="15" />
+          <arg name="depth_width"     value="640" />
+          <arg name="depth_height"    value="480" />
+          <arg name="depth_fps"       value="15" />
+          <arg name="align_depth"     value="true" />
+          <arg name="enable_sync"     value="true" />
+      </include>
+
   </group>
 
 	

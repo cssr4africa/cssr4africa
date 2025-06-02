@@ -252,7 +252,7 @@ void sigintHandler(int sig) {
         
         // Force an immediate shutdown without any sleeps or spinOnce
         ros::shutdown();
-        _exit(0);  // Use _exit instead of exit for immediate termination
+        // _exit(0);  // Use _exit instead of exit for immediate termination
     } catch (const std::exception& e) {
         ROS_ERROR("[%s] sigintHandler: Error during shutdown cleanup: %s", nodeName.c_str(), e.what());
         _exit(1);  // Force exit on error
@@ -562,7 +562,7 @@ void loadDataBasedOnPlatform(const std::string& platform) {
  */
 ControlClientPtr createClient(const std::string& topicName) {
     if (verboseMode) {
-        ROS_INFO("[%s]Creating action client for topic: %s", nodeName.c_str(),topicName.c_str());
+        ROS_INFO("%s: Creating action client for topic: %s", nodeName.c_str(),topicName.c_str());
     }
     ControlClientPtr actionClient(new ControlClient(topicName, true));
     /* Exponential backoff parameters */
@@ -572,22 +572,22 @@ ControlClientPtr createClient(const std::string& topicName) {
 
     for (int attempt = 1; attempt <= maxAttempts; ++attempt) {
         if (verboseMode) {
-            ROS_INFO("[%s]Waiting for action server. Attempt %d/%d", nodeName.c_str(),attempt, maxAttempts);        
+            ROS_INFO("%s: Waiting for action server. Attempt %d/%d", nodeName.c_str(),attempt, maxAttempts);        
         }
         if (actionClient->waitForServer(ros::Duration(waitTime))) {
             if (verboseMode) {
-                ROS_INFO("[%s]Action server connected after %d attempt(s)", nodeName.c_str(),attempt);
+                ROS_INFO("%s: Action server connected after %d attempt(s)", nodeName.c_str(),attempt);
             }
             return actionClient;
         } 
         if (verboseMode){
-            ROS_WARN("[%s]:Connection attempt %d failed. Retrying...", nodeName.c_str(),attempt);
+            ROS_WARN("%s:Connection attempt %d failed. Retrying...", nodeName.c_str(),attempt);
         }
         waitTime *= backoffMultiplier;
     }
-    ROS_ERROR("[%s]:createClient: Connection failed after %d attempts: %s", nodeName.c_str(),maxAttempts, topicName.c_str());
+    ROS_ERROR("%s:createClient: Connection failed after %d attempts: %s", nodeName.c_str(),maxAttempts, topicName.c_str());
 
-    throw std::runtime_error("[" + nodeName + "] createClient: Failed to connect to action server: " + topicName);
+    throw std::runtime_error(nodeName + ": createClient: Failed to connect to action server: " + topicName);
 }
 
 /**
@@ -655,9 +655,9 @@ std::vector<double> parsePercentages(const std::string& percentagesStr) {
             //     ROS_INFO("Parsed percentage: %s", percentage.c_str());
             // }
         } catch (const std::invalid_argument& e) {
-            ROS_ERROR("[%s]:Invalid percentage format: %s", nodeName.c_str(), percentage.c_str());
+            ROS_ERROR("%s: Invalid percentage format: %s", nodeName.c_str(), percentage.c_str());
         } catch (const std::out_of_range& e) {
-            ROS_ERROR("[%s]:Percentage out of range: %s", nodeName.c_str(), percentage.c_str());
+            ROS_ERROR("%s: Percentage out of range: %s", nodeName.c_str(), percentage.c_str());
         }
     }
     
@@ -701,29 +701,29 @@ std::vector<std::vector<double>> calculateTargetPosition(
         
         if (jointType == "arm") {
             if (configParams.find("armMaximumRange") == configParams.end()) {
-                throw std::runtime_error("[" + nodeName + "] calculateTargetPosition: armMaximumRange not found in configuration");
+                throw std::runtime_error(nodeName + ": calculateTargetPosition: armMaximumRange not found in configuration");
             }
             maximumRange = parsePercentages(configParams["armMaximumRange"]);
             if (verboseMode) {
-                ROS_INFO("[%s]Loaded arm maximum range parameters" ,nodeName.c_str());
+                ROS_INFO("%s: Loaded arm maximum range parameters" ,nodeName.c_str());
             }
         } 
         else if (jointType == "leg") {
             if (configParams.find("legMaximumRange") == configParams.end()) {
-                throw std::runtime_error("[" + nodeName + "] calculateTargetPosition: legMaximumRange not found in configuration");
+                throw std::runtime_error(nodeName + ": calculateTargetPosition: legMaximumRange not found in configuration");
             }
             maximumRange = parsePercentages(configParams["legMaximumRange"]);
             if (verboseMode) {
-                ROS_INFO("[%s]:Loaded leg maximum range parameters" ,nodeName.c_str());
+                ROS_INFO("%s :Loaded leg maximum range parameters" ,nodeName.c_str());
             }
         } 
         else if (jointType == "hand") {
             if (configParams.find("handMaximumRange") == configParams.end()) {
-                throw std::runtime_error("[" + nodeName + "] calculateTargetPosition: handMaximumRange not found in configuration");
+                throw std::runtime_error(nodeName + ": calculateTargetPosition: handMaximumRange not found in configuration");
             }
             maximumRange.push_back(std::stod(configParams["handMaximumRange"]));
             if (verboseMode) {
-                ROS_INFO("[%s]Loaded hand maximum range parameter" ,nodeName.c_str());
+                ROS_INFO("%s: Loaded hand maximum range parameter" ,nodeName.c_str());
             }
         } 
         else {

@@ -1,0 +1,11 @@
+{
+    "intensityThreshold": 0.0039,
+    "distanceBetweenEars": 0.07,
+    "localizationBufferSize": 16384,
+    "vadAggressiveness": 1,
+    "contextDuration": 1.0,
+    "useNoiseReduction": true,
+    "stationary": true,
+    "propDecrease": 0.9,
+    "verboseMode": true
+}

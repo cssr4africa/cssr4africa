@@ -70,11 +70,11 @@ Accompnaying this code, there are deliverable reports that provides a detailed e
         ```
     -  Launch the robot:
         ```bash
-          cd .. && roslaunch cssr_system cssrSystemLaunchRobot.launch robot_ip:=172.29.111.240 network_interface:=wlp0s20f3
+          roslaunch cssr_system cssrSystemLaunchRobot.launch robot_ip:=<robot_ip> roscore_ip:=<roscore_ip> network_interface:=<network_interface> launch_sensors:=true launch_actuators:=true 
         ```
         <div style="background-color: #1e1e1e; padding: 15px; border-radius: 4px; border: 1px solid #404040; margin: 10px 0;">
          <span style="color: #ff3333; font-weight: bold;">NOTE: </span>
-         <span style="color: #cccccc;">Ensure that the IP address <code>172.29.111.240</code> and the network interface <code>wlp0s20f3</code> are correctly set based on your robot's configuration and your computer's network interface. </span>
+         <span style="color: #cccccc;">Ensure that the IP addresses <code>robot_ip</code>, <code>roscore_ip</code> and the network interface <code>network_interface</code> are correctly set based on your robot's configuration and your computer's network interface. </span>
         </div>
     - Open a new terminal to launch the animate behavior node.
          <div style="background-color: #1e1e1e; padding: 15px; border-radius: 4px; border: 1px solid #404040; margin: 10px 0;">
@@ -90,20 +90,20 @@ Accompnaying this code, there are deliverable reports that provides a detailed e
             </div>
             
         ```bash
-          cd $HOME/workspace/pepper_rob_ws
-          cd .. && source devel/setup.bash
-          cd .. && rosrun cssr_system animateBehaviour
+         cd $HOME/workspace/pepper_rob_ws
+         source devel/setup.bash
+         rosrun cssr_system animateBehaviour
         ```
 
     - To enable animate behavior, open a new terminal and run the code below.
         ```bash
           cd $HOME/workspace/pepper_rob_ws
-          cd .. && source devel/setup.bash
-          cd .. && rosservice call /animateBehaviour/setActivation "state: 'enabled'"
+          source devel/setup.bash
+          rosservice call /animateBehaviour/setActivation "state: 'enabled'"
         ```
     - If you want to disable the animate behavior, run:
         ```bash
-          cd .. && rosservice call /animateBehaviour/setActivation "state: 'disabled'"
+          rosservice call /animateBehaviour/setActivation "state: 'disabled'"
         ```
 ## Simulator Robot
 
@@ -161,7 +161,8 @@ Accompnaying this code, there are deliverable reports that provides a detailed e
       ```
    - Launch the simulator:
       ```bash
-      roslaunch cssr_system cssrSystemLaunchSimulator.launch
+      roslaunch pepper_gazebo_plugin \
+      pepper_gazebo_plugin_in_office_CPU.launch
       ```
    - Open a new terminal to launch the animate behavior node:
       ```bash

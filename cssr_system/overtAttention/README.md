@@ -75,11 +75,11 @@ Accompanying this code is the deliverable report that provides a detailed explan
         ```
     -  Launch the robot:
         ```bash
-         roslaunch cssr_system cssrSystemLaunchRobot.launch robot_ip:=<robot_ip> roscore_ip:=<roscore_ip> network_interface:=<network_interface>
+         roslaunch cssr_system cssrSystemLaunchRobot.launch robot_ip:=<robot_ip> roscore_ip:=<roscore_ip> network_interface:=<network_interface> camera:=camera
         ```
         <div style="background-color: #1e1e1e; padding: 15px; border-radius: 4px; border: 1px solid #404040; margin: 10px 0;">
          <span style="color: #ff3333; font-weight: bold;">NOTE: </span>
-         <span style="color: #cccccc;">Ensure that the IP addresses <code>robot_ip</code>, <code>roscore_ip</code> and the network interface <code>network_interface</code> are correctly set based on your robot's configuration and your computer's network interface. </span>
+         <span style="color: #cccccc;">Ensure that the IP addresses <code>robot_ip</code>, <code>roscore_ip</code>, the network interface <code>network_interface</code> and the camera type <code>camera</code> are correctly set based on your robot's configuration and your computer's network interface. The default camera is set to the <code>pepper</code>, but can be switched to <code>realsense</code> </span>
         </div>
     - Open a new terminal to launch the `overtAttention` node.
         <div style="background-color: #1e1e1e; padding: 15px; border-radius: 4px; border: 1px solid #404040; margin: 10px 0;">
