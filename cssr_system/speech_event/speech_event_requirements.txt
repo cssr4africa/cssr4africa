@@ -14,7 +14,7 @@ pyannote-metrics==3.2.1
 pyaudio
 pytorch-lightning==1.9.5
 rospkg
-rospy==1.17.0
+rospy
 sentencepiece==0.2.0
 scipy==1.10.1
 torch==2.4.1

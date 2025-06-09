@@ -63,7 +63,10 @@ The deliverable report can be found in [D4.3.2 Speech Event](https://cssr4africa
    to work using Python3.8)
 
       ```bash
+      mkdir -p $HOME/workspace/pepper_rob_ws/src/cssr4africa_virtual_envs
+
       cd $HOME/workspace/pepper_rob_ws/src/cssr4africa_virtual_envs
+
       python3 -m venv cssr4africa_speech_event_env
 
       source cssr4africa_speech_event_env/bin/activate
@@ -73,12 +76,14 @@ The deliverable report can be found in [D4.3.2 Speech Event](https://cssr4africa
       pip install -r $HOME/workspace/pepper_rob_ws/src/cssr4africa/cssr_system/speech_event/speech_event_requirements.txt
        ```
 
-   - Build the ROS workspace
+   - Build the ROS workspace (it's best to proceed with the next steps on a separate terminal, otherwise an error may arise when running `catkin_make`)
 
       ```bash
          cd $HOME/workspace/pepper_rob_ws
-         source devel/setup.bash
+
          catkin_make
+
+         source devel/setup.bash
        ```
 
    - Make application files executable
@@ -172,7 +177,7 @@ The deliverable report can be found in [D4.3.2 Speech Event](https://cssr4africa
     This creates a driver for the `/soundDetection/signal` ROS topic.
 
         ```bash
-        source $HOME/workspace/pepper_rob_ws/src/cssr4africa_cssr4africa_virtual_envs/speech_event_env/bin/activate
+        source $HOME/workspace/pepper_rob_ws/src/cssr4africa_virtual_envs/cssr4africa_speech_event_env/bin/activate
 
         cd $HOME/workspace/pepper_rob_ws
 
@@ -187,7 +192,7 @@ The deliverable report can be found in [D4.3.2 Speech Event](https://cssr4africa
         to `file`.
 
         If sourcing the Python virtual environment fails to work, replace it with:
-        `export PYTHONPATH=$HOME/workspace/pepper_rob_ws/src/cssr4africa/cssr4africa_virtual_envs/speech_event_env/lib/python3.8/site-packages:$PYTHONPATH`
+        `export PYTHONPATH=$HOME/workspace/pepper_rob_ws/src/cssr4africa_virtual_envs/cssr4africa_speech_event_env/lib/python3.8/site-packages:$PYTHONPATH`
 
 ## Simulator Robot
 

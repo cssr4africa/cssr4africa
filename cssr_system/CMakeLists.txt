@@ -127,6 +127,14 @@ add_service_files(
   # Service2.srv
 )
 
+add_service_files(
+  DIRECTORY
+  speech_event/srv
+  FILES
+  set_language.srv
+  set_enabled.srv
+)
+
 
 ## Generate actions in the 'action' folder
 # add_action_files(

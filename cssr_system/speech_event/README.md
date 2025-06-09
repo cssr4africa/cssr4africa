@@ -71,6 +71,8 @@ tests. The deliverable report can be found in
    - Create a Python virtual environment and install required Python packages (Speech Event has been tested and proven to work using Python3.8)
 
       ```bash
+      mkdir -p $HOME/workspace/pepper_rob_ws/src/cssr4africa_virtual_envs
+
       cd $HOME/workspace/pepper_rob_ws/src/cssr4africa_virtual_envs
 
       python3 -m venv cssr4africa_speech_event_env
@@ -82,14 +84,14 @@ tests. The deliverable report can be found in
       pip install -r $HOME/workspace/pepper_rob_ws/src/cssr4africa/cssr_system/speech_event/speech_event_requirements.txt
        ```
 
-   - Build the ROS workspace
+   - Build the ROS workspace (it's best to proceed with the next steps on a separate terminal, otherwise an error may arise when running `catkin_make`)
 
       ```bash
       cd $HOME/workspace/pepper_rob_ws
 
-      source devel/setup.bash
-
       catkin_make
+
+      source devel/setup.bash
        ```
 
    - Make application files executable
@@ -167,7 +169,7 @@ tests. The deliverable report can be found in
         ```
 
         If sourcing the Python virtual environment fails to work, replace it with:
-        `export PYTHONPATH=$HOME/workspace/pepper_rob_ws/src/cssr4africa/cssr4africa_virtual_envs/speech_event_env/lib/python3.8/site-packages:$PYTHONPATH`
+        `export PYTHONPATH=$HOME/workspace/pepper_rob_ws/src/cssr4africa_virtual_envs/cssr4africa_speech_event_env/lib/python3.8/site-packages:$PYTHONPATH`
 
       N.B: Running the `speechEvent` ROS node requires the `/soundDetection/signal` topic to be available, which can be
       hosted by running the `soundDetection` ROS node in the `cssr_system` package or running the `speech_event_driver`
@@ -202,7 +204,7 @@ tests. The deliverable report can be found in
          If sourcing the Python virtual environment fails to work, replace it with:
 
          ```sh
-         export PYTHONPATH=$HOME/workspace/pepper_rob_ws/src/cssr4africa/cssr4africa_virtual_envs/speech_event_env/lib/python3.8/site-packages:$PYTHONPATH
+         export PYTHONPATH=$HOME/workspace/pepper_rob_ws/src/cssr4africa_virtual_envs/cssr4africa_speech_event_env/lib/python3.8/site-packages:$PYTHONPATH
          ```
 
     - SpeechEvent can also be run using a ROS launch file:
@@ -214,7 +216,7 @@ tests. The deliverable report can be found in
 
           source devel/setup.bash
 
-          roslaunch unit_tests speech_event_launch_test_harness.launch launch_driver:=true run_tests:=false mode:=mic
+          roslaunch unit_tests speech_event_test_launch_test_harness.launch launch_driver:=true run_tests:=false mode:=mic
         ```
 
         Update the `launch_driver` to either `true` or `false` depending on whether you are using a driver or a running
