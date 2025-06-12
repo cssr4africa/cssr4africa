@@ -165,6 +165,7 @@ catkin_package(
  INCLUDE_DIRS gestureExecutionTest
  INCLUDE_DIRS overtAttentionTest
  INCLUDE_DIRS animateBehaviourTest
+ INCLUDE_DIRS mapGenerationTest
  LIBRARIES ${PROJECT_NAME}
 #  CATKIN_DEPENDS roscpp
 #  DEPENDS system_lib
@@ -189,6 +190,7 @@ include
 gestureExecutionTest/include
 overtAttentionTest/include
 animateBehaviourTest/include
+mapGenerationTest/include
   ${catkin_INCLUDE_DIRS}
 )
 
@@ -287,3 +289,4 @@ animateBehaviourTest/include
 add_subdirectory(gestureExecutionTest)
 add_subdirectory(overtAttentionTest)
 add_subdirectory(animateBehaviourTest)
+add_subdirectory(mapGenerationTest)

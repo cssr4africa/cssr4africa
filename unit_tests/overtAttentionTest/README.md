@@ -66,7 +66,7 @@ Accompanying this code is the deliverable report that provides a detailed explan
         ```
     -  Launch the robot:
         ```bash
-          roslaunch unit_tests overtAttentionLaunchRobot.launch robot_ip:=<robot_ip> roscore_ip:=<roscore_ip> network_interface:=<network_interface>
+          roslaunch unit_tests overtAttentionTestLaunchRobot.launch robot_ip:=<robot_ip> roscore_ip:=<roscore_ip> network_interface:=<network_interface>
         ```
         <div style="background-color: #1e1e1e; padding: 15px; border-radius: 4px; border: 1px solid #404040; margin: 10px 0;">
          <span style="color: #ff3333; font-weight: bold;">NOTE: </span>
@@ -74,7 +74,7 @@ Accompanying this code is the deliverable report that provides a detailed explan
         </div>
     - Open a new terminal to launch the overtAttentionTest (which launches the overtAttention node and run tests on it). This creates a driver for the `robotLocalization/pose` topic, `faceDetection/data` topic, and `soundDetection/direction` topic or lanches the actual nodes (if available).
         ```bash
-          cd $HOME/workspace/pepper_rob_ws && source devel/setup.bash && roslaunch unit_tests overtAttentionLaunchTestHarness.launch launch_drivers:=true launch_test:=true initial_robot_x:=<robot_x> initial_robot_y:=<robot_y> initial_robot_theta:=<robot_theta>
+          cd $HOME/workspace/pepper_rob_ws && source devel/setup.bash && roslaunch unit_tests overtAttentionTestLaunchTestHarness.launch launch_drivers:=true launch_test:=true initial_robot_x:=<robot_x> initial_robot_y:=<robot_y> initial_robot_theta:=<robot_theta>
         ```
         <div style="background-color: #1e1e1e; padding: 15px; border-radius: 4px; border: 1px solid #404040; margin: 10px 0;">
          <span style="color: #ff3333; font-weight: bold;">NOTE: </span>
@@ -205,7 +205,7 @@ Disabled Mode :
 
 For issues or questions:
 - Create an issue on GitHub
-- Contact: <a href="mailto:dvernon@andrew.cmu.edu">dvernon@andrew.cmu.edu</a>, <a href="mailto:mdanso@andrew.cmu.edu">mdanso@andrew.cmu.edu</a><br>, <a href="mailto:aakinade@andrew.cmu.edu">aakinade@andrew.cmu.edu</a><br>
+- Contact: <a href="mailto:david@vernon.eu">david@vernon.eu</a>, <a href="mailto:africa-robotics@andrew.cmu.edu">africa-robotics@andrew.cmu.edu</a><br>, <a href="mailto:dvernon@andrew.cmu.edu">dvernon@andrew.cmu.edu</a>, <a href="mailto:mdanso@andrew.cmu.edu">mdanso@andrew.cmu.edu</a><br>, <a href="mailto:aakinade@andrew.cmu.edu">aakinade@andrew.cmu.edu</a><br>
 - Visit: <a href="http://www.cssr4africa.org">www.cssr4africa.org</a>
 
 

@@ -1,0 +1,5 @@
+mapWidth 6.80
+mapHeight 9.93
+obstacleFile obstacles.dat
+environmentMapFile environmentMap.png
+configurationSpaceMapFile configurationSpaceMap.png

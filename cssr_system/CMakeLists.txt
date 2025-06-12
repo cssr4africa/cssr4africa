@@ -181,7 +181,7 @@ generate_messages(
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
- INCLUDE_DIRS gestureExecution overtAttention animateBehaviour
+ INCLUDE_DIRS gestureExecution overtAttention animateBehaviour mapGeneration
  LIBRARIES ${PROJECT_NAME}
 #  CATKIN_DEPENDS roscpp
 #  DEPENDS system_lib
@@ -207,6 +207,7 @@ include
 gestureExecution/include
 overAttention/include
 animateBehaviour/include
+mapGeneration/include
   ${catkin_INCLUDE_DIRS}
 )
 
@@ -214,3 +215,4 @@ animateBehaviour/include
 add_subdirectory(gestureExecution)
 add_subdirectory(overtAttention)
 add_subdirectory(animateBehaviour)
+add_subdirectory(mapGeneration)

@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- Test harness for mapGeneration node -->
+  
+  <!-- Test parameters -->
+  <param name="test_timeout" value="60.0"/>
+  <param name="test_data_dir" value="$(find unit_tests)/mapGenerationTest/data"/>
+  <param name="mapgen_data_dir" value="$(find cssr_system)/mapGeneration/data"/>
+  
+  <!-- Launch the test node as a regular node to see output -->
+  <node name="mapGenerationTest" 
+        pkg="unit_tests" 
+        type="mapGenerationTest" 
+        output="screen"
+        required="true">
+    <!-- Test configuration -->
+    <param name="test_package_path" value="$(find unit_tests)"/>
+    <param name="mapgen_package_path" value="$(find cssr_system)"/>
+  </node>
+  
+</launch>

@@ -64,7 +64,7 @@ Accompnaying this code, there are deliverable reports that provides a detailed e
           ```
       -  Launch the robot:
           ```bash
-            cd .. && roslaunch unit_tests animateBehaviourLaunchRobot.launch robot_ip:=172.29.111.230 network_interface:=wlp0s20f3
+            cd .. && roslaunch unit_tests animateBehaviourTestLaunchRobot.launch robot_ip:=172.29.111.230 network_interface:=wlp0s20f3
           ```
           <div style="background-color: #1e1e1e; padding: 15px; border-radius: 4px; border: 1px solid #404040; margin: 10px 0;">
          <span style="color: #ff3333; font-weight: bold;">NOTE: </span>
@@ -74,7 +74,7 @@ Accompnaying this code, there are deliverable reports that provides a detailed e
           ```bash
             cd $HOME/workspace/pepper_rob_ws
             cd .. && source devel/setup.bash
-            cd .. && roslaunch unit_tests animateBehaviourLaunchTestHarness.launch
+            cd .. && roslaunch unit_tests animateBehaviourTestLaunchTestHarness.launch
         ```
 5.  **Test result**
     The test reports are recorded under `~/workspace/pepper_rob_ws/src/unit_tests/animateBehaviourTest/data/animateBehaviourTestOutput.dat`
@@ -131,7 +131,7 @@ Accompnaying this code, there are deliverable reports that provides a detailed e
         ```
     -  Launch the robot:
         ```bash
-          cd .. && roslaunch unit_tests animateBehaviourLaunchRobot.launch robot_ip:=172.29.111.240 network_interface:=wlp0s20f3
+          cd .. && roslaunch unit_tests animateBehaviourTestLaunchRobot.launch robot_ip:=172.29.111.240 network_interface:=wlp0s20f3
         ```
         <div style="background-color: #1e1e1e; padding: 15px; border-radius: 4px; border: 1px solid #404040; margin: 10px 0;">
          <span style="color: #ff3333; font-weight: bold;">NOTE: </span>
@@ -142,7 +142,7 @@ Accompnaying this code, there are deliverable reports that provides a detailed e
         ```bash
           cd $HOME/workspace/pepper_sim_ws
           cd .. && source devel/setup.bash
-          cd .. && roslaunch unit_tests animateBehaviourLaunchTestHarness.launch
+          cd .. && roslaunch unit_tests animateBehaviourTestLaunchTestHarness.launch
         ```
   
   5.  **Test result**
@@ -543,7 +543,7 @@ Accompnaying this code, there are deliverable reports that provides a detailed e
 
 For issues or questions:
 - Create an issue on GitHub
-- Contact: <a href="mailto:dvernon@andrew.cmu.edu">dvernon@andrew.cmu.edu</a>, <a href="mailto:ebirhan@andrew.cmu.edu">ebirhan@andrew.cmu.edu</a><br>
+- Contact: <a href="mailto:david@vernon.eu">david@vernon.eu</a>, <a href="mailto:africa-robotics@andrew.cmu.edu">africa-robotics@andrew.cmu.edu</a><br>, <a href="mailto:dvernon@andrew.cmu.edu">dvernon@andrew.cmu.edu</a>, <a href="mailto:ebirhan@andrew.cmu.edu">ebirhan@andrew.cmu.edu</a><br>
 - Visit: <a href="http://www.cssr4africa.org">www.cssr4africa.org</a>
 
 

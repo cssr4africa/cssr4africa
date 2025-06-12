@@ -1,0 +1,82 @@
+[2025-06-12 01:43:57] mapGenerationTest: =======================================================================
+[2025-06-12 01:43:57] mapGenerationTest: === New Map Generation Test Run Started at 2025-06-12 01:43:57 ===
+[2025-06-12 01:43:57] mapGenerationTest: =======================================================================
+[2025-06-12 01:43:57] mapGenerationTest: Testing Actual Map Generation Node: STARTED
+[2025-06-12 01:43:57] mapGenerationTest: -----------------------------------------------------------------------
+[2025-06-12 01:43:57] mapGenerationTest: Test Case: MapGenerationTest.BasicMapGeneration
+[2025-06-12 01:43:57] mapGenerationTest: Loaded radius1: 0.100000m
+[2025-06-12 01:43:57] mapGenerationTest: Loaded radius2: 0.200000m
+[2025-06-12 01:43:57] mapGenerationTest: Loaded radius3: 0.300000m
+[2025-06-12 01:43:57] mapGenerationTest: Loaded radius4: 0.500000m
+[2025-06-12 01:43:57] mapGenerationTest: Loaded radius5: 0.800000m
+[2025-06-12 01:43:57] mapGenerationTest: Testing basic map generation with actual mapGeneration node...
+[2025-06-12 01:43:57] mapGenerationTest: Launching actual mapGeneration node...
+[2025-06-12 01:44:28] mapGenerationTest: [SUCCESS] mapGeneration node completed execution
+[2025-06-12 01:44:28] mapGenerationTest: [SUCCESS] Both output maps were created successfully
+[2025-06-12 01:44:28] mapGenerationTest: Validating map dimensions...
+[2025-06-12 01:44:28] mapGenerationTest: Maps have correct dimensions: 680x993
+[2025-06-12 01:44:28] mapGenerationTest: Environment map obstacles: 306011
+[2025-06-12 01:44:28] mapGenerationTest: Configuration space obstacles: 444107
+[2025-06-12 01:44:28] mapGenerationTest: [SUCCESS] Configuration space correctly has more obstacles than environment map
+[2025-06-12 01:44:28] mapGenerationTest: Basic map generation test: PASSED
+[2025-06-12 01:44:28] mapGenerationTest: -----------------------------------------------------------------------
+[2025-06-12 01:44:28] mapGenerationTest: Test Case: MapGenerationTest.DifferentRobotRadii
+[2025-06-12 01:44:28] mapGenerationTest: Loaded radius1: 0.100000m
+[2025-06-12 01:44:28] mapGenerationTest: Loaded radius2: 0.200000m
+[2025-06-12 01:44:28] mapGenerationTest: Loaded radius3: 0.300000m
+[2025-06-12 01:44:28] mapGenerationTest: Loaded radius4: 0.500000m
+[2025-06-12 01:44:28] mapGenerationTest: Loaded radius5: 0.800000m
+[2025-06-12 01:44:28] mapGenerationTest: Testing different robot radii configurations...
+[2025-06-12 01:44:28] mapGenerationTest: Testing with robot radius: 0.100000m
+[2025-06-12 01:44:28] mapGenerationTest: Launching actual mapGeneration node...
+[2025-06-12 01:44:32] mapGenerationTest: [SUCCESS] mapGeneration node completed execution
+[2025-06-12 01:44:33] mapGenerationTest: [SUCCESS] Both output maps were created successfully
+[2025-06-12 01:44:33] mapGenerationTest: Validating map dimensions...
+[2025-06-12 01:44:33] mapGenerationTest: Maps have correct dimensions: 680x993
+[2025-06-12 01:44:33] mapGenerationTest: Environment map obstacles: 306011
+[2025-06-12 01:44:33] mapGenerationTest: Configuration space obstacles: 364587
+[2025-06-12 01:44:33] mapGenerationTest: [SUCCESS] Configuration space correctly has more obstacles than environment map
+[2025-06-12 01:44:33] mapGenerationTest: Robot radius 0.100000m: 364587 obstacle pixels
+[2025-06-12 01:44:33] mapGenerationTest: Testing with robot radius: 0.300000m
+[2025-06-12 01:44:33] mapGenerationTest: Launching actual mapGeneration node...
+[2025-06-12 01:44:37] mapGenerationTest: [SUCCESS] mapGeneration node completed execution
+[2025-06-12 01:44:38] mapGenerationTest: [SUCCESS] Both output maps were created successfully
+[2025-06-12 01:44:38] mapGenerationTest: Validating map dimensions...
+[2025-06-12 01:44:38] mapGenerationTest: Maps have correct dimensions: 680x993
+[2025-06-12 01:44:38] mapGenerationTest: Environment map obstacles: 306011
+[2025-06-12 01:44:38] mapGenerationTest: Configuration space obstacles: 444107
+[2025-06-12 01:44:38] mapGenerationTest: [SUCCESS] Configuration space correctly has more obstacles than environment map
+[2025-06-12 01:44:38] mapGenerationTest: Robot radius 0.300000m: 444107 obstacle pixels
+[2025-06-12 01:44:38] mapGenerationTest: Testing with robot radius: 0.500000m
+[2025-06-12 01:44:38] mapGenerationTest: Launching actual mapGeneration node...
+[2025-06-12 01:44:41] mapGenerationTest: [SUCCESS] mapGeneration node completed execution
+[2025-06-12 01:44:42] mapGenerationTest: [SUCCESS] Both output maps were created successfully
+[2025-06-12 01:44:42] mapGenerationTest: Validating map dimensions...
+[2025-06-12 01:44:42] mapGenerationTest: Maps have correct dimensions: 680x993
+[2025-06-12 01:44:42] mapGenerationTest: Environment map obstacles: 306011
+[2025-06-12 01:44:42] mapGenerationTest: Configuration space obstacles: 518938
+[2025-06-12 01:44:42] mapGenerationTest: [SUCCESS] Configuration space correctly has more obstacles than environment map
+[2025-06-12 01:44:42] mapGenerationTest: Robot radius 0.500000m: 518938 obstacle pixels
+[2025-06-12 01:44:42] mapGenerationTest: Different robot radii test: PASSED
+[2025-06-12 01:44:42] mapGenerationTest: -----------------------------------------------------------------------
+[2025-06-12 01:44:42] mapGenerationTest: Test Case: MapGenerationTest.VerboseModeTest
+[2025-06-12 01:44:42] mapGenerationTest: Loaded radius1: 0.100000m
+[2025-06-12 01:44:42] mapGenerationTest: Loaded radius2: 0.200000m
+[2025-06-12 01:44:42] mapGenerationTest: Loaded radius3: 0.300000m
+[2025-06-12 01:44:42] mapGenerationTest: Loaded radius4: 0.500000m
+[2025-06-12 01:44:42] mapGenerationTest: Loaded radius5: 0.800000m
+[2025-06-12 01:44:42] mapGenerationTest: Testing verbose mode configuration...
+[2025-06-12 01:44:42] mapGenerationTest: Launching actual mapGeneration node...
+[2025-06-12 01:44:52] mapGenerationTest: [SUCCESS] mapGeneration node completed execution
+[2025-06-12 01:44:53] mapGenerationTest: [SUCCESS] Both output maps were created successfully
+[2025-06-12 01:44:53] mapGenerationTest: Validating map dimensions...
+[2025-06-12 01:44:53] mapGenerationTest: Maps have correct dimensions: 680x993
+[2025-06-12 01:44:53] mapGenerationTest: Environment map obstacles: 306011
+[2025-06-12 01:44:53] mapGenerationTest: Configuration space obstacles: 444107
+[2025-06-12 01:44:53] mapGenerationTest: [SUCCESS] Configuration space correctly has more obstacles than environment map
+[2025-06-12 01:44:53] mapGenerationTest: Verbose mode configuration test: PASSED
+[2025-06-12 01:44:53] mapGenerationTest: -----------------------------------------------------------------------
+[2025-06-12 01:44:53] mapGenerationTest: =======================================================================
+[2025-06-12 01:44:53] mapGenerationTest: === Map Generation Test Run (CAD Mode) Completed at 2025-06-12 01:44:53 ===
+[2025-06-12 01:44:53] mapGenerationTest: === All tests PASSED ===
+[2025-06-12 01:44:53] mapGenerationTest: =======================================================================
