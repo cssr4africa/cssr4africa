@@ -15,7 +15,7 @@
   <arg name="person_detection_namespace"          default="personDetection" />
   <arg name="sound_detection_namespace"           default="soundDetection" />
   <arg name="speech_event_namespace"              default="speechEvent" />
-  <arg name="behavior_mission_interpreter_namespace" default="behaviorController" />
+  <arg name="behavior_controller_namespace"     default="behaviorController" />
 
   <arg name="initial_robot_x"                     default="0.0" />
   <arg name="initial_robot_y"                     default="0.0" />
@@ -75,14 +75,14 @@
     <!-- <include file="$(find simulated_nodes)/simulated_nodes.launch" /> -->
 
   <!-- Conditionally launch the node with a delay // Change package name to cssr_system later -->
-    <!-- <group if="$(arg launch_controller)">
-        <node pkg="behavior_mission_interpreter" 
-              type="behavior_mission_interpreter_node" 
-              name="$(arg behavior_mission_interpreter_namespace)" 
+    <group if="$(arg launch_controller)">
+        <node pkg="cssr_system" 
+              type="$(arg behavior_controller_namespace)" 
+              name="$(arg behavior_controller_namespace)" 
               required="true" 
               output="screen" 
-              launch-prefix="bash -c 'sleep 30; $0 $@'" />
-    </group> -->
+              launch-prefix="bash -c 'sleep 60; $0 $@'" />
+    </group>
 	
 </launch>
 

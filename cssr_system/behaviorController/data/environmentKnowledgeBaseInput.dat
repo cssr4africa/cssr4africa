@@ -1,0 +1,56 @@
+robotLocationDescription      1 Pepper's starting location
+robotLocationPose             1 4.4 7.8 270
+gestureTarget                 1 0.0 0.0 0.0
+preGestureMessageEnglish      1 Welcome the the robotics lab at Carnegie Mellon University Africa
+preGestureMessageIsiZulu      1 No message in isiZulu
+preGestureMessageKinyarwanda  1 Murakazaneza muri laboratwari ya robotikisi muri kaneji meloni iniverisite yafurika
+postGestureMessageEnglish     1 I will give you a short tour. I hope you enjoy it
+postGestureMessageIsiZulu     1 No message in isiZulu
+postGestureMessageKinyarwanda 1 Ngiye kubatemberezaho gato, nizereko muribuze kuryoherwa
+culturalKnowledge             1 SymbolicShapeRespect BowExtentRespect
+
+robotLocationDescription      2 The (other) Pepper robot
+robotLocationPose             2 3.5 6.3 180
+gestureTarget                 2 2.0 7.8 0.82
+preGestureMessageEnglish      2 This is the Pepper humanoid robot
+preGestureMessageIsiZulu      2 No message in isiZulu
+preGestureMessageKinyarwanda  2 Iyi yitwa pepa humanoyidi roboti
+postGestureMessageEnglish     2 We use it for research in social robotics and human-robot interaction
+postGestureMessageIsiZulu     2 No message in isiZulu
+postGestureMessageKinyarwanda 2 Tuyikoresha mubushakashatsi mubijyanye nimibanire hamwe nimikoranire hagati yabantu ndetse naza robo
+culturalKnowledge             2 DeicticShape
+
+robotLocationDescription      3 Lynxmotion
+robotLocationPose             3 1.7 6.0 270
+gestureTarget                 3 0.6 4.8 0.82
+preGestureMessageEnglish      3 This is the Lynxmotion robot
+preGestureMessageIsiZulu      3 No message in isiZulu
+preGestureMessageKinyarwanda  3 Iyi robo ni likisi moshoni
+postGestureMessageEnglish     3 We use it for teaching robot manipulation
+postGestureMessageIsiZulu     3 No message in isiZulu
+postGestureMessageKinyarwanda 3 Tuyikoresha mukwigisha roboti manipileshoni
+culturalKnowledge             3 DeicticShape
+
+robotLocationDescription      4 Roomba
+robotLocationPose             4 2.3 5.1 270
+gestureTarget                 4 3.2 3.0 0.82
+preGestureMessageEnglish      4 This is the Roomba
+preGestureMessageIsiZulu      4 No message in isiZulu
+preGestureMessageKinyarwanda  4 Iyiyo yitwa rumba
+postGestureMessageEnglish     4 We use it for teaching mobile robotics
+postGestureMessageIsiZulu     4 No message in isiZulu
+postGestureMessageKinyarwanda 4 Tuyikoresha mukwigisha mobile robotikisi
+culturalKnowledge             4 DeicticShape
+
+robotLocationDescription      5 Pepper's starting location
+robotLocationPose             5 4.4 7.8 270
+gestureTarget                 5 0.0 0.0 0.0
+preGestureMessageEnglish      5 I hope you enjoyed the tour
+preGestureMessageIsiZulu      5 No message in isiZulu
+preGestureMessageKinyarwanda  5 Nizereko mwaryohewe no gutemberezwa
+postGestureMessageEnglish     5 See you again soon
+postGestureMessageIsiZulu     5 No message in isiZulu
+postGestureMessageKinyarwanda 5 Tuzongere kubonana ubutaha
+culturalKnowledge             5 IconicShape
+
+tourSpecification 5 1 4 3 2 5

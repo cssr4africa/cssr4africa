@@ -1,0 +1,17 @@
+add_executable        (behaviorControllerTestStub src/behaviorControllerTestStub.cpp src/behaviorControllerTestImplementation.cpp)
+set_target_properties (behaviorControllerTestStub PROPERTIES OUTPUT_NAME behaviorControllerTestStub PREFIX "")
+target_link_libraries (behaviorControllerTestStub ${catkin_LIBRARIES})
+target_include_directories(behaviorControllerTestStub PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include ${catkin_INCLUDE_DIRS})
+add_dependencies(behaviorControllerTestStub ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+add_executable        (behaviorControllerTestDriver src/behaviorControllerTestDriver.cpp src/behaviorControllerTestImplementation.cpp)
+set_target_properties (behaviorControllerTestDriver PROPERTIES OUTPUT_NAME behaviorControllerTestDriver PREFIX "")
+target_link_libraries (behaviorControllerTestDriver ${catkin_LIBRARIES})
+target_include_directories(behaviorControllerTestDriver PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include ${catkin_INCLUDE_DIRS})
+add_dependencies(behaviorControllerTestDriver ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+add_executable        (behaviorControllerTest src/behaviorControllerTestApplication.cpp src/behaviorControllerTestImplementation.cpp)
+set_target_properties (behaviorControllerTest PROPERTIES OUTPUT_NAME behaviorControllerTest PREFIX "")
+target_link_libraries (behaviorControllerTest ${catkin_LIBRARIES} ${GTEST_LIBRARIES} ${GTEST_MAIN_LIBRARIES})
+target_include_directories(behaviorControllerTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include ${catkin_INCLUDE_DIRS})
+add_dependencies(behaviorControllerTest ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})

@@ -1,0 +1,4 @@
+string message
+string language
+---
+bool success

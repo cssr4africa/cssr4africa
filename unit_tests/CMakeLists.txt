@@ -69,6 +69,14 @@ add_message_files(
   faceDetection.msg
 )
 
+## Generate messages in the 'msg' folder
+add_message_files(
+  DIRECTORY
+  behaviorControllerTest/msg   
+  FILES
+  overtAttentionMode.msg
+)
+
 
 add_message_files(
   DIRECTORY
@@ -112,6 +120,21 @@ add_service_files(
   speech_event_test/srv
   FILES
   set_next_test_file.srv
+)
+
+add_service_files(
+  DIRECTORY
+  behaviorControllerTest/srv
+  FILES
+  animateBehaviorSetActivation.srv
+  gestureExecutionPerformGesture.srv
+  overtAttentionSetMode.srv
+  robotLocalizationSetPose.srv
+  robotNavigationSetGoal.srv
+  speechEventSetStatus.srv
+  speechEventSetLanguage.srv
+  tabletEventPromptAndGetResponse.srv
+  textToSpeechSayText.srv
 )
 
 ## Generate actions in the 'action' folder
@@ -166,6 +189,7 @@ catkin_package(
  INCLUDE_DIRS overtAttentionTest
  INCLUDE_DIRS animateBehaviourTest
  INCLUDE_DIRS mapGenerationTest
+ INCLUDE_DIRS behaviorControllerTest
  LIBRARIES ${PROJECT_NAME}
 #  CATKIN_DEPENDS roscpp
 #  DEPENDS system_lib
@@ -191,6 +215,7 @@ gestureExecutionTest/include
 overtAttentionTest/include
 animateBehaviourTest/include
 mapGenerationTest/include
+behaviorControllerTest/include
   ${catkin_INCLUDE_DIRS}
 )
 
@@ -290,3 +315,4 @@ add_subdirectory(gestureExecutionTest)
 add_subdirectory(overtAttentionTest)
 add_subdirectory(animateBehaviourTest)
 add_subdirectory(mapGenerationTest)
+add_subdirectory(behaviorControllerTest)

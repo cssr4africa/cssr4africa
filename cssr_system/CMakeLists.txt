@@ -86,6 +86,13 @@ add_message_files(
 
 add_message_files(
   DIRECTORY
+  behaviorController/msg
+  FILES
+  overtAttentionMode.msg
+)
+
+add_message_files(
+  DIRECTORY
   face_detection/msg
   FILES
   face_detection_msg_file.msg
@@ -126,6 +133,22 @@ add_service_files(
   setActivation.srv
   # Service2.srv
 )
+
+add_service_files(
+  DIRECTORY
+  behaviorController/srv
+  FILES
+  animateBehaviorSetActivation.srv
+  gestureExecutionPerformGesture.srv
+  overtAttentionSetMode.srv
+  robotLocalizationSetPose.srv
+  robotNavigationSetGoal.srv
+  speechEventSetStatus.srv
+  speechEventSetLanguage.srv
+  tabletEventPromptAndGetResponse.srv
+  textToSpeechSayText.srv
+)
+
 
 add_service_files(
   DIRECTORY
@@ -181,7 +204,7 @@ generate_messages(
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
- INCLUDE_DIRS gestureExecution overtAttention animateBehaviour mapGeneration
+ INCLUDE_DIRS gestureExecution overtAttention animateBehaviour mapGeneration behaviorController
  LIBRARIES ${PROJECT_NAME}
 #  CATKIN_DEPENDS roscpp
 #  DEPENDS system_lib
@@ -208,6 +231,7 @@ gestureExecution/include
 overAttention/include
 animateBehaviour/include
 mapGeneration/include
+behaviorController/include
   ${catkin_INCLUDE_DIRS}
 )
 
@@ -216,3 +240,4 @@ add_subdirectory(gestureExecution)
 add_subdirectory(overtAttention)
 add_subdirectory(animateBehaviour)
 add_subdirectory(mapGeneration)
+add_subdirectory(behaviorController)
