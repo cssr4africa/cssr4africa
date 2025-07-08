@@ -15,7 +15,8 @@
   <arg name="person_detection_namespace"          default="personDetection" />
   <arg name="sound_detection_namespace"           default="soundDetection" />
   <arg name="speech_event_namespace"              default="speechEvent" />
-  <arg name="behavior_controller_namespace"     default="behaviorController" />
+  <arg name="behavior_controller_namespace"       default="behaviorController" />
+  <arg name="text_to_speech_namespace"            default="textToSpeech" />
 
   <arg name="initial_robot_x"                     default="0.0" />
   <arg name="initial_robot_y"                     default="0.0" />
@@ -30,6 +31,9 @@
 
   <!-- Define the virtual environment path -->
   <arg name="speech_event_env_path" default="~/workspace/pepper_rob_ws/src/cssr4africa_virtual_envs/cssr4africa_speech_event_env" />
+
+  <!-- Define the virtual environment path -->
+  <arg name="text_to_speech_env_path" default="~/workspace/pepper_rob_ws/src/cssr4africa_virtual_envs/cssr4africa_text_to_speech_env" />
 
 
   <!-- Launch the animateBehaviour node -->
@@ -58,6 +62,10 @@
   <!-- Launch gesture_execution node -->
   <node pkg="$(arg cssr_system_namespace)" type="$(arg gesture_execution_namespace)" name="$(arg gesture_execution_namespace)" 
       required="true" output="screen" launch-prefix="bash -c 'sleep 30; $0 $@'" />
+  
+  <!-- Launch text_to_speech node -->
+  <node pkg="$(arg cssr_system_namespace)" type="text_to_speech_application.py" name="$(arg text_to_speech_namespace)" output="screen" required="true"
+      launch-prefix="bash -c 'source $(arg text_to_speech_env_path)/bin/activate; sleep 15; $0 $@'"/>
   
     <!-- Launch robot_localization node // Change package name to cssr_system later -->
   <!-- <node pkg="robot_localization" type="$(arg robot_localization_namespace)" name="$(arg robot_localization_namespace)" 

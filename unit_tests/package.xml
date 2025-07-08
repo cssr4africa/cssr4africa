@@ -65,7 +65,8 @@
   <build_depend>roslib</build_depend>
   <build_depend>tf</build_depend>
   <build_depend>angles</build_depend>
-  
+  <build_depend>rostest</build_depend>
+
 
 
   <exec_depend>rospy</exec_depend>
@@ -86,6 +87,7 @@
   <exec_depend>angles</exec_depend>
   <exec_depend>geometry_msgs</exec_depend>
   <exec_depend>message_runtime</exec_depend>
+  <exec_depend>rostest</exec_depend>
 
 
 
@@ -93,10 +95,15 @@
   <build_export_depend>rospy</build_export_depend>
   <build_export_depend>std_msgs</build_export_depend>
   <build_export_depend>OpenCV</build_export_depend>
+  <build_export_depend>rostest</build_export_depend>
 
 
 
   <exec_depend>OpenCV</exec_depend>
+
+
+
+  <test_depend>rostest</test_depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->

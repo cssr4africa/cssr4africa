@@ -22,6 +22,7 @@ control_msgs
 tf
 angles
 message_generation
+rostest
 )
 
 ## System dependencies are found with CMake's conventions
