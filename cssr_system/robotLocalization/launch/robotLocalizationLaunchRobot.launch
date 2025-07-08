@@ -1,0 +1,23 @@
+<launch>
+    <!-- Launch RealSense camera node -->
+    <include file="$(find realsense2_camera)/launch/rs_camera.launch">
+        <arg name="enable_color" value="true" />
+        <arg name="enable_depth" value="true" />
+        <arg name="color_width" value="1280" />
+        <arg name="color_height" value="720" />
+        <arg name="color_fps" value="30" />
+        <arg name="depth_width" value="848" />
+        <arg name="depth_height" value="480" />
+        <arg name="depth_fps" value="30" />
+        <arg name="align_depth" value="true" />
+        <arg name="output" value="log" />
+    </include>
+
+    <!-- Static transformations -->
+    <node pkg="tf" type="static_transform_publisher" name="odom_to_map" args="0 0 0 0 0 0 map odom 100" />
+    <node pkg="tf" type="static_transform_publisher" name="head_to_camera_link" args="0.1 0.0 0.2 0.0 0.0 0.0 Head camera_link 100" />
+
+    <!-- Launch robotLocalization node -->
+    <node pkg="cssr_system" type="robotLocalization" name="robotLocalization" output="screen" />
+    
+</launch>

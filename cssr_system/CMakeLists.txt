@@ -11,34 +11,33 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  roscpp
-  rospy
-  roslib
+  actionlib
+  angles
+  aruco
+  control_msgs
   cv_bridge
+  geometry_msgs
   image_transport
+  message_generation
+  nav_msgs
+  roscpp
+  roslib
+  rospy
   sensor_msgs
   std_msgs
-  actionlib
-  control_msgs
-  geometry_msgs
-  nav_msgs
-  tf
-  angles
-  message_generation
   std_srvs
+  tf
+  tf2
+  tf2_ros
 )
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
-# find_package(OpenCV REQUIRED)
-#     catkin_package(
-#     CATKIN_DEPENDS cv_bridge image_transport roscpp sensor_msgs std_msgs
-# )
-
-## Uncomment this if the package has a setup.py. This macro ensures
-## modules and global scripts declared therein get installed
-## See http://ros.org/doc/api/catkin/html/user_guide/setup_dot_py.html
-# catkin_python_setup()
+find_package(jsoncpp REQUIRED)
+find_package(OpenCV REQUIRED)
+find_package(PkgConfig REQUIRED)
+find_package(yaml-cpp REQUIRED)
+pkg_check_modules(JSONCPP jsoncpp)
 
 ################################################
 ## Declare ROS messages, services and actions ##
@@ -64,30 +63,7 @@ find_package(catkin REQUIRED COMPONENTS
 ##   * uncomment the generate_messages entry below
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
-# file(GLOB MSG_FILES ${PROJECT_NAME}/gestureExecution/msg/*.msg)
-# file(GLOB SRV_FILES ${PROJECT_NAME}/gestureExecution/srv/*.srv)
-
-
-# catkin_python_setup()  # Needs to be called before generate_messages()
-
-# Generate messages in the 'msg' folder
-add_message_files(
-  DIRECTORY
-  gestureExecution/msg
-  FILES
-  Gesture.msg
-  # Message2.msg
-)
-
-add_message_files(
-  DIRECTORY
-  overtAttention/msg
-  FILES
-  Mode.msg
-  Status.msg
-  # Message2.msg
-)
-
+## Generate messages in the 'msg' folder
 add_message_files(
   DIRECTORY
   behaviorController/msg
@@ -100,10 +76,23 @@ add_message_files(
   face_detection/msg
   FILES
   face_detection_msg_file.msg
-  # Message2.msg
 )
 
-## Add service and message files
+add_message_files(
+  DIRECTORY
+  gestureExecution/msg
+  FILES
+  Gesture.msg
+)
+
+add_message_files(
+  DIRECTORY
+  overtAttention/msg
+  FILES
+  Mode.msg
+  Status.msg
+)
+
 add_message_files(
   DIRECTORY
   person_detection/msg
@@ -125,31 +114,12 @@ add_message_files(
   sound_detection_microphone_msg_file.msg
 )
 
-
-
 ## Generate services in the 'srv' folder
-add_service_files(
-  DIRECTORY
-  gestureExecution/srv
-  FILES
-  performGesture.srv
-  # Service2.srv
-)
-
-add_service_files(
-  DIRECTORY
-  overtAttention/srv
-  FILES
-  setMode.srv
-  # Service2.srv
-)
-
 add_service_files(
   DIRECTORY
   animateBehaviour/srv
   FILES
   setActivation.srv
-  # Service2.srv
 )
 
 add_service_files(
@@ -167,13 +137,26 @@ add_service_files(
   textToSpeechSayText.srv
 )
 
+add_service_files(
+  DIRECTORY
+  gestureExecution/srv
+  FILES
+  performGesture.srv
+)
 
 add_service_files(
   DIRECTORY
-  speech_event/srv
+  overtAttention/srv
   FILES
-  set_language.srv
-  set_enabled.srv
+  setMode.srv
+)
+
+add_service_files(
+  DIRECTORY 
+  robotLocalization/srv
+  FILES
+  resetPose.srv
+  setPose.srv
 )
 
 add_service_files(
@@ -182,6 +165,14 @@ add_service_files(
   FILES
   setGoal.srv
 )
+
+add_service_files(
+  DIRECTORY
+  speech_event/srv
+  FILES
+  set_language.srv
+  set_enabled.srv
+)
   
 add_service_files(
   DIRECTORY 
@@ -189,7 +180,6 @@ add_service_files(
   FILES
   TTS.srv
 )
-
 
 ## Generate actions in the 'action' folder
 # add_action_files(
@@ -201,31 +191,12 @@ add_service_files(
 ## Generate added messages and services with any dependencies listed here
 generate_messages(
   DEPENDENCIES
-  std_msgs  # Or other packages containing msgs
-  sensor_msgs
   geometry_msgs
+  nav_msgs
+  sensor_msgs
+  std_msgs
   std_srvs
 )
-
-################################################
-## Declare ROS dynamic reconfigure parameters ##
-################################################
-
-## To declare and build dynamic reconfigure parameters within this
-## package, follow these steps:
-## * In the file package.xml:
-##   * add a build_depend and a exec_depend tag for "dynamic_reconfigure"
-## * In this file (CMakeLists.txt):
-##   * add "dynamic_reconfigure" to
-##     find_package(catkin REQUIRED COMPONENTS ...)
-##   * uncomment the "generate_dynamic_reconfigure_options" section below
-##     and list every .cfg file to be processed
-
-## Generate dynamic reconfigure parameters in the 'cfg' folder
-# generate_dynamic_reconfigure_options(
-#   cfg/DynReconf1.cfg
-#   cfg/DynReconf2.cfg
-# )
 
 ###################################
 ## catkin specific configuration ##
@@ -237,43 +208,38 @@ generate_messages(
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
- INCLUDE_DIRS gestureExecution overtAttention animateBehaviour mapGeneration behaviorController robotNavigation
- LIBRARIES ${PROJECT_NAME}
-#  CATKIN_DEPENDS roscpp
-#  DEPENDS system_lib
-  CATKIN_DEPENDS message_runtime
-)
-
-## System dependencies are found with CMake's conventions
-# find_package(Boost REQUIRED COMPONENTS system)
-find_package(OpenCV REQUIRED)
-catkin_package(
-    CATKIN_DEPENDS cv_bridge image_transport roscpp sensor_msgs std_msgs geometry_msgs rospy sensor_msgs roslib nav_msgs tf angles message_runtime roslib std_srvs trajectory_msgs
+  INCLUDE_DIRS animateBehaviour behaviorController gestureExecution mapGeneration overtAttention robotLocalization robotNavigation
+  LIBRARIES ${PROJECT_NAME}
+  CATKIN_DEPENDS angles cv_bridge geometry_msgs image_transport message_runtime nav_msgs roscpp roslib rospy sensor_msgs std_msgs std_srvs tf tf2 tf2_ros trajectory_msgs
+  DEPENDS OpenCV yaml-cpp
 )
 
 ###########
 ## Build ##
 ###########
 
-
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-include
-gestureExecution/include
-overAttention/include
-animateBehaviour/include
-mapGeneration/include
-behaviorController/include
-robotNavigation/include
+  include
+  animateBehaviour/include
+  behaviorController/include
+  gestureExecution/include
+  mapGeneration/include
+  overAttention/include
+  robotLocalization/include
+  robotNavigation/include
+  ${aruco_INCLUDE_DIRS}
   ${catkin_INCLUDE_DIRS}
+  ${JSONCPP_INCLUDE_DIRS}
   ${OpenCV_INCLUDE_DIRS}
+  ${YAML_CPP_INCLUDE_DIRS}
 )
 
-
-add_subdirectory(gestureExecution)
-add_subdirectory(overtAttention)
 add_subdirectory(animateBehaviour)
-add_subdirectory(mapGeneration)
 add_subdirectory(behaviorController)
+add_subdirectory(gestureExecution)
+add_subdirectory(mapGeneration)
+add_subdirectory(overtAttention)
+add_subdirectory(robotLocalization)
 add_subdirectory(robotNavigation)

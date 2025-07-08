@@ -1,0 +1,52 @@
+<!-- robotLocalizationLaunchRobot.launch -->
+<launch>
+    <arg name="robot_ip" default="172.29.111.230" />
+    <arg name="robot_port" default="9559" />
+    <arg name="roscore_ip" default="127.0.0.1" />
+    <arg name="network_interface" default="wlp0s20f3" />
+    <arg name="namespace" default="naoqi_driver" />
+    <arg name="realsense_camera" default="true" />
+
+    <!-- Launch RealSense camera node -->
+    <group if="$(arg realsense_camera)">
+      <include file="$(find realsense2_camera)/launch/rs_camera.launch">
+            <arg name="enable_color" value="true" />
+            <arg name="enable_depth" value="true" />
+            <arg name="color_width" value="1280" />
+            <arg name="color_height" value="720" />
+            <arg name="color_fps" value="30" />
+            <arg name="depth_width" value="848" />
+            <arg name="depth_height" value="480" />
+            <arg name="depth_fps" value="30" />
+            <arg name="align_depth" value="true" />
+            <arg name="output" value="log" />
+      </include>
+    </group>
+
+    <!-- Robot description and control -->
+    <include file="$(find pepper_description)/launch/pepper_upload.launch" />
+    <include file="$(find pepper_control)/launch/pepper_control_trajectory.launch"/>
+  
+    <!-- Robot Driver -->
+    <node pkg="naoqi_dcm_driver" type="naoqi_dcm_driver" name="naoqi_dcm_driver" respawn="false" output="screen">
+        <rosparam file="$(find pepper_dcm_bringup)/config/pepper_dcm.yaml" command="load"/>
+        <rosparam file="$(find pepper_control)/config/pepper_trajectory_control.yaml" command="load"/>
+        <param name="RobotIP" value="$(arg robot_ip)" />
+        <param name="RobotPort" value="$(arg robot_port)" />
+        <param name="DriverBrokerIP" value="$(arg roscore_ip)" />
+        <param name="network_interface" value="$(arg network_interface)" />
+        <param name="Prefix" value="pepper_dcm" />
+        <param name="motor_groups" value="Body" />
+        <param name="use_dcm" value="false" />
+        <param name="max_stiffness" value="0.9" />
+    </node>
+  
+    <!-- Launch naoqi_driver_node -->
+    <node pkg="naoqi_driver" type="naoqi_driver_node" name="$(arg namespace)" required="true" output="screen"
+          args="--qi-url=tcp://$(arg robot_ip):$(arg robot_port) --roscore_ip=$(arg roscore_ip) --network_interface=$(arg network_interface) --namespace=$(arg namespace)" />
+
+    <!-- Static transformations -->
+    <node pkg="tf" type="static_transform_publisher" name="odom_to_map" args="0 0 0 0 0 0 map odom 100" />
+    <node pkg="tf" type="static_transform_publisher" name="head_to_camera_link" args="0.1 0.0 0.2 0.0 0.0 0.0 Head camera_link 100" />
+
+</launch>
