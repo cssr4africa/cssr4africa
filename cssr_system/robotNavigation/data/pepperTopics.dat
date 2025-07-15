@@ -1,0 +1,14 @@
+BackSonar           /naoqi_driver/sonar/back
+FrontSonar          /naoqi_driver/sonar/front
+FrontCamera         /naoqi_driver/camera/front/image_raw
+BottomCamera        /naoqi_driver/camera/bottom/image_raw
+DepthCamera         /naoqi_driver/camera/depth/image_raw
+StereoCamera        /naoqi_driver/camera/stereo/image_raw
+Laser               /pepper/laser_2
+Head                /pepper_dcm/Head_controller/follow_joint_trajectory
+RArm                /pepper_dcm/RightArm_controller/follow_joint_trajectory
+LArm                /pepper_dcm/LeftArm_controller/follow_joint_trajectory
+RHand               /pepper_dcm/RightHand_controller/follow_joint_trajectory
+LHand               /pepper_dcm/LeftHand_controller/follow_joint_trajectory
+Leg                 /pepper_dcm/Pelvis_controller/follow_joint_trajectory
+Wheels              /cmd_vel
