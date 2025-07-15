@@ -92,6 +92,11 @@
   <build_export_depend>roscpp</build_export_depend>
   <build_export_depend>rospy</build_export_depend>
   <build_export_depend>std_msgs</build_export_depend>
+  <build_export_depend>OpenCV</build_export_depend>
+
+
+
+  <exec_depend>OpenCV</exec_depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->

@@ -67,9 +67,11 @@
       <param name="initial_robot_theta"               value="$(arg initial_robot_theta)" /> -->
 
   
-  <!-- Launch robot_navigation node // Change package name to cssr_system later -->
-  <!-- <node pkg="robot_navigation" type="$(arg robot_navigation_namespace)" name="$(arg robot_navigation_namespace)" 
-    required="true" output="screen" launch-prefix="bash -c 'sleep 20; $0 $@'" /> -->
+  <!-- Launch robot_navigation node -->
+  <node pkg="$(arg cssr_system_namespace)" type="$(arg robot_navigation_namespace)" name="$(arg robot_navigation_namespace)" 
+    required="true" output="screen" launch-prefix="bash -c 'sleep 20; $0 $@'">
+      <param name="robot_ip" value="$(arg robot_ip)" />
+  </node>
 
     <!-- Launch simulated nodes // Remove upon completion -->
     <!-- <include file="$(find simulated_nodes)/simulated_nodes.launch" /> -->

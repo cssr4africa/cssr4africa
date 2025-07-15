@@ -1,0 +1,19 @@
+# Boundary Test Input File
+# Format: goal_x goal_y goal_theta
+# Coordinates in meters, angles in degrees
+# Lines starting with # are comments and will be ignored
+
+# Test 1: Goal outside map boundaries (should fail)
+10.0 10.0 0.0
+
+# Test 2: Goal with negative X coordinate (should fail)
+-1.0 2.0 0.0
+
+# Test 3: Goal with negative Y coordinate (should fail)
+2.0 -1.0 0.0
+
+# Test 4: Goal at origin (boundary case)
+0.0 0.0 0.0
+
+# Test 5: Goal at map edge (boundary case)
+7.0 7.0 0.0
