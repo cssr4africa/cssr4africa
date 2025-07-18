@@ -171,7 +171,13 @@ add_service_files(
   robotNavigation/srv
   FILES
   setGoal.srv
+)
   
+add_service_files(
+  DIRECTORY 
+  text_to_speech/srv
+  FILES
+  TTS.srv
 )
 
 
