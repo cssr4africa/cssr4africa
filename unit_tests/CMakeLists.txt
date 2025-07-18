@@ -100,6 +100,13 @@ add_message_files(
   sound_detection_test_microphone_msg_file.msg
 )
 
+add_message_files(
+  DIRECTORY
+  robotNavigationTest/msg   
+  FILES
+  Goal.msg
+)
+
 add_service_files(
   DIRECTORY
   gestureExecutionTest/srv
@@ -135,6 +142,13 @@ add_service_files(
   speechEventSetLanguage.srv
   tabletEventPromptAndGetResponse.srv
   textToSpeechSayText.srv
+)
+
+add_service_files(
+  DIRECTORY
+  robotNavigationTest/srv
+  FILES
+  setGoal.srv
 )
 
 ## Generate actions in the 'action' folder
@@ -190,6 +204,7 @@ catkin_package(
  INCLUDE_DIRS animateBehaviourTest
  INCLUDE_DIRS mapGenerationTest
  INCLUDE_DIRS behaviorControllerTest
+ INCLUDE_DIRS robotNavigationTest/include
  LIBRARIES ${PROJECT_NAME}
 #  CATKIN_DEPENDS roscpp
 #  DEPENDS system_lib
@@ -199,7 +214,7 @@ catkin_package(
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 find_package(OpenCV REQUIRED)
-    catkin_package(
+catkin_package(
       CATKIN_DEPENDS roscpp roslib std_msgs nav_msgs geometry_msgs sensor_msgs image_transport cv_bridge tf angles message_runtime rospy
 )
 
@@ -216,7 +231,9 @@ overtAttentionTest/include
 animateBehaviourTest/include
 mapGenerationTest/include
 behaviorControllerTest/include
+robotNavigationTest/include
   ${catkin_INCLUDE_DIRS}
+  ${OpenCV_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
@@ -316,3 +333,4 @@ add_subdirectory(overtAttentionTest)
 add_subdirectory(animateBehaviourTest)
 add_subdirectory(mapGenerationTest)
 add_subdirectory(behaviorControllerTest)
+add_subdirectory(robotNavigationTest)

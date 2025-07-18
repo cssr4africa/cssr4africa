@@ -22,6 +22,7 @@ find_package(catkin REQUIRED COMPONENTS
   tf
   angles
   message_generation
+  std_srvs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -107,6 +108,13 @@ add_message_files(
   person_detection_msg_file.msg
 )
 
+add_message_files(
+  DIRECTORY
+  robotNavigation/msg
+  FILES
+  Goal.msg
+)
+
 
 
 ## Generate services in the 'srv' folder
@@ -158,6 +166,14 @@ add_service_files(
   set_enabled.srv
 )
 
+add_service_files(
+  DIRECTORY
+  robotNavigation/srv
+  FILES
+  setGoal.srv
+  
+)
+
 
 ## Generate actions in the 'action' folder
 # add_action_files(
@@ -172,6 +188,7 @@ generate_messages(
   std_msgs  # Or other packages containing msgs
   sensor_msgs
   geometry_msgs
+  std_srvs
 )
 
 ################################################
@@ -204,7 +221,7 @@ generate_messages(
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
- INCLUDE_DIRS gestureExecution overtAttention animateBehaviour mapGeneration behaviorController
+ INCLUDE_DIRS gestureExecution overtAttention animateBehaviour mapGeneration behaviorController robotNavigation
  LIBRARIES ${PROJECT_NAME}
 #  CATKIN_DEPENDS roscpp
 #  DEPENDS system_lib
@@ -214,8 +231,8 @@ catkin_package(
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 find_package(OpenCV REQUIRED)
-    catkin_package(
-    CATKIN_DEPENDS cv_bridge image_transport roscpp sensor_msgs std_msgs geometry_msgs rospy sensor_msgs roslib nav_msgs tf angles message_runtime
+catkin_package(
+    CATKIN_DEPENDS cv_bridge image_transport roscpp sensor_msgs std_msgs geometry_msgs rospy sensor_msgs roslib nav_msgs tf angles message_runtime roslib std_srvs trajectory_msgs
 )
 
 ###########
@@ -232,7 +249,9 @@ overAttention/include
 animateBehaviour/include
 mapGeneration/include
 behaviorController/include
+robotNavigation/include
   ${catkin_INCLUDE_DIRS}
+  ${OpenCV_INCLUDE_DIRS}
 )
 
 
@@ -240,4 +259,5 @@ add_subdirectory(gestureExecution)
 add_subdirectory(overtAttention)
 add_subdirectory(animateBehaviour)
 add_subdirectory(mapGeneration)
-add_subdirectory(behaviorController)
+# add_subdirectory(behaviorController)
+add_subdirectory(robotNavigation)
