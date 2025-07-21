@@ -39,8 +39,8 @@
  *      Configuration File Parameters
  *          Key                   |     Value 
  *          --------------------- |     -------------------
- *          environmentMap        |     scenarioOneEnvironmentMap.dat
- *          configurationMap      |     scenarioOneConfigMap.dat
+ *          environmentMap        |     environmentMap.png
+ *          configurationMap      |     configurationSpaceMap.png
  *          pathPlanning          |     astar
  *          socialDistance        |     true
  *          robotTopics           |     pepperTopics.dat
