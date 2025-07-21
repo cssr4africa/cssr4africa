@@ -45,8 +45,8 @@ Accompanying this code is the deliverable report that provides a detailed explan
 
    | Parameter | Description | Values | Default |
    |-----------|-------------|---------|---------|
-   | `environmentMap` | Environmental map file | `scenarioOneEnvironmentMap.dat` | `scenarioOneEnvironmentMap.dat` |
-   | `configurationMap` | Configuration map file | `scenarioOneConfigMap.dat` | `scenarioOneConfigMap.dat` |
+   | `environmentMap` | Environmental map file | `environmentMap.png` | `environmentMap.png` |
+   | `configurationMap` | Configuration map file | `configurationSpaceMap.png` | `configurationSpaceMap.png` |
    | `pathPlanning` | Path planning algorithm | `astar`, `dijkstra`, `bfs`, `dfs` | `astar` |
    | `socialDistance` | Social distance mode | `true`, `false` | `true` |
    | `robotTopics` | Physical robot topic mapping file | `pepperTopics.dat` | `pepperTopics.dat` |
