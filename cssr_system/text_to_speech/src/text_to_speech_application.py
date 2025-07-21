@@ -155,10 +155,6 @@ def text_to_speech_node():
     except Exception as e:
         rospy.logerr(f"Error initializing text-to-speech node: {e}")
         exit(1)
-    finally:
-        # Clean shutdown of heartbeat
-        if tts_impl:
-            tts_impl.stop_heartbeat()
 
 if __name__ == '__main__':
     # Set up dynamic paths

@@ -60,6 +60,25 @@ Accompanying this code is the deliverable report that provides a detailed explan
    sudo apt-get install sshpass
    ```
 
+   Verify the model files are in the `model/` directory:
+
+   ```bash
+   # Verify the models are in the models directory:
+   ls ~/workspace/pepper_rob_ws/src/cssr4africa/cssr_system/text_to_speech/model
+
+   # If there is no output, use the commands below to obtain the models:
+
+   # If git-lfs is already set up, skip this section
+   sudo apt-get update && sudo apt-get install git-lfs
+   cd && git lfs install
+
+   # Clone the models from HuggingFace:
+   git clone https://huggingface.co/cssr4africa/cssr4africa_models
+
+   # Copy the text-to-speech model to the 'model/' directory:
+   mkdir -p ~/workspace/pepper_rob_ws/src/cssr4africa/cssr_system/text_to_speech/model
+   unzip cssr4africa_models/text_to_speech/model.zip -d ~/workspace/pepper_rob_ws/src/cssr4africa/cssr_system/text_to_speech
+   ```
 
 4. **Update Configuration File:**
    

@@ -37,25 +37,6 @@ class TTSImplementation:
     _model_dir_path = None
     _python2_script_path = None
     
-    def __enter__(self):
-        """Context manager entry - suppress stdout"""
-        self.old_stdout = sys.stdout
-        self.old_stderr = sys.stderr
-        self.result = StringIO()
-        sys.stdout = self.result
-        sys.stderr = self.result
-        return self
-    
-    def __exit__(self, *args, **kwargs):
-        """Context manager exit - restore stdout"""
-        sys.stdout = self.old_stdout
-        sys.stderr = self.old_stderr
-        # Optionally log the captured output if verbose mode is on
-        if self.config.get('verboseMode', False):
-            captured_output = self.result.getvalue()
-            if captured_output.strip():
-                rospy.loginfo(f"TTS Model Output: {captured_output}")
-    
     @classmethod
     def set_paths(cls, config_file_path, model_dir_path, python2_script_path):
         """Set paths for the implementation class"""
@@ -67,11 +48,10 @@ class TTSImplementation:
         """Initialize the TTS implementation with default configuration"""
         self.config = {
             'language': 'english',
-            'verboseMode': False,
+            'verboseMode': True,
             'ip': "172.29.111.240",
             'port': '9559',
             'useCuda': False,
-            'suppress_model_output': True  
         }
         
         # Set up paths from class variables
@@ -111,10 +91,6 @@ class TTSImplementation:
                     self.config['useCuda'] = config_parser['DEFAULT']['useCuda'].lower() in ['true', '1', 'yes', 'on']
                 else:
                     rospy.logwarn("useCuda not found in configuration file. Using default value: False")
-                
-                # Read suppress_model_output configuration
-                if config_parser.has_option('DEFAULT', 'suppress_model_output'):
-                    self.config['suppress_model_output'] = config_parser['DEFAULT']['suppress_model_output'].lower() in ['true', '1', 'yes', 'on']
             
             rospy.loginfo(f"Configuration loaded from {self.config_file_path}")
                     
@@ -123,8 +99,12 @@ class TTSImplementation:
     
     @contextlib.contextmanager
     def suppress_output(self):
-        """Context manager to suppress stdout and stderr"""
-        if self.config.get('suppress_model_output', True):
+        """Context manager to suppress stdout and stderr based on verboseMode"""
+        # If verboseMode is True, don't suppress anything
+        if self.config.get('verboseMode', True):
+            yield
+        else:
+            # If verboseMode is False, suppress all output
             old_stdout = sys.stdout
             old_stderr = sys.stderr
             try:
@@ -135,8 +115,6 @@ class TTSImplementation:
             finally:
                 sys.stdout = old_stdout
                 sys.stderr = old_stderr
-        else:
-            yield
     
     def initialize_components(self):
         """Initialize the TTS components based on configuration"""
@@ -205,6 +183,12 @@ class TTSImplementation:
             elif language == 'kinyarwanda':
                 rospy.loginfo(f"Saying '{message}' in {language}")
                 
+                # Set environment variable for Python 2 script based on verboseMode
+                if self.config.get('verboseMode', True):
+                    os.environ['VERBOSE_AUDIO'] = '1'
+                else:
+                    os.environ['VERBOSE_AUDIO'] = '0'
+                
                 # Generate speech from text with suppressed output
                 with self.suppress_output():
                     wav = self.synthesizer.tts(
@@ -219,13 +203,25 @@ class TTSImplementation:
                         self.synthesizer.save_wav(wav, fp)
                 
                 # Play the audio using the Python 2 script
-                subprocess.run([
-                    self.python2_path, 
-                    self.python2_script,
-                    temp_file_path,
-                    self.config['ip'],
-                    self.config['port']
-                ], check=True)
+                # Suppress subprocess output based on verboseMode
+                if self.config.get('verboseMode', True):
+                    # Allow all output in verbose mode
+                    subprocess.run([
+                        self.python2_path, 
+                        self.python2_script,
+                        temp_file_path,
+                        self.config['ip'],
+                        self.config['port']
+                    ], check=True)
+                else:
+                    # Suppress subprocess output in non-verbose mode
+                    subprocess.run([
+                        self.python2_path, 
+                        self.python2_script,
+                        temp_file_path,
+                        self.config['ip'],
+                        self.config['port']
+                    ], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                 
                 # Clean up temporary file
                 os.unlink(temp_file_path)
