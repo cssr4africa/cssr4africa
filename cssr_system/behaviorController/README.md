@@ -27,6 +27,25 @@ Accompanying this code is the deliverable report that provides a detailed explan
         ```bash
         sudo apt install espeak
         ```
+
+    - BehaviorTree.CPP
+
+        BehaviorTree.CPP is an open-source C++ library designed to implement, read, and execute behavior trees. The behaviorController node was built by importing the fundamental components from this library, including the core behavior tree types, the XML parsing functionality for loading tree specifications at runtime, and the tree execution engine. This dependency provides all the necessary building blocks for constructing and executing behavior trees while allowing the mission interpreter to focus on implementing the specific behaviors and actions.
+        
+        To install BehaviorTree.CPP on a Debian-based Linux system (e.g., Ubuntu), run the following command in the terminal:
+        ```bash
+        > sudo apt-get install libzmq3-dev sqlite3 libsqlite3-dev libgtest-dev
+
+        > git clone --depth 1 --branch 4.6.2 https://github.com/BehaviorTree/BehaviorTree.CPP.git
+
+        > cd BehaviorTree.CPP
+
+        > cmake -DCMAKE_CXX_STANDARD=17 .
+
+        > make
+
+        > sudo make install
+        ```
     - Pepper Robot Environment
 
         Set up the development environment for controlling the Pepper robot. Use the [CSSR4Africa Software Installation Manual](https://cssr4africa.github.io/deliverables/CSSR4Africa_Deliverable_D3.3.pdf). 
