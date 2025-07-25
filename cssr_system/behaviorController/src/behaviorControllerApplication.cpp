@@ -163,7 +163,7 @@ int main(int argc, char** argv)
 
     /* If any of the topics from above isn't alive, exit program */
     ROS_INFO_STREAM(nodeName<<": Checking Topics...");
-    while(ros::ok()&&!checkServices(services)){
+    while(ros::ok()&&!checkTopics(topics)){
         ros::Duration(3).sleep();
         ROS_INFO_STREAM(nodeName<<": Checking Topics...");
     }
