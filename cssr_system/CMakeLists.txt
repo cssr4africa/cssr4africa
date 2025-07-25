@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.0.2)
 project(cssr_system)
 
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
 
@@ -265,5 +268,5 @@ add_subdirectory(gestureExecution)
 add_subdirectory(overtAttention)
 add_subdirectory(animateBehaviour)
 add_subdirectory(mapGeneration)
-# add_subdirectory(behaviorController)
+add_subdirectory(behaviorController)
 add_subdirectory(robotNavigation)

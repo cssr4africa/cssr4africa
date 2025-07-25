@@ -27,6 +27,25 @@ Accompanying this code is the deliverable report that provides a detailed explan
         ```bash
         sudo apt install espeak
         ```
+
+    - BehaviorTree.CPP
+
+        BehaviorTree.CPP is an open-source C++ library designed to implement, read, and execute behavior trees. The behaviorController node was built by importing the fundamental components from this library, including the core behavior tree types, the XML parsing functionality for loading tree specifications at runtime, and the tree execution engine. This dependency provides all the necessary building blocks for constructing and executing behavior trees while allowing the mission interpreter to focus on implementing the specific behaviors and actions.
+        
+        To install BehaviorTree.CPP on a Debian-based Linux system (e.g., Ubuntu), run the following command in the terminal:
+        ```bash
+        sudo apt-get install libzmq3-dev sqlite3 libsqlite3-dev libgtest-dev
+
+        git clone --depth 1 --branch 4.6.2 https://github.com/BehaviorTree/BehaviorTree.CPP.git
+
+        cd BehaviorTree.CPP
+
+        cmake -DCMAKE_CXX_STANDARD=17 .
+
+        make
+
+        sudo make install
+        ```
     - Pepper Robot Environment
 
         Set up the development environment for controlling the Pepper robot. Use the [CSSR4Africa Software Installation Manual](https://cssr4africa.github.io/deliverables/CSSR4Africa_Deliverable_D3.3.pdf). 
@@ -57,8 +76,8 @@ Accompanying this code is the deliverable report that provides a detailed explan
    | Parameter | Description | Default Value |
    |-----------|-------------|---------|
    | `scenarioSpecification` | The robot mission specification file in XML format. File should be present in the `data` folder. | `labTour` |
-   | `verboseMode` | Whether diagnostic data should be printed to the terminal. | `true` |
-   | `asrEnabled` | Whether Automatic Speech Recognition is enabled on the platform or not | `false` |
+   | `verboseMode` | Whether diagnostic data should be printed to the terminal. | `false` |
+   | `asrEnabled` | Whether Automatic Speech Recognition is enabled on the platform or not | `true` |
    | `audioDebugMode` | Whether the debug audio should be on or not | `false` |   
 
 4. **Run the `behaviorController` from the `cssr_system`  package:**
@@ -85,7 +104,7 @@ Accompanying this code is the deliverable report that provides a detailed explan
     
     <div style="background-color: #1e1e1e; padding: 15px; border-radius: 4px; border: 1px solid #404040; margin: 10px 0;">
     <span style="color: #ff3333; font-weight: bold;">NOTE: </span>
-    <span style="color: #cccccc;">Running the <code>behaviorController</code> node requires the following <span style="color: #ff3333; font-weight: bold;">servers </span>:
+    <span style="color: #cccccc;">Running the <code>behaviorController</code> node requires the following <span style="color: #ff3333; font-weight: bold;">services </span>:
           
         - /animateBehaviour/set_activation
         - /gestureExecution/perform_gesture

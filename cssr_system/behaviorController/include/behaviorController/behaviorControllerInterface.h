@@ -23,7 +23,7 @@
 #include <std_msgs/String.h>
 #include <cstdio>
 
-#include "behaviortree_cpp/bt_factory.h"
+#include <behaviortree_cpp/bt_factory.h>
 #include <behaviortree_cpp/loggers/groot2_publisher.h>
 
 #include <fstream>
