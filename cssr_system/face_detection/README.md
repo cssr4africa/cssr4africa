@@ -20,6 +20,9 @@ ls ~/workspace/pepper_rob_ws/src/cssr4africa/cssr_system/face_detection/models
 ```
 If there is no output or the model directory isn't present, use the commands below to obtain the models:
 ```sh
+# Install git lfs
+sudo apt install -y git-lfs
+
 # Clone the models from HuggingFace:
 cd && git lfs install
 
@@ -29,7 +32,7 @@ git clone https://huggingface.co/cssr4africa/cssr4africa_models
 mkdir -p ~/workspace/pepper_rob_ws/src/cssr4africa/cssr_system/face_detection/models
 
 # Move the models to the models directory:
-mv cssr4africa_models/face_detection/models/* ~/workspace/pepper_rob_ws/src/cssr4africa/cssr_system/face_detection/models
+mv ~/cssr4africa_models/face_detection/models/* ~/workspace/pepper_rob_ws/src/cssr4africa/cssr_system/face_detection/models
 ```
 
 ## Installation on Ubuntu (x86-based Systems)
