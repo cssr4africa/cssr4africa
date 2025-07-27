@@ -6,10 +6,10 @@
   <img src="../../CSSR4AfricaLogo.svg" alt="CSSR4Africa Logo" style="width:50%; height:auto;">
 </div>
 
-The **Sound Detection and Localization** package is a ROS package designed to detect conspicuous sounds, specifically human voices, and determine their direction of arrival in real-time by processing audio signals from the robot's microphones. The package calculates the azimuth angle of arrival, representing the sound's direction on the horizontal plane relative to the robot's Cartesian head frame. It publishes this angle to the **/soundDetection/direction** topic, allowing the robot to direct its gaze toward the detected sound source. Additionally, the captured audio signal is published to the **/soundDetection/signal** topic, from onset to offset of the detected sound. In verbose mode, the module provides diagnostic output to the terminal for debugging. This package enables the robot to localize and respond to human voices, filtering out ambient noise and reverberation to maintain precise and responsive auditory localization in real-time.
+The **Sound Detection and Localization** package is a ROS package designed to detect conspicuous sounds, specifically human voices, and determine their direction of arrival in real-time by processing audio signals from the robot's microphones. The package calculates the azimuth angle of arrival, representing the sound's direction on the horizontal plane relative to the robot's Cartesian head frame. It publishes this angle to the **/soundDetection/direction** topic, allowing the robot to direct its gaze toward the detected sound source. Additionally, the captured audio signal is published to the **/soundDetection/signal** topic, from the onset to the offset of the detected sound. In verbose mode, the module provides diagnostic output to the terminal for debugging. This package enables the robot to localize and respond to human voices, filtering out ambient noise and reverberation to maintain precise and responsive auditory localization in real-time.
 
 # 📄 Documentation
-The main documentation for this deliverable is found in [D4.2.3 Sound Detection and Localization](https://cssr4africa.github.io/deliverables/CSSR4Africa_Deliverable_D4.2.3.pdf) that provides more details.
+The main documentation for this deliverable is found in [D4.2.3 Sound Detection and Localization](https://cssr4africa.github.io/deliverables/CSSR4Africa_Deliverable_D4.2.3.pdf), which provides more details.
 
 # 🛠️ Installation 
 
@@ -69,7 +69,7 @@ Source the workspace in the first terminal:
 cd $HOME/workspace/pepper_rob_ws && source devel/setup.bash
 ```
 
-Follow below steps, run in different terminals.
+Follow the steps below, run in different terminals.
 
 1️⃣ Launch the robot:
 ```bash
@@ -84,7 +84,7 @@ Follow below steps, run in different terminals.
 
 In a new terminal, activate the Python environment:
 ```bash
-# Activate the python environment
+# Activate the Python environment
 source $HOME/workspace/pepper_rob_ws/src/cssr4africa_virtual_envs/cssr4africa_sound_detection_env/bin/activate
 ```
 
@@ -128,4 +128,4 @@ Copyright (C) 2023 CSSR4Africa Consortium
 Funded by African Engineering and Technology Network (Afretec)  
 Inclusive Digital Transformation Research Grant Programme
 
-2025-04-27
+2025-07-27
