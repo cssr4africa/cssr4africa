@@ -19,6 +19,9 @@ ls ~/workspace/pepper_rob_ws/src/cssr4africa/cssr_system/person_detection/models
 ```
 If there is no output, use the commands below to obtain the models:
 ```sh
+# Install git lfs
+sudo apt install -y git-lfs
+
 # Clone the models from HuggingFace:
 cd && git lfs install
 
