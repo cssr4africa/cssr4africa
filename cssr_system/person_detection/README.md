@@ -31,7 +31,7 @@ git clone https://huggingface.co/cssr4africa/cssr4africa_models
 mkdir -p ~/workspace/pepper_rob_ws/src/cssr4africa/cssr_system/person_detection/models
 
 # Move the models to the models directory:
-mv cssr4africa_models/person_detection/models/* ~/workspace/pepper_rob_ws/src/cssr4africa/cssr_system/person_detection/models
+mv ~/cssr4africa_models/person_detection/models/* ~/workspace/pepper_rob_ws/src/cssr4africa/cssr_system/person_detection/models
 ```
 
 1. Prerequisites
