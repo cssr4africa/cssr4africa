@@ -6,24 +6,27 @@
   <img src="../../CSSR4AfricaLogo.svg" alt="CSSR4Africa Logo" style="width:50%; height:auto;">
 </div>
 
-The **Face and Mutual Gaze Detection and Localization** package is a ROS package designed to detect multiple faces and evaluate their **mutual gaze** in real-time by subscribing to an image topic. It publishes an array of detected faces and their mutual gaze status to the **/faceDetection/data** topic. Each entry in the published data includes the **label ID** of the detected face, the **centroid** coordinates representing the center point of each face, and a boolean value indicating **mutual gaze** status as either **true** or **false**, the **widht** and **height** of the bounding box.
+The **Face and Mutual Gaze Detection and Localization** package is a ROS package designed to detect multiple faces and evaluate their **mutual gaze** in real-time by subscribing to an image topic. It publishes an array of detected faces and their mutual gaze status to the **/faceDetection/data** topic. Each entry in the published data includes the **label ID** of the detected face, the **centroid** coordinates representing the center point of each face, and a boolean value indicating **mutual gaze** status as either **true** or **false**, the **width** and **height** of the bounding box.
 
 # 📄 Documentation
-The main documentation for this deliverable is found in [D4.2.2 Face and Mutual Gaze Detection and Localization](https://cssr4africa.github.io/deliverables/CSSR4Africa_Deliverable_D4.2.2.pdf) that provides more details.
+The main documentation for this deliverable is found in [D4.2.2 Face and Mutual Gaze Detection and Localization](https://cssr4africa.github.io/deliverables/CSSR4Africa_Deliverable_D4.2.2.pdf), which provides more details.
 
 # 🛠️ Installation 
 
-Install the required software components to instantiate and set up the development environment for controlling the Pepper robot. Use the [CSSR4Africa Software Installation Manual](https://cssr4africa.github.io/deliverables/CSSR4Africa_Deliverable_D3.3.pdf). This includes downloading the models files and putting in the models files directory. Verify the model files are in the models directory. 
+Install the required software components to instantiate and set up the development environment for controlling the Pepper robot. Use the [CSSR4Africa Software Installation Manual](https://cssr4africa.github.io/deliverables/CSSR4Africa_Deliverable_D3.3.pdf). This includes downloading the model files and putting them in the models files directory. Verify the model files are in the models directory. 
 ```sh
-# Move the models to the models directory:
+# Check if the models files are in the models directory:
 ls ~/workspace/pepper_rob_ws/src/cssr4africa/cssr_system/face_detection/models
 ```
-If there is no output, use the commands below to obtain the models:
+If there is no output or the model directory isn't present, use the commands below to obtain the models:
 ```sh
 # Clone the models from HuggingFace:
 cd && git lfs install
 
 git clone https://huggingface.co/cssr4africa/cssr4africa_models
+
+# Create the models directory
+mkdir -p ~/workspace/pepper_rob_ws/src/cssr4africa/cssr_system/face_detection/models
 
 # Move the models to the models directory:
 mv cssr4africa_models/face_detection/models/* ~/workspace/pepper_rob_ws/src/cssr4africa/cssr_system/face_detection/models
@@ -31,8 +34,8 @@ mv cssr4africa_models/face_detection/models/* ~/workspace/pepper_rob_ws/src/cssr
 
 ## Installation on Ubuntu (x86-based Systems)
 
-1. Prerequisites  
-Make sure you are running Ubuntu 20.04. The python environment to run face detection similar to person detection. If you have setup the person detection python environment you can skip this step. If the intel real sense camera is used make sure it uses USB 3.0. 
+1. Pre-requisites  
+Make sure you are running Ubuntu 20.04. The python environment to run face detection is similar to person detection. If you have set up the person detection Python environment, you can skip this step. If the intel real sense camera is used, make sure it uses USB 3.0. 
 
 2. Install Python 3.10 and Virtual Environment.
 ```sh
@@ -101,30 +104,30 @@ The following table provides the key-value pairs used in the configuration file:
 # 🚀 Running the node
 **Run the `faceDetection` from the `cssr_system` package:**
 
-Source the workspace in first terminal:
+Source the workspace in the first terminal:
   ```bash
   cd $HOME/workspace/pepper_rob_ws && source devel/setup.bash
   ```
 
-Follow below steps, run in different terminals.
+Follow the steps below, run in different terminals.
 
   1️. Launch the robot and specify which camera to use. 
   ```bash
   roslaunch cssr_system face_detection_launch_robot.launch robot_ip:=<robot_ip> roscore_ip:=<roscore_ip> network_interface:=<network_interface> camera:=<camera>
   ```
 
-  The default camera is set to the realsense.
+  The default camera is set to the RealSense.
 
   2️. Then run the Face and gaze detection and   Localization.
 
-  In a new terminal activate the python environment. 
+  In a new terminal, activate the Python environment. 
   ```bash
-  # Activate the python environment.
+  # Activate the Python environment.
   source $HOME/workspace/pepper_rob_ws/src/cssr4africa_virtual_envs/cssr4africa_face_person_detection_env/bin/activate
   ```
 
   ```bash
-  # Command to make application executable.  
+  # Command to make the application executable.  
   chmod +x ~/workspace/pepper_rob_ws/src/cssr4africa/cssr_system/face_detection/src/face_detection_application.py
   ```
 
@@ -134,7 +137,7 @@ Follow below steps, run in different terminals.
   ```
 
 #  🖥️ Output
-The node publishes the detected faces and their corresponding centroid, the width and height of the bounding box and the a boolean array whether a mutual gaze is established or not. When running in the verbose it display the OpenCv annotated color image and depth image that could help to visualize the result obtained. 
+The node publishes the detected faces and their corresponding centroid, the width and height of the bounding box, and a boolean array indicating whether a mutual gaze is established or not. When running in the verbose it display the OpenCv annotated color image and depth image that could help to visualize the result obtained. 
 
 Subscription to the topic **faceDetection/data** allows verification of its publication status using the following command:
 
@@ -155,4 +158,4 @@ Copyright (C) 2023 CSSR4Africa Consortium
 Funded by African Engineering and Technology Network (Afretec)  
 Inclusive Digital Transformation Research Grant Programme
 
-2025-03-15
+2025-07-27
