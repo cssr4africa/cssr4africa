@@ -102,7 +102,7 @@ Follow the steps below, run in different terminals.
 
   1️. Launch the robot and specify which camera to use. 
 
-  > If you are using Pepper's cmaera's you need to specify the robot_ip, roscore_ip, and network_interface, and specify in the camera `pepper`. If you are using the Intel RealSense, just specify the camera as `realsense`. 
+  > If you are using Pepper's camera, you need to specify the robot_ip, roscore_ip, and network_interface, and specify in the camera `pepper`. If you are using the Intel RealSense, just specify the camera as `realsense`. 
 
   ```bash
   roslaunch cssr_system person_detection_robot.launch robot_ip:=<robot_ip> roscore_ip:=<roscore_ip> network_interface:=<network_interface> camera:=<camera>
