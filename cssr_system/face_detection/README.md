@@ -15,7 +15,7 @@ The main documentation for this deliverable is found in [D4.2.2 Face and Mutual 
 
 Install the required software components to instantiate and set up the development environment for controlling the Pepper robot. Use the [CSSR4Africa Software Installation Manual](https://cssr4africa.github.io/deliverables/CSSR4Africa_Deliverable_D3.3.pdf). This includes downloading the model files and putting them in the models files directory. Verify the model files are in the models directory. 
 ```sh
-# Check if the models files are in the models directory:
+# Check if the model files are in the models directory:
 ls ~/workspace/pepper_rob_ws/src/cssr4africa/cssr_system/face_detection/models
 ```
 If there is no output or the model directory isn't present, use the commands below to obtain the models:
