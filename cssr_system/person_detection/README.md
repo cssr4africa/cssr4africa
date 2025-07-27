@@ -9,12 +9,12 @@
 The **Person Detection and Localization** package is a ROS package designed to detect multiple persons in real-time by subscribing to color and depth image topics. It publishes an array of detected persons to the **/personDetection/data** topic. Each entry in the published data includes the **label ID** of the detected person, the **centroid** coordinates representing the center point of each person, the **width** and **height** of the bounding box, and the **depth** information in meters.
 
 # 📄 Documentation
-The main documentation for this deliverable found in [D4.2.1 Person Detection and Localization](https://cssr4africa.github.io/deliverables/CSSR4Africa_Deliverable_D4.2.1.pdf) provides more details about the implementation and usage of the person detection system.
+The main documentation for this deliverable, found in [D4.2.1 Person Detection and Localization](https://cssr4africa.github.io/deliverables/CSSR4Africa_Deliverable_D4.2.1.pdf), provides more details about the implementation and usage of the person detection system.
 
 ## Installation on Ubuntu (x86-based Systems)
-Install the required software components to instantiate and set up the development environment for controlling the Pepper robot. Use the [CSSR4Africa Software Installation Manual](https://cssr4africa.github.io/deliverables/CSSR4Africa_Deliverable_D3.3.pdf). This includes downloading the models files and putting in the models files directory. Verify the model files are in the models directory. 
+Install the required software components to instantiate and set up the development environment for controlling the Pepper robot. Use the [CSSR4Africa Software Installation Manual](https://cssr4africa.github.io/deliverables/CSSR4Africa_Deliverable_D3.3.pdf). This includes downloading the model files and putting them in the models files directory. Verify the model files are in the models directory. 
 ```sh
-# Move the models to the models directory:
+# Check if the model files are in the models directory:
 ls ~/workspace/pepper_rob_ws/src/cssr4africa/cssr_system/person_detection/models
 ```
 If there is no output, use the commands below to obtain the models:
@@ -24,12 +24,15 @@ cd && git lfs install
 
 git clone https://huggingface.co/cssr4africa/cssr4africa_models
 
+# Create the models directory
+mkdir -p ~/workspace/pepper_rob_ws/src/cssr4africa/cssr_system/person_detection/models
+
 # Move the models to the models directory:
 mv cssr4africa_models/person_detection/models/* ~/workspace/pepper_rob_ws/src/cssr4africa/cssr_system/person_detection/models
 ```
 
 1. Prerequisites
-Make sure you are running Ubuntu 20.04. If you have setup the python environment using ``face detection`` README you can skip this step. If the intel real sense camera is used make sure it uses USB 3.0. 
+Make sure you are running Ubuntu 20.04. If you have set up the Python environment using the ``face detection`` README, you can skip this step. If the Intel RealSense camera is used, make sure it uses USB 3.0. 
 
 2. Install Python 3.10 and Virtual Environment.
 ```sh
@@ -90,25 +93,25 @@ The following table provides the key-value pairs used in the configuration file:
 # 🚀 Running the node
 **Run the `personDetection` from the `cssr_system` package:**
 
-Source the workspace in first terminal:
+Source the workspace in the first terminal:
   ```bash
   cd $HOME/workspace/pepper_rob_ws && source devel/setup.bash
   ```
 
-Follow below steps, run in different terminals.
+Follow the steps below, run in different terminals.
 
   1️. Launch the robot and specify which camera to use. 
 
-  > If you are using Pepper's cmaera's you need to specify the robot_ip, roscore_ip and network_interface and specify in the camera `pepper`. If you are using the intel realsense, just specify camera as `realsense`. 
+  > If you are using Pepper's cmaera's you need to specify the robot_ip, roscore_ip, and network_interface, and specify in the camera `pepper`. If you are using the Intel RealSense, just specify the camera as `realsense`. 
 
   ```bash
   roslaunch cssr_system person_detection_robot.launch robot_ip:=<robot_ip> roscore_ip:=<roscore_ip> network_interface:=<network_interface> camera:=<camera>
   ```
-  The default camera is set to the realsense.
+  The default camera is set to the RealSense.
 
   2️. Then run the Person Detection and Localization.
 
-  In a new terminal activate the python environment. 
+  In a new terminal, activate the Python environment. 
   ```bash
   source $HOME/workspace/pepper_rob_ws/src/cssr4africa_virtual_envs/cssr4africa_face_person_detection_env/bin/activate
   ```
@@ -124,7 +127,7 @@ Follow below steps, run in different terminals.
   ```
 
 #  🖥️ Output
-The node publishes the detected persons and their corresponding centroid, the width and height of the bounding box, and the depth information in meters. When running in verbose mode, it displays the OpenCV annotated color image and depth image that helps visualize the results obtained.
+The node publishes the detected persons and their corresponding centroid, the width and height of the bounding box, and the depth information in meters. When running in verbose mode, it displays the OpenCV annotated color image and depth image, which helps visualize the results obtained.
 
 Subscription to the topic **personDetection/data** allows verification of its publication status using the following command:
 
@@ -145,4 +148,4 @@ Copyright (C) 2023 CSSR4Africa Consortium
 Funded by African Engineering and Technology Network (Afretec)  
 Inclusive Digital Transformation Research Grant Programme
 
-2025-03-26
+2025-07-27
