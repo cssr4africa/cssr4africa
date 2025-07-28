@@ -118,6 +118,13 @@ add_message_files(
   Goal.msg
 )
 
+add_message_files(
+  DIRECTORY
+  sound_detection/msg
+  FILES
+  sound_detection_microphone_msg_file.msg
+)
+
 
 
 ## Generate services in the 'srv' folder

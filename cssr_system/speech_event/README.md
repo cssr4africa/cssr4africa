@@ -49,14 +49,15 @@ tests. The deliverable report can be found in
       # Verify the models are in the models directory:
       ls ~/workspace/pepper_rob_ws/src/cssr4africa/cssr_system/speech_event/models
 
-      # If there is no output, use the commands below to obtain the models:
+      # If there is no output (or errors about the directory not existing), use the commands below to obtain the models:
 
       # Clone the models from HuggingFace:
+      sudo apt-get update && sudo apt-get install git-lfs
       cd && git lfs install
-
       git clone https://huggingface.co/cssr4africa/cssr4africa_models
 
       # Move the models to the models directory:
+      mkdir -p ~/workspace/pepper_rob_ws/src/cssr4africa/cssr_system/speech_event/models
       mv cssr4africa_models/speech_event/models/* ~/workspace/pepper_rob_ws/src/cssr4africa/cssr_system/speech_event/models
       ```
 

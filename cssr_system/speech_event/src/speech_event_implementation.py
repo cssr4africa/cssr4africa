@@ -263,7 +263,7 @@ def _set_transcription_language(language):
         device = torch.device("cpu")
 
     LANGUAGE = language.strip().lower()
-    _model = nemo_asr.models.EncDecCTCModel.restore_from(
+    _model = nemo_asr.models.EncDecRNNTBPEModel.restore_from(
         restore_path=RW_MODEL_PATH if LANGUAGE == "kinyarwanda" else EN_MODEL_PATH,
         map_location=device
     )
