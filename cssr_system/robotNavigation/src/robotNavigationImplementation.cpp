@@ -37,6 +37,9 @@ std::string robot_topics;
 string topics_filename;
 bool verbose_mode;
 
+// Global variable to track last pose update time
+ros::Time last_pose_update_time;
+
 // Global variables moved from application file
 double x;
 double y;
@@ -95,7 +98,25 @@ int directions_4_way[4][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
 // 8-way movement (Dijkstra, A*)
 int directions_8_way[8][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}, {-1, -1}, {-1, 1}, {1, -1}, {1, 1}};
 
-
+/*
+ * Function to check if /robotLocalization/pose topic is available
+ * @return: true if topic is available, false otherwise  
+ */
+bool isPoseTopicAvailable() {
+    ros::master::V_TopicInfo master_topics;
+    if (!ros::master::getTopics(master_topics)) {
+        return false;
+    }
+    
+    // Check if topic exists in the topic list
+    for (const auto& topic : master_topics) {
+        if (topic.name == "/robotLocalization/pose") {
+            return true;
+        }
+    }
+    
+    return false;
+}
 
 /* This defines the callback function for the /robotNavigation/set_goal service */
 bool setGoal(cssr_system::setGoal::Request  &service_request, cssr_system::setGoal::Response &service_response){
@@ -108,9 +129,57 @@ bool setGoal(cssr_system::setGoal::Request  &service_request, cssr_system::setGo
     x_goal = roundFloatingPoint(x_goal, 1);
     y_goal = roundFloatingPoint(y_goal, 1);
 
+    // Check if goal is same as current position (within tolerance)
+    double distance_to_goal = sqrt(pow(x_goal - current_x, 2) + pow(y_goal - current_y, 2));
+    double angle_difference = fabs(theta_goal - current_theta);
+
+    // Normalize angle difference to [0, PI]
+    while (angle_difference > M_PI) angle_difference -= 2 * M_PI;
+    while (angle_difference < -M_PI) angle_difference += 2 * M_PI;
+    angle_difference = fabs(angle_difference);
+
+    // Check if already at goal within tolerance
+    if (distance_to_goal <= locomotionParameterData.position_tolerance_goal && 
+        angle_difference <= locomotionParameterData.angle_tolerance_orienting) {
+
+        ROS_INFO("Robot is already at the goal location within tolerance. Distance: %.3f m, Angle diff: %.3f degrees",
+                distance_to_goal, angle_difference);
+        
+        // Update robot pose and return success
+        robotPose[0] = current_x;
+        robotPose[1] = current_y;
+        robotPose[2] = degrees(current_theta);
+        writeRobotPoseInput(robotPose);
+        
+        service_response.navigation_goal_success = 1; 
+        //ROS_INFO("Response from /robotNavigation/set_goal service: [SUCCESS - Already at goal]");
+        return true;
+    }
+
     int navigation_goal_success = 0;                     
 
+    // Check if pose topic is still available
+    if (!isPoseTopicAvailable()) {
+        ROS_ERROR("Navigation request rejected: /robotLocalization/pose topic is not available");
+        ROS_ERROR("Please ensure robot localization is running before attempting navigation");
+        service_response.navigation_goal_success = 0;
+        return true;
+    }
     
+    // Check if we're receiving recent pose updates
+    ros::Time current_time = ros::Time::now();
+    if (!last_pose_update_time.isZero()) {
+        double time_since_last_pose = (current_time - last_pose_update_time).toSec();
+        if (time_since_last_pose > 3.0) {  // 3 seconds timeout
+            ROS_ERROR("Navigation request rejected: No pose updates received in %.1f seconds", time_since_last_pose);
+            ROS_ERROR("Robot localization may not be publishing data");
+            service_response.navigation_goal_success = 0;
+            return true;
+        }
+    }
+    
+
+
     x_start = current_x;
     x_start = roundFloatingPoint(x_start, 1);
     y_start = current_y;
@@ -634,6 +703,9 @@ void poseMessageReceived(const geometry_msgs::Pose2D &msg)
     current_y = msg.y;
     current_theta = radians(msg.theta);
     // current_theta = fmod(current_theta, 2 * PI);
+
+    // Update the last pose received time
+    last_pose_update_time = ros::Time::now();
    
 }
 

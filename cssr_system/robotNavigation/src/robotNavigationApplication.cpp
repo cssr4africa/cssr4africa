@@ -189,37 +189,45 @@ int main(int argc, char** argv) {
 
     /* Create a subscriber object for the odom topic -- */
     /* --------------------------------------------- */
-    
-    // if (debug) printf("Subscribing to odom\n");
-    // ros::Subscriber sub = nh.subscribe("/naoqi_driver/odom", 1, &odomMessageReceived);
-    // Check if /robotLocalization/pose topic is available
-    ros::master::V_TopicInfo master_topics;
-    ros::master::getTopics(master_topics);
-    bool pose_topic_found = false;
-    for (const auto& topic : master_topics) {
-        if (topic.name == "/robotLocalization/pose") {
-            pose_topic_found = true;
-            break;
+ 
+    // Wait for /robotLocalization/pose topic to become available (MANDATORY)
+    ROS_INFO("%s: Waiting for /robotLocalization/pose topic to become available...", nodeName.c_str());
+    ros::Subscriber sub;
+    bool pose_topic_available = false;
+
+    while (!pose_topic_available && ros::ok()) {
+        ros::master::V_TopicInfo master_topics;
+        ros::master::getTopics(master_topics);
+        
+        for (const auto& topic : master_topics) {
+            if (topic.name == "/robotLocalization/pose") {
+                pose_topic_available = true;
+                break;
+            }
+        }
+        
+        if (!pose_topic_available) {
+            ROS_WARN_THROTTLE(5, "%s: /robotLocalization/pose topic not available yet. Waiting...", nodeName.c_str());
+            ros::Duration(1.0).sleep();  
+            ros::spinOnce();  
         }
     }
 
-    ros::Subscriber sub;  // Keep this declaration
-    if (pose_topic_found) {
-        ROS_INFO("%s: Subscribing to /robotLocalization/pose", nodeName.c_str());
-        sub = nh.subscribe("/robotLocalization/pose", 1, &poseMessageReceived);  // ← REMOVE "ros::Subscriber"
+    if (pose_topic_available) {
+        ROS_INFO("%s: /robotLocalization/pose topic found, Subscribing...", nodeName.c_str());
+        sub = nh.subscribe("/robotLocalization/pose", 1, &poseMessageReceived);
+        
+        // Verify subscription worked
+        if (sub) {
+            ROS_INFO("%s: Successfully subscribed to /robotLocalization/pose", nodeName.c_str());
+        } else {
+            ROS_ERROR("%s: Failed to subscribe to /robotLocalization/pose", nodeName.c_str());
+            return -1;
+        }
     } else {
-        ROS_INFO("%s: Subscribing to /naoqi_driver/odom", nodeName.c_str());
-        // sub = nh.subscribe("/naoqi_driver/odom", 1, &odomMessageReceived);  // ← Add actual odom subscription
+        ROS_ERROR("%s: /robotLocalization/pose topic is mandatory but not available. Exiting.", nodeName.c_str());
+        return -1;
     }
-    
-    // Verify subscription worked
-    if (sub) {
-        ROS_INFO("%s: Successfully subscribed to pose topic", nodeName.c_str());
-    } else {
-        ROS_ERROR("%s: Failed to subscribe to pose topic", nodeName.c_str());
-    }
-    // ros::Subscriber sub = nh.subscribe("/robotLocalization/pose", 1, &poseMessageReceived);
-
 
     // /* construct the full path and filename */
     // /* ------------------------------------ */

@@ -342,7 +342,11 @@ int  signnum(double x); // return the sign of a number
    int kbhit();
 #endif
 
-
+/*
+ * Function to check if /robotLocalization/pose topic is available
+ * @return: true if topic is available, false otherwise
+ */
+bool isPoseTopicAvailable();
 
 /* 
  *   Function to read the the robot pose from an input file
