@@ -8,10 +8,10 @@
 
 This module provides unit tests for the `speechEvent` ROS node within the CSSR4Africa project (`cssr_system` package).
 Details about the main `speechEvent` ROS node are located in the `~/workspace/pepper_rob_ws/src/cssr_system/speech_event/README.md`
-file. The results are logged in the file `~/workspace/pepper_rob_ws/src/unit_tests/speech_event_test/data/speech_event_test_output.dat`.
+file. The test results are logged in the file `~/workspace/pepper_rob_ws/src/unit_tests/speech_event_test/data/speech_event_test_output.dat`.
 
-These tests check to ensure that `speechEvent` works as expected end-to-end, from when it receives a signal on the
-`\soundDetection\signal` ROS topic to when it publishes transcribed text on the `\speechEvent\text` ROS topic. They also
+These tests check to ensure that `speechEvent` works as expected end-to-end when the ROS action `\speechEvent\recognise_speech_event` triggers a transcription process to extract text from an audio signal published on the
+`\soundDetection\signal` ROS topic. They also
 check that the `\speechEvent\set_language` ROS service that sets the `speechEvent` transcription language at runtime
 works as expected.
 
@@ -60,7 +60,7 @@ The deliverable report can be found in [D4.3.2 Speech Event](https://cssr4africa
        ```
 
    - Create a Python virtual environment and install required Python packages (Speech Event has been tested and proven
-   to work using Python3.8)
+   to work using Python3.10)
 
       ```bash
       mkdir -p $HOME/workspace/pepper_rob_ws/src/cssr4africa_virtual_envs
@@ -100,18 +100,7 @@ The deliverable report can be found in [D4.3.2 Speech Event](https://cssr4africa
 
     Navigate to the configuration file located at
    `~/workspace/pepper_rob_ws/src/cssr4africa/cssr_system/speech_event/config/speech_event_configuration.ini` and update
-   the configuration according to the key-value pairs below (this step configures `speechEvent` ROS node):
-
-   | Key                | Value                    | Description                                                                                                                 |
-   | ------------------ | ------------------------ | --------------------------------------------------------------------------------------------------------------------------- |
-   | language           | kinyarwanda \| english   | Specifies the language in which the utterance is spoken.                                                                    |
-   | verboseMode        | true \| false            | Specifies whether diagnostic data is to be printed to the terminal.                                                         |
-   | cuda               | true \| false            | Specifies whether to use GPUs. The term ‘cuda’ is chosen as the key to alert the user that only NVIDIA GPUs are supported.  |
-   | confidence         | \<float>                 | The confidence level on a scale of 0 to 1 above which transcriptions are are assumed to be acceptable and correct.          |
-   | speechPausePeriod  | \<float>                 | The time period above which one utterance is assumed to be separate from a preceding utterance.                             |
-   | maxUtteranceLength | \<int>                   | The maximum length (in seconds) of an utterance. Longer utterances are split when they go past this length.                 |
-   | sampleRate         | \<int>                   | Specifies the sampling rate of the incoming audio sourced from the /soundDetection/signal ROS topic.                        |
-   | heartbeatMsgPeriod | \<int>                   | Specifies the time period in seconds at which a periodic heartbeat message is sent to the terminal.                               |
+   the configuration according to the key-value pairs whose description is located in the `~/workspace/pepper_rob_ws/src/cssr4africa/cssr_system/speech_event/README.md` README file (this step configures `speechEvent` ROS node).
 
    Navigate to the configuration file located at
    `~/workspace/pepper_rob_ws/src/cssr4africa/unit_tests/speech_event_test/config/speech_event_test_configuration.ini` and
@@ -125,20 +114,7 @@ The deliverable report can be found in [D4.3.2 Speech Event](https://cssr4africa
 
    Navigate to the configuration file located at
    `~/workspace/pepper_rob_ws/src/cssr4africa/unit_tests/speech_event_test/config/speech_event_test_driver.ini` and update
-   the configuration according to the key-value pairs below  (this step configures the Speech Event driver ROS node):
-
-   | Key                      | Value       | Description                                                                                                   |
-   | ------------------------ | ----------- | ------------------------------------------------------------------------------------------------------------- |
-   | channels                 | \<int>      | Number of audio channels to use when acquiring audio from PC's microphones.                                   |
-   | chunkSize                | \<int>      | Number of samples to acquire at a go every time that audio is read from the PC's microphones.                 |
-   | sampleRate               | \<int>      | The sample rate to use when acquiring audio from the PC's microphones.                                        |
-   | speechAmplitudeThreshold | \<float>    | Threshold above which a signal sample is assumed to contain a speech utterance.                               |
-   | mode                     | mic \| file | Use 'mic' when using real-time utterances from the PC's microphones, and 'file' when using saved audio files. |
-
-   NOTE: Tweak the speechAmplitudeThreshold in case the driver is having trouble capturing speech utterances. Increase
-   it in case speech is not being detected, and decrease it in case ambient noise is being captured together with the
-   speech utterances. You may also tweak the sensitivity of the PC's microphones in case speechAmplitudeThreshold fails
-   to solve the aforementioned issues that may arise.
+   the configuration according to the key-value pairs whose description is located in the `~/workspace/pepper_rob_ws/src/cssr4africa/cssr_system/speech_event/README.md` README file (this step configures the Speech Event driver ROS node).
 
    When using the driver to test speechEvent, ensure that `mode` in the driver configuration file matches mode in
    speechEventTest configuration file (either set both to `file` or set both to `mic`). When using a running soundDetection
@@ -186,8 +162,8 @@ The deliverable report can be found in [D4.3.2 Speech Event](https://cssr4africa
         roslaunch unit_tests speech_event_test_launch_test_harness.launch launch_driver:=true run_tests:=true mode:=file
         ```
 
-        Update the `launch_driver` to either `true` or `false` depending on whether you are using a driver or a running
-        soundDetection ROS launch. To skip running tests, set the `run_tests` parameter to `false`. If using the
+        Update the `launch_driver` argument to either `true` or `false` depending on whether you are using a driver or a running
+        soundDetection ROS launch. To skip running tests, set the `run_tests` argument to `false`. If using the
         soundDetection ROS node or PC microphones set `mode` to `mic`, and if using pre-recorded saved files set `mode`
         to `file`.
 
@@ -221,14 +197,10 @@ This test either uses saved audio files or real-time utterances from either Pepp
 
 When using saved files, a series of wav files whose utterances are known before-hand are transcribed and the results
 compared with the ground truth values to check whether the test has passed. In this mode, both the driver and the
-`speechEventTest` ROS nodes have to have their mode set to `file`. The following are the utterances contained in the
-audio files tested in this mode:
-
-- `amakuru`
-- `murakaza neza`
+`speechEventTest` ROS nodes have to have their mode set to `file`.
 
 When using real-time utterances spoken by the tester either using Pepper or the Speech Event driver ROS node, a series of
-utterances are collected over a period of 60 seconds and their text transcriptions saved to the test report
+utterances are collected over a period of 60 seconds (30 seconds for Kinyarwanda and 30 seconds for English) and their text transcriptions saved to the test report
 `~/workspace/pepper_rob_ws/src/unit_tests/speech_event_test/data/speech_event_test_output.dat`. It's advisable to have
 a pre-determined list of utterances to speak out loud, and once the test is completed, compare the transcriptions in the
 test report to check if they are correct. In this mode, both the driver and the `speechEventTest` ROS nodes have to have
@@ -242,22 +214,9 @@ Development. Below is a sample of how the test report should appear after runnin
 
 ```text
 Speech Event Test Report
+
+Date: 2026-04-24 16:18:08
     
-Date: 2025-04-20 18:34:47
-    
-    
-================================================================================
-    
-Test SpeechEvent's /speechEvent/set_enabled ROS service
----
-As a:     behaviourController developer
-I want:   a means of enabling and disabling the transcription process at runtime
-So that:  I can stop the robot from transcribing its own speech by disabling the transcription process
----
-Set unsupported status (agree): PASS
-Set unsupported status (1): PASS
-Set supported status (false): PASS
-Set supported status (true): PASS
 
 ================================================================================
 
@@ -277,8 +236,8 @@ Set supported language (Kinyarwanda): PASS
 Test SpeechEvent's end-to-end transcription process
 ---
 Given:    a running speechEvent ROS node
-When:     an audio signal is detected on the /soundDetection/signal ROS topic
-Then:     the audio needs to be transcribed and the text transcription published on the /speechEvent/text ROS topic
+When:     a goal is sent to the /speechEvent/recognise_speech_action ROS action
+Then:     transcribe utterances in audio published on the /soundDetection/signal ROS topic and return the result via the /speechEvent/recognise_speech_action ROS action
 ---
 
 Transcribe 'rw-ingendo': PASS
@@ -308,4 +267,4 @@ For issues or questions:
 Funded by African Engineering and Technology Network (Afretec)  
 Inclusive Digital Transformation Research Grant Programme
 
-Date:   2025-04-20
+Date:   2026-04-21

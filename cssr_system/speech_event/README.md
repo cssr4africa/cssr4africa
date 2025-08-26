@@ -7,10 +7,10 @@
 </div>
 
 The `speechEvent` ROS node performs automatic speech recognition (ASR), transcribing both Kinyarwanda and English
-utterances. The ASR models used are acquired from the following sources:
-[Kinyarwanda model](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/nemo/models/stt_rw_conformer_transducer_large),
-[English model](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/nemo/models/stt_en_conformer_transducer_large). These
-ASR models need to be downloaded and stored in the `./speech_event/models/` directory.
+utterances. Three ASR models (NVIDIA's conformer-transducer, NVIDIA's Parakeet, and OpenAI's Whisper) are used for this
+task, with the user having the option of picking one out of the three via a configuration option at startup. These ASR
+models are downloadable from CSSR4Africa's Hugging Face repository, and need to be moved to the `./speech_event/models/`
+directory once downloaded.
 
 # Documentation
 
@@ -44,7 +44,7 @@ tests. The deliverable report can be found in
        ```
 
    - Verify the model files are in the models directory. 
-   
+
       ```sh
       # Verify the models are in the models directory:
       ls ~/workspace/pepper_rob_ws/src/cssr4africa/cssr_system/speech_event/models
@@ -69,7 +69,7 @@ tests. The deliverable report can be found in
       sudo apt-get install cython3 ffmpeg gfortran libopenblas-dev libopenblas64-dev patchelf pkg-config portaudio19-dev python3-testresources python3-tk python3-typing-extensions sox
        ```
 
-   - Create a Python virtual environment and install required Python packages (Speech Event has been tested and proven to work using Python3.8)
+   - Create a Python virtual environment and install required Python packages (Speech Event has been tested and proven to work using Python3.10)
 
       ```bash
       mkdir -p $HOME/workspace/pepper_rob_ws/src/cssr4africa_virtual_envs
@@ -114,13 +114,16 @@ tests. The deliverable report can be found in
    | Key                | Value                    | Description                                                                                                                 |
    | ------------------ | ------------------------ | --------------------------------------------------------------------------------------------------------------------------- |
    | language           | kinyarwanda \| english   | Specifies the language in which the utterance is spoken.                                                                    |
+   | model              | conformer-transducer \| parakeet \| whisper | Specifies the ASR model to be used.                                                                      |
    | verboseMode        | true \| false            | Specifies whether diagnostic data is to be printed to the terminal.                                                         |
    | cuda               | true \| false            | Specifies whether to use GPUs. The term ‘cuda’ is chosen as the key to alert the user that only NVIDIA GPUs are supported.  |
    | confidence         | \<float>                 | The confidence level on a scale of 0 to 1 above which transcriptions are are assumed to be acceptable and correct.          |
-   | speechPausePeriod  | \<float>                 | The time period above which one utterance is assumed to be separate from a preceding utterance.                             |
-   | maxUtteranceLength | \<int>                   | The maximum length (in seconds) of an utterance. Longer utterances are split when they go past this length.                 |
+   | vadThreshold       | \<float>                 | The confidence level on a scale of 0 to 1 above which an utterance is considered valid in an audio signal.                  |
    | sampleRate         | \<int>                   | Specifies the sampling rate of the incoming audio sourced from the /soundDetection/signal ROS topic.                        |
-   | heartbeatMsgPeriod | \<int>                   | Specifies the time period in seconds at which a periodic heartbeat message is sent to the terminal.                            |
+   | interUtteranceLen  | \<float>                 | The minimum length (in seconds) between two successsive utterances, below which the two are assumed to be one utterance.    |
+   | minUtteranceLen    | \<float>                 | The minimum length (in seconds) of an utterance; shorter utterances are ignored and therefore discarded.                    |
+   | maxUtteranceLen    | \<float>                 | The maximum length (in seconds) of an utterance, after which any extra utterances are truncated.                            |
+   | heartbeatMsgPeriod | \<int>                   | Specifies the time period in seconds at which a periodic heartbeat message is sent to the terminal.                         |
 
    Navigate to the configuration file located at
    `~/workspace/pepper_rob_ws/src/cssr4africa/unit_tests/speech_event_test/config/speech_event_test_driver.ini` and update
@@ -128,11 +131,15 @@ tests. The deliverable report can be found in
 
    | Key                      | Value       | Description                                                                                                   |
    | ------------------------ | ----------- | ------------------------------------------------------------------------------------------------------------- |
-   | channels                 | \<int>      | Number of audio channels to use when acquiring audio from PC's microphones.                                   |
    | chunkSize                | \<int>      | Number of samples to acquire at a go every time that audio is read from the PC's microphones.                 |
    | sampleRate               | \<int>      | The sample rate to use when acquiring audio from the PC's microphones.                                        |
    | speechAmplitudeThreshold | \<float>    | Threshold above which a signal sample is assumed to contain a speech utterance.                               |
    | mode                     | mic \| file | Use 'mic' when using real-time utterances from the PC's microphones, and 'file' when using saved audio files. |
+
+   NOTE: Tweak the speechAmplitudeThreshold in case the driver is having trouble capturing speech utterances. Increase
+   it in case speech is not being detected, and decrease it in case ambient noise is being captured together with the
+   speech utterances. You may also tweak the sensitivity of the PC's microphones in case speechAmplitudeThreshold fails
+   to solve the aforementioned issues that may arise.
 
 4. **Run the `speechEvent` ROS node from the `cssr_system`  package:**
 
@@ -202,11 +209,9 @@ tests. The deliverable report can be found in
          The details about the 'mode' key in the speechEvent driver configuration are found in the `Update Configuration File`
          section of this README.md file.
 
-         If sourcing the Python virtual environment fails to work, replace it with:
-
-         ```sh
+         If sourcing the Python virtual environment fails to work, replace it with: `sh
          export PYTHONPATH=$HOME/workspace/pepper_rob_ws/src/cssr4africa_virtual_envs/cssr4africa_speech_event_env/lib/python3.8/site-packages:$PYTHONPATH
-         ```
+         `
 
     - SpeechEvent can also be run using a ROS launch file:
 
@@ -220,8 +225,8 @@ tests. The deliverable report can be found in
           roslaunch unit_tests speech_event_test_launch_test_harness.launch launch_driver:=true run_tests:=false mode:=mic
         ```
 
-        Update the `launch_driver` to either `true` or `false` depending on whether you are using a driver or a running
-        soundDetection ROS launch. To skip running tests, set the `run_tests` parameter to `false`. If using the
+        Update the `launch_driver` argument to either `true` or `false` depending on whether you are using a driver or a running
+        soundDetection ROS launch. To skip running tests, set the `run_tests` argument to `false`. If using the
         soundDetection ROS node or PC microphones set `mode` to `mic`, and if using pre-recorded saved files set `mode`
         to `file`.
 
@@ -232,7 +237,7 @@ as the simulator provides no audio input capability that Sound Detection require
 
 ## Setting the Transcription Language at Runtime
 
-Upon launching the node, the hosted service (`/speechEvent/set_language`) is available and ready to be invoked. This can
+Upon launching the node, the hosted service `/speechEvent/set_language` is available and ready to be invoked. This can
 be verified by running the following command in a new terminal:
 
 ```sh
@@ -254,43 +259,39 @@ response of 0, on the other hand, indicates an error such as when using an unsup
 - `rosservice call /speechEvent/set_language Kinyarwanda`
 - `rosservice call /speechEvent/set_language English`
 
-## Enabling and Disabling the Transcription Process
-
-Upon launching the node, the hosted service (`/speechEvent/set_enabled`) is available and ready to be invoked. This can
-be verified by running the following command in a new terminal:
-
-```sh
-rosservice list | grep /speechEvent
-```
-
-The command below invokes the service to enable or disable the transcription process at runtime (the placeholder
-`<status>` is to be replaced with either 'true' or 'false'):
-
-```sh
-rosservice call /speechEvent/set_enabled "{status: '<status>'}"
-```
-
-A response of 1 indicates that the service invocation was successful, and the status has been updated successfully. A
-response of 0, on the other hand, indicates an error such as when using an unsupported status such as 'agree' or '1'.
-
-### Sample Invocations
-
-- `rosservice call /speechEvent/set_enabled "{status: 'true'}"`
-- `rosservice call /speechEvent/set_enabled "{status: 'false'}"`
-
 ## Acquiring Text Transcriptions
 
-Upon launching the node, the hosted topic (`/speechEvent/text`) is available and ready to be used. This can be verified
-by running the following command in a new terminal:
+Upon launching the node, the hosted action `/speechEvent/recognise_speech_action` is available and ready to be used. This can be verified
+by running the following command in a new terminal (a list of ROS topics for servicing the aforementioned ROS action should be listed):
 
 ```sh
 rostopic list | grep /speechEvent
 ```
 
+To invoke a transcription process on the terminal (the wait parameter determines the number of seconds to wait for an utterance before the action completes with an empty result in case no utterance is detected):
+
+```sh
+rostopic pub /speechEvent/recognise_speech_action/goal cssr_system/recognise_speechActionGoal \
+"header:
+  seq: 0
+  stamp:
+    secs: 0
+    nsecs: 0
+  frame_id: ''
+goal_id:
+  stamp:
+    secs: 0
+    nsecs: 0
+  id: ''
+goal:
+  wait: 3.0" \
+--once
+```
+
 To view the transcriptions on the terminal:
 
 ```sh
-rostopic echo /speechEvent/text
+rostopic echo /speechEvent/recognise_speech_action/result
 ```
 
 When the `verboseMode` configuration option is set to `true` in `speech_event_configuration.ini` located in
@@ -315,4 +316,4 @@ For issues or questions:
 Funded by African Engineering and Technology Network (Afretec)  
 Inclusive Digital Transformation Research Grant Programme
 
-Date:   2025-04-20
+Date:   2026-04-21

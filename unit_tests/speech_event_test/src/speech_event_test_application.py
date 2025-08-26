@@ -3,9 +3,15 @@
 """
 speech_event_test_application.py - speechEvent test ROS node definition
 
-Author:     Clifford Onyonka
+Author:     Clifford Onyonka, Carnegie Mellon University Africa
+Email:      cliffor2@andrew.cmu.edu
 Date:       2025-02-23
 Version:    v1.0
+
+Author:     Clifford Onyonka, Carnegie Mellon University Africa
+Email:      cliffor2@andrew.cmu.edu
+Date:       2026-04-21
+Version:    v1.1
 
 Copyright (C) 2023 CSSR4Africa Consortium
 
@@ -25,20 +31,22 @@ both the end-to-end speech transcription process, and the set_language
 ROS service that sets the transcription language to be used by speechEvent.
 
 Libraries:
-- Ubuntu libraries: None
-- Python libraries: rospy
+- Ubuntu libraries:
+    None
+- Python libraries:
+    actionlib rospy
 
 Parameters:
-- None
+- Command-line Parameters:
+    None
 
-Command-line Parameters:
-- None
-
-Configuration File Parameters:
-- waitTimeout                       60
+- Configuration File Parameters:
+    heartbeatMsgPeriod              10
+    waitTimeout                     60
+    mode                            file | mic
 
 Subscribed Topics and Message Types:
-- /speechEvent/text                 std_msgs/String
+- None
 
 Published Topics and Message Types:
 - None
@@ -48,6 +56,9 @@ Services Invoked:
 - /speechEventDriver/set_next_test_file
 
 Services Advertised and Request Message:
+- None
+
+Action servers:
 - None
 
 Input Data Files:
@@ -66,27 +77,30 @@ Author:     Clifford Onyonka, Carnegie Mellon University Africa
 Email:      cliffor2@andrew.cmu.edu
 Date:       2025-02-23
 Version:    v1.0
+
+Author:     Clifford Onyonka, Carnegie Mellon University Africa
+Email:      cliffor2@andrew.cmu.edu
+Date:       2026-04-21
+Version:    v1.1
 """
 
 import os
 import time
-import sys
 from datetime import datetime
 
 import rospy
 
-sys.path.insert(0, os.path.dirname(__file__))
-import speech_event_test_implementation as se_imp
+import speech_event_test_utils as se_utils
 
 
 COLOR_BLUE = "\033[94m"
 COLOR_RESET = "\033[0m"
 
 
-def is_speech_event_running(speech_transcription_topic):
+def is_speech_event_running(recognise_speech_action):
     is_running = False
     for (topic, _) in rospy.get_published_topics():
-        if topic.strip() == speech_transcription_topic.strip():
+        if topic.strip() == f"{recognise_speech_action.strip()}/goal":
             is_running = True
             break
     return is_running
@@ -95,22 +109,22 @@ def is_speech_event_running(speech_transcription_topic):
 if __name__ == "__main__":
     current_file_path = os.path.abspath(__file__)
     current_file_dir = os.path.dirname(current_file_path)
-    config_file_path = os.path.join(
-        os.path.dirname(current_file_dir), "config", "speech_event_test_configuration.ini"
-    )
-    topics_file_path = os.path.join(
-        os.path.dirname(current_file_dir), "data", "pepper_topics.dat"
-    )
     output_file_path = os.path.join(
         os.path.dirname(current_file_dir), "data", "speech_event_test_output.dat"
     )
     test_reports = []
-    config = se_imp.parse_config_file(config_file_path)
-    topics = se_imp.parse_config_file(topics_file_path)
+    config = se_utils.parse_config_file(os.path.join(
+        os.path.dirname(current_file_dir), "config", "speech_event_test_configuration.ini"
+    ))
+    topics = se_utils.parse_config_file(os.path.join(
+        os.path.dirname(current_file_dir), "data", "pepper_topics.dat"
+    ))
     mode = config["mode"].strip().lower()
     count = 0
 
     rospy.init_node("speechEventTest", anonymous=True)
+
+    import speech_event_test_implementation as se_imp  # Needs to be after rospy.init_node()
 
     mode = rospy.get_param("/speechEvent/param_mode", default=mode).strip().lower()
 
@@ -119,17 +133,17 @@ if __name__ == "__main__":
         lambda _: rospy.loginfo("speechEventTest: running")
     )
 
-    while not is_speech_event_running(topics["speechEvent"]):
+    while not is_speech_event_running("/speechEvent/recognise_speech_action"):  # topics["speechEvent"]
         rospy.logwarn("speechEventTest: waiting for Speech Event to start running ...") if count % 5 == 0 else "pass"
         time.sleep(1)
         count += 1
         if count >= int(config["waitTimeout"]):
             break
 
-    se_imp.initialise(topics["speechEvent"].strip(), mode)
+    se_imp.initialise(mode)
 
     rospy.loginfo(
-        f"""speechEventTest v1.0
+        f"""speechEventTest v1.1
 
         \r{' ' * 28}This project is funded by the African Engineering and Technology Network (Afretec)
         \r{' ' * 28}Inclusive Digital Transformation Research Grant Programme.
@@ -140,11 +154,6 @@ if __name__ == "__main__":
         """
     )
     rospy.loginfo("speechEventTest: start-up")
-    rospy.loginfo(f"speechEventTest: subscribed to /speechEvent/text")
-
-    report = se_imp.test_speech_event__set_enabled()
-    test_reports.append(report)
-    rospy.loginfo(report.replace("\n", f"\n{' ' * 28}"))
 
     report = se_imp.test_speech_event__set_language()
     test_reports.append(report)
