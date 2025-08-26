@@ -15,28 +15,22 @@ Website: www.cssr4africa.org
 This program comes with ABSOLUTELY NO WARRANTY.
 """
 
-import io
-import multiprocessing
+import ctypes
 import os
 import signal
-import subprocess
 import sys
-import threading
 import time
-import tkinter as tk
-import uuid
+from functools import partial
 
-import nemo.collections.asr as nemo_asr
-import nemo.utils.nemo_logging as nemo_logging
-import numpy as np
 import rospy
 import torch
-from scipy.io import wavfile
-from scipy.signal import resample
 from std_msgs.msg import String, Float32MultiArray
 
 from cssr_system.srv import set_enabled, set_enabledResponse
 from cssr_system.srv import set_language, set_languageResponse
+
+import speech_event_gui as se_gui
+from speech_event_transcription import run_transcriptions
 
 
 # Static config options (not set via config file)
@@ -46,23 +40,36 @@ SET_ENABLED_SERVICE = "/speechEvent/set_enabled"
 SET_LANGUAGE_SERVICE = "/speechEvent/set_language"
 SOUND_DETECTION_TOPIC_CHECK_PERIOD = 0.05  # seconds
 SOUND_DETECTION_HEALTH_CHECK_PERIOD = 5  # seconds
-ROS_LOGGER_THROTTLE_SPEECH_NOT_DETECTED = 1  # seconds
-ROS_LOGGER_THROTTLE_SPEECH_DETECTED = 1  # seconds
 SPEECH_NOT_RECOGNISED_TEXT = "Error: speech not recognized"
 SOUND_DETECTION_DOWN_TEXT = "Error: soundDetection is down"
 NEMO_SAMPLE_RATE = 16000  # of audio required by nemo ASR
 IS_TRANSCRIPTION_ENABLED = True
+LOG_LEVELS = {
+    "none": -1,
+    "debug": 0,
+    "info": 1,
+    "warning": 2,
+    "error": 3,
+    "critical": 4
+}
+LOG_LEVELS_INV = {v: k for k, v in LOG_LEVELS.items()}
+LOG_FUNCTIONS = {
+    "debug": rospy.logdebug,
+    "info": rospy.loginfo,
+    "warning": rospy.logwarn,
+    "error": rospy.logerr,
+    "critical": rospy.logfatal
+}
+SUPPORTED_MODELS = ["conformer-transducer", "parakeet", "whisper"]
 
 # Config options set via config file
 LANGUAGE = "Kinyarwanda"  # Kinyarwanda or English
+MODEL_NAME = "parakeet"  # one of SUPPORTED_MODELS
 VERBOSE_MODE = True
 CUDA = False
 CONFIDENCE = 0.5  # on a scale of 0 t0 1
-SPEECH_PAUSE_PERIOD = 1.5  # seconds
-MAX_UTTERANCE_LENGTH = 5  # seconds
 SAMPLE_RATE = 48000  # of audio signal incoming from soundDetection
 HEARTBEAT_MSG_PERIOD = 10  # seconds
-AUDIO_STORAGE_DIR = "data/audio_storage/"
 
 # Config options set via topics data file
 SOUND_DETECTION_TOPIC = "/soundDetection/signal"
@@ -70,181 +77,66 @@ SOUND_DETECTION_TOPIC = "/soundDetection/signal"
 # Config options that are resolved dynamically
 RW_MODEL_PATH = "/stt_rw_conformer_transducer_large.nemo"
 EN_MODEL_PATH = "/stt_en_conformer_transducer_large.nemo"
+AUDIO_MAX_LEN = SAMPLE_RATE * 60  # number of samples
 
 # Global variables
-_model = None
 _publisher = None
-_streamed_samples = np.array([], dtype=np.float32)
+_mp_streamed_samples = torch.zeros(AUDIO_MAX_LEN, dtype=torch.float32).share_memory_()
 _last_audio_received_at = None
 _first_audio_received_at = None
+_current_idx = 0
 
 
-class _GUI:
-    def _get_main_window(title):
-        """ Return the main top-level Tkinter widget
-
-        Parameters:
-            title (str): the title of the top-level window
-
-        Returns:
-            tk.Tk:  top-level Tkinter window
-        """
-        window = tk.Tk()
-        window.title(title)
-        window.minsize(720, 480)
-
-        return window
-
-
-    def _get_main_frame(window):
-        """ Return the main frame widget that all other widgets are to reside in
-
-        Parameters:
-            window (Tk): the top-level window that wraps the main frame
-
-        Returns:
-            tk.Frame:   main frame widget
-        """
-        frame = tk.Frame(window)
-        frame.grid(column=0, row=0, sticky=(tk.N, tk.W, tk.E, tk.S))
-        frame.pack(side="top", fill="both", expand=True)
-        
-        return frame
-
-
-    def _listen_on_topic(window, text, process):
-        """ A forever running loop that listens on the /speechEvent/text ROS topic
-        and updates the GUI with any text that gets published on the topic
-
-        Parameters:
-            window (tk.Tk):             the main/root Tkinter window
-            text (tk.Label):            the Tkinter widget to be updated with text
-                transcriptions published on /speechEvent/text
-            process (subprocess.Popen): process that reads text published on
-                /speechEvent/text
-
-        Returns:
-            None
-        """
-        while True:
-            if process.poll():
-                break
-            stdout = process.stdout.readline().decode("UTF-8")
-            window.after(
-                0,
-                lambda: text.configure(text=stdout[7:-2]) if "data" in stdout else "pass"
-            )
-            time.sleep(1)
-
-    def run():
-        """
-        Run GUI application to display text transcriptions being published on the
-        /speechEvent/text ROS topic
-        """
-        window = _GUI._get_main_window(f"SpeechEvent output (rostopic echo {PUB_TOPIC})")
-        frame = _GUI._get_main_frame(window)
-        process = subprocess.Popen(
-            ["rostopic", "echo", PUB_TOPIC],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
-        )
-
-        text = tk.Label(frame, font=("Helvetica", 16))
-        text.grid(column=0, row=0, sticky=(tk.N, tk.W, tk.E, tk.S))
-        text.pack(side="top", fill="both", expand=True)
-
-        topic_p = threading.Thread(target=_GUI._listen_on_topic, args=(window, text, process))
-        topic_p.start()
-        window.mainloop()
-        topic_p.join()
-
-        window.destroy()
-        process.kill()
-
-
-def _save_audio(sample_rate, samples):
-    """ Save an array of audio samples as a wav file
+def _log(_, mp_log_lock, mp_log_level, mp_log_message):
+    """ Log messages from different processes using ROS' logging system
 
     Parameters:
-        sample_rate (int):  the sampling rate of the audio signal
-        samples (np.array): array of audio samples
-
-    Returns:
-        str:    filepath of the saved wav file
+        _:              ignored, and therefore not used
+        mp_log_lock:    [multi-processing] log lock object
+        mp_log_level:   [multi-processing] log level variable
+        mp_log_message: [multi-processing] log message variable
     """
-    mono_samples = np.mean(samples, axis=1) if samples.ndim > 1 else samples
-    num_of_resamples = int(len(mono_samples) * NEMO_SAMPLE_RATE / sample_rate)
-    resamples = resample(mono_samples, num_of_resamples)
-    filepath = os.path.join(AUDIO_STORAGE_DIR, f"{uuid.uuid4().hex}.wav")
-    wavfile.write(filepath, NEMO_SAMPLE_RATE, resamples)
-    return filepath
+    with mp_log_lock:
+        level = LOG_LEVELS_INV[mp_log_level.value]
+        message = mp_log_message.value.decode("UTF-8")
+
+    if level != "none":
+        LOG_FUNCTIONS[level](message)
+
+    with mp_log_lock:
+        mp_log_level.value = LOG_LEVELS["none"]
 
 
-def _get_audio_transcription(filepath):
-    """ Extract a text transcription from a wav file
+def _publish(_, mp_pub_lock, mp_pub_transcription):
+    """ Publish transcriptions to the /speechEvent/text ROS topic
 
     Parameters:
-        filepath (str): path to a wav file
-
-    Returns:
-        str:    the text transcription extracted from the wav file
+        _:                      ignored, and therefore not used
+        mp_pub_lock:            [multi-processing] pub lock object
+        mp_pub_transcription:   [multi-processing] pub message variable
     """
-    def transcribe_yes_stdout():
-            try:
-                results = _model.transcribe([filepath], return_hypotheses=True)
-            except IndexError:
-                results = []
+    with mp_pub_lock:
+        transcription = mp_pub_transcription.value.decode("UTF-8")
 
-            return results
+    if len(transcription.strip()) > 0:
+        _publisher.publish(transcription)
 
-    def transcribe_no_stdout():
-            sys.stdout = io.StringIO()
-            sys.stderr = io.StringIO()
-
-            try:
-                results = _model.transcribe([filepath], return_hypotheses=True)
-            except IndexError:
-                results = []
-
-            sys.stdout = sys.__stdout__
-            sys.stderr = sys.__stderr__
-
-            return results
-
-    log_message_template = "speechEvent: transcription results -> {text} (confidence: {conf})"
-    hypotheses = transcribe_yes_stdout() if VERBOSE_MODE else transcribe_no_stdout()
-
-    if len(hypotheses) == 0:
-        transcription = SPEECH_NOT_RECOGNISED_TEXT
-        log_message = log_message_template.format(text=transcription, conf=-1)
-    else:
-        transcription = hypotheses[0][0].text
-        score = round(np.exp(hypotheses[0][0].score), 4)
-        log_message = log_message_template.format(text=f"{transcription}", conf=score)
-        if score < CONFIDENCE:
-            log_message = log_message_template.format(
-                text=f"{transcription} [unrecognised]", conf=score
-            )
-            transcription = SPEECH_NOT_RECOGNISED_TEXT
-        if len(transcription.strip()) == 0:
-            transcription = SPEECH_NOT_RECOGNISED_TEXT
-            log_message = log_message_template.format(text=transcription, conf=-1)
-
-    rospy.loginfo(log_message) if VERBOSE_MODE else "pass"
-
-    return transcription
+    with mp_pub_lock:
+        mp_pub_transcription.value = "".encode("UTF-8")
 
 
-def _set_transcription_language(language):
+def _set_transcription_language(language, mp_misc_lock, mp_lang):
     """ Sets the language of operation of speechEvent
 
     Parameters:
-        language:   language speechEvent is to be set to
+        language:       language speechEvent is to be set to
+        mp_misc_lock:   [multi-processing] miscellaneous lock object
+        mp_lang:        [multi-processing] language variable
 
     Returns:
-        int:        1 for success and 0 for failure
+        int:            1 for success and 0 for failure
     """
-    global LANGUAGE, _model
+    global LANGUAGE
 
     if language.strip().lower() not in ["kinyarwanda", "english"]:
         rospy.logwarn(
@@ -253,20 +145,10 @@ def _set_transcription_language(language):
         )
         return 0
 
-    if CUDA:
-        if not torch.cuda.is_available():
-            rospy.logwarn(
-                "speechEvent: CUDA not available, defaulting to CPU"
-            )
-        device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-    else:
-        device = torch.device("cpu")
-
     LANGUAGE = language.strip().lower()
-    _model = nemo_asr.models.EncDecRNNTBPEModel.restore_from(
-        restore_path=RW_MODEL_PATH if LANGUAGE == "kinyarwanda" else EN_MODEL_PATH,
-        map_location=device
-    )
+
+    with mp_misc_lock:
+        mp_lang.value = LANGUAGE.encode("UTF-8")
 
     rospy.loginfo(
         f"speechEvent: language set to {LANGUAGE.capitalize()}"
@@ -275,14 +157,16 @@ def _set_transcription_language(language):
     return 1
 
 
-def _sound_detection_callback(data):
+def _sound_detection_callback(data, mp_tensor_lock, mp_samples_len):
     """ Function that gets called every time a new audio signal is obtained,
     transcribing speech utterances within the received audio signal
 
     Parameters:
-        data:   object containing the audio signal
+        data:           object containing the audio signal
+        mp_tensor_lock: [multi-processing] lock object
+        mp_samples_len: [multi-processing] audio samples length variable
     """
-    global _streamed_samples, _last_audio_received_at, _first_audio_received_at
+    global _mp_streamed_samples, _last_audio_received_at, _first_audio_received_at, _current_idx
 
     time_now = time.time()
 
@@ -290,17 +174,31 @@ def _sound_detection_callback(data):
         _first_audio_received_at = time_now
 
     _last_audio_received_at = time_now
-    _streamed_samples = np.concatenate((_streamed_samples, np.array(data.data, dtype=np.float32)))
+
+    audio_tensor = torch.tensor(data.data, dtype=torch.float32)
+    audio_tensor_len = audio_tensor.shape[0]
+
+    with mp_tensor_lock:
+        _mp_streamed_samples[_current_idx:_current_idx+audio_tensor_len] = audio_tensor
+        _current_idx += audio_tensor_len
+        mp_samples_len.value += audio_tensor_len
+
+    if _current_idx > AUDIO_MAX_LEN - audio_tensor_len:
+        _current_idx = 0
 
 
-def _set_language_srv_handler(req):
+def _set_language_srv_handler(req, mp_misc_lock, mp_lang):
     """ Function that gets called every time the /speechEvent/set_language ROS
     service is invoked. It sets the language of operation of speechEvent.
 
     Parameters:
-        req:   request object containing the language speechEvent is to be set to
+        req:            request object containing the language speechEvent is to be set to
+        mp_misc_lock:   [multi-processing] miscellaneous lock object
+        mp_lang:        [multi-processing] language variable
     """
-    return set_languageResponse(_set_transcription_language(req.language))
+    return set_languageResponse(
+        _set_transcription_language(req.language, mp_misc_lock, mp_lang)
+    )
 
 
 def _set_enabled_srv_handler(req):
@@ -309,8 +207,7 @@ def _set_enabled_srv_handler(req):
     enabled or disabled.
 
     Parameters:
-        req:   request object containing the status the transcription process is
-            to be set to
+        req:            request object containing the status the transcription process is to be set to
     """
     global IS_TRANSCRIPTION_ENABLED
 
@@ -330,46 +227,6 @@ def _set_enabled_srv_handler(req):
     ) if VERBOSE_MODE else "pass"
 
     return set_enabledResponse(1)
-
-
-def _trigger_audio_transcription(event):
-    """
-    Trigger the audio tanscription procedure when there is a prolonged silence on
-    the /soundDetection/signal ROS topic (based on a time threshold), which
-    transcribes speech in the audio samples retrieved from the /soundDection/signal
-    ROS topic and publishes the transcribed text on the /speechEvent/text ROS topic
-
-    Parameters:
-        event:  timer event (not used)
-    """
-    global _streamed_samples, _last_audio_received_at
-
-    if not IS_TRANSCRIPTION_ENABLED:
-        _streamed_samples = np.array([], dtype=np.float32)
-        _last_audio_received_at = None
-        return
-
-    if _last_audio_received_at is None:
-        return
-
-    currrent_time = time.time()
-
-    if currrent_time - _first_audio_received_at < MAX_UTTERANCE_LENGTH:
-        if currrent_time - _last_audio_received_at < SPEECH_PAUSE_PERIOD:
-            return
-
-    filepath = _save_audio(SAMPLE_RATE, _streamed_samples)
-    transcription = _get_audio_transcription(filepath)
-    _publisher.publish(transcription)
-
-    rospy.loginfo(
-        "speechEvent: transcription process (plus utterance length) has taken "
-        f"{round(time.time() - _first_audio_received_at, 4)} seconds"
-    ) if VERBOSE_MODE else "pass"
-
-    _streamed_samples = np.array([], dtype=np.float32)
-    _last_audio_received_at = None
-    os.remove(filepath)
 
 
 def _is_sound_detection_running(sound_detection_topic):
@@ -401,38 +258,34 @@ def _publish_sound_detection_is_down(_):
         rospy.logwarn(f"speechEvent: can't connect to {SOUND_DETECTION_TOPIC}")
 
 
-def parse_config_file(config_file_path):
-    """ Get a dict representing the configuration options stored in the
-    passed configuration file
-
-    Parameters:
-        config_file_path (str): path to a configuration file
-
-    Returns:
-        dict:    key-value pairs of configurations stored in the passed
-            config file
-    """
-    config = {}
-
-    with open(config_file_path, "r") as f:
-        for line in f.readlines():
-            if len(line) < 1:
-                continue
-            a_list = line.split("\t") if "\t" in line else line.split(" ")
-            config[a_list[0]] = a_list[-1]
-    
-    return config
-
-
 def run():
     """
     Run a speechEvent ROS node
     """
+    global _publisher
+
+    mp_tensor_lock = torch.multiprocessing.Lock()
+    mp_misc_lock = torch.multiprocessing.Lock()
+    mp_log_lock = torch.multiprocessing.Lock()
+    mp_pub_lock = torch.multiprocessing.Lock()
+    mp_samples_len = torch.multiprocessing.Value("i", 0)
+    mp_lang = torch.multiprocessing.Array(ctypes.c_char, 32)
+    mp_log_level = torch.multiprocessing.Value("i", 0)
+    mp_log_message = torch.multiprocessing.Array(ctypes.c_char, AUDIO_MAX_LEN)
+    mp_pub_transcription = torch.multiprocessing.Array(ctypes.c_char, AUDIO_MAX_LEN)
+
+    mp_lang.value = LANGUAGE.encode("UTF-8")
+
     rospy.Service(SET_ENABLED_SERVICE, set_enabled, _set_enabled_srv_handler)
-    rospy.Service(SET_LANGUAGE_SERVICE, set_language, _set_language_srv_handler)
-    rospy.Subscriber(SOUND_DETECTION_TOPIC, Float32MultiArray, _sound_detection_callback)
-    rospy.Timer(
-        rospy.Duration(SOUND_DETECTION_TOPIC_CHECK_PERIOD), _trigger_audio_transcription
+    rospy.Service(
+        SET_LANGUAGE_SERVICE,
+        set_language,
+        partial(_set_language_srv_handler, mp_misc_lock=mp_misc_lock, mp_lang=mp_lang)
+    )
+    rospy.Subscriber(
+        SOUND_DETECTION_TOPIC,
+        Float32MultiArray,
+        partial(_sound_detection_callback, mp_tensor_lock=mp_tensor_lock, mp_samples_len=mp_samples_len)
     )
     rospy.Timer(
         rospy.Duration(HEARTBEAT_MSG_PERIOD),
@@ -441,6 +294,14 @@ def run():
     rospy.Timer(
         rospy.Duration(SOUND_DETECTION_HEALTH_CHECK_PERIOD),
         _publish_sound_detection_is_down
+    )
+    rospy.Timer(
+        rospy.Duration(nsecs=int(1e3)),
+        partial(_log, mp_log_lock=mp_log_lock, mp_log_level=mp_log_level, mp_log_message=mp_log_message)
+    )
+    rospy.Timer(
+        rospy.Duration(nsecs=int(1e3)),
+        partial(_publish, mp_pub_lock=mp_pub_lock, mp_pub_transcription=mp_pub_transcription)
     )
 
     rospy.loginfo(
@@ -468,20 +329,39 @@ def run():
     rospy.loginfo(f"speechEvent: {SET_ENABLED_SERVICE} service advertised")
     rospy.loginfo(f"speechEvent: {SET_LANGUAGE_SERVICE} service advertised")
 
+    _set_transcription_language(LANGUAGE, mp_misc_lock, mp_lang)
+    _publisher = rospy.Publisher(PUB_TOPIC, String, queue_size=10)
+
     if VERBOSE_MODE:
-        display_process = multiprocessing.Process(target=_GUI.run)
-
-        def kill(_, __):
-            display_process.kill()
-            sys.exit(0)
-
-        signal.signal(signal.SIGINT, kill)
+        display_process = torch.multiprocessing.Process(target=se_gui.GUI.run, args=(PUB_TOPIC,))
         display_process.start()
 
-    rospy.spin()
+    transcription_process = torch.multiprocessing.Process(
+        target=run_transcriptions,
+        args=(
+            _mp_streamed_samples, mp_tensor_lock, mp_misc_lock, mp_samples_len, mp_lang,
+            mp_log_lock, mp_log_level, mp_log_message, mp_pub_lock, mp_pub_transcription,
+            CUDA, RW_MODEL_PATH, EN_MODEL_PATH, SAMPLE_RATE, AUDIO_MAX_LEN, CONFIDENCE,
+            VERBOSE_MODE, MODEL_NAME
+        )
+    )
+
+    def kill_processes(_, __):
+        transcription_process.kill()
+        if VERBOSE_MODE:
+            display_process.kill()
+        sys.exit(0)
+
+    transcription_process.start()
+    signal.signal(signal.SIGINT, kill_processes)
+
+    try:
+        rospy.spin()
+    except rospy.ROSInterruptException as e:
+        raise e
 
 
-def initialise(config, topics, rw_model_path, en_model_path, audio_storage_dir):
+def initialise(config, topics, rw_model_path, en_model_path):
     """ Make preparatory initialisations before running a speechEvent ROS node
 
     Patameters:
@@ -489,12 +369,10 @@ def initialise(config, topics, rw_model_path, en_model_path, audio_storage_dir):
         topics:             object containing ROS topics to be subscribed to
         rw_model_path:      path to Kinyarwanda ASR model
         en_model_path:      path to English ASR model
-        audio_storage_dir:  path to directory to store generated audio files
     """
-    global LANGUAGE, VERBOSE_MODE, CUDA, CONFIDENCE, SPEECH_PAUSE_PERIOD, MAX_UTTERANCE_LENGTH, SAMPLE_RATE, HEARTBEAT_MSG_PERIOD
-    global RW_MODEL_PATH, EN_MODEL_PATH, AUDIO_STORAGE_DIR
+    global LANGUAGE, MODEL_NAME, VERBOSE_MODE, CUDA, CONFIDENCE, SAMPLE_RATE, HEARTBEAT_MSG_PERIOD
+    global RW_MODEL_PATH, EN_MODEL_PATH
     global SOUND_DETECTION_TOPIC
-    global _publisher
 
     rospy.init_node(NODE_NAME, anonymous=True)
 
@@ -509,6 +387,13 @@ def initialise(config, topics, rw_model_path, en_model_path, audio_storage_dir):
         rospy.logerr(
             "speechEvent: the language '%s' is not supported, supported "
             "languages are Kinyarwanda and English" % config["language"].strip()
+        )
+        sys.exit(1)
+
+    if config["model"].strip().lower() not in SUPPORTED_MODELS:
+        rospy.logerr(
+            f"speechEvent: '{config['model'].strip()}' not supported, supported "
+            f"models are {SUPPORTED_MODELS}"
         )
         sys.exit(1)
 
@@ -531,26 +416,13 @@ def initialise(config, topics, rw_model_path, en_model_path, audio_storage_dir):
         )
         sys.exit(1)
 
-    if not os.path.exists(audio_storage_dir):
-        rospy.logwarn(
-            "speechEvent: the audio storage directory is absent from the data "
-            "directory, it will be created"
-        )
-        os.mkdir(audio_storage_dir)
-
     LANGUAGE = config["language"].strip().lower()
+    MODEL_NAME = config["model"].strip().lower()
     VERBOSE_MODE = True if config["verboseMode"].strip().lower() == "true" else False
     CUDA = True if config["cuda"].strip().lower() == "true" else False
     CONFIDENCE = float(config["confidence"].strip())
-    SPEECH_PAUSE_PERIOD = float(config["speechPausePeriod"].strip())
-    MAX_UTTERANCE_LENGTH = float(config["maxUtteranceLength"].strip())
     SAMPLE_RATE = int(config["sampleRate"].strip())
     HEARTBEAT_MSG_PERIOD = int(config["heartbeatMsgPeriod"].strip())
     SOUND_DETECTION_TOPIC = topics["soundDetection"].strip()
     RW_MODEL_PATH = rw_model_path
     EN_MODEL_PATH = en_model_path
-    AUDIO_STORAGE_DIR = audio_storage_dir
-
-    nemo_logging.Logger().remove_stream_handlers()
-    _set_transcription_language(LANGUAGE)
-    _publisher = rospy.Publisher(PUB_TOPIC, String, queue_size=10)

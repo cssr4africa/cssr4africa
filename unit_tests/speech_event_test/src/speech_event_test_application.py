@@ -25,17 +25,17 @@ both the end-to-end speech transcription process, and the set_language
 ROS service that sets the transcription language to be used by speechEvent.
 
 Libraries:
-- Ubuntu libraries: None
-- Python libraries: rospy
+- Ubuntu libraries:
+    None
+- Python libraries:
+    rospy
 
 Parameters:
-- None
+- Command-line Parameters:
+    None
 
-Command-line Parameters:
-- None
-
-Configuration File Parameters:
-- waitTimeout                       60
+- Configuration File Parameters:
+    waitTimeout                     60
 
 Subscribed Topics and Message Types:
 - /speechEvent/text                 std_msgs/String
@@ -70,13 +70,12 @@ Version:    v1.0
 
 import os
 import time
-import sys
 from datetime import datetime
 
 import rospy
 
-sys.path.insert(0, os.path.dirname(__file__))
 import speech_event_test_implementation as se_imp
+import speech_event_test_utils as se_utils
 
 
 COLOR_BLUE = "\033[94m"
@@ -95,18 +94,16 @@ def is_speech_event_running(speech_transcription_topic):
 if __name__ == "__main__":
     current_file_path = os.path.abspath(__file__)
     current_file_dir = os.path.dirname(current_file_path)
-    config_file_path = os.path.join(
-        os.path.dirname(current_file_dir), "config", "speech_event_test_configuration.ini"
-    )
-    topics_file_path = os.path.join(
-        os.path.dirname(current_file_dir), "data", "pepper_topics.dat"
-    )
     output_file_path = os.path.join(
         os.path.dirname(current_file_dir), "data", "speech_event_test_output.dat"
     )
     test_reports = []
-    config = se_imp.parse_config_file(config_file_path)
-    topics = se_imp.parse_config_file(topics_file_path)
+    config = se_utils.parse_config_file(os.path.join(
+        os.path.dirname(current_file_dir), "config", "speech_event_test_configuration.ini"
+    ))
+    topics = se_utils.parse_config_file(os.path.join(
+        os.path.dirname(current_file_dir), "data", "pepper_topics.dat"
+    ))
     mode = config["mode"].strip().lower()
     count = 0
 

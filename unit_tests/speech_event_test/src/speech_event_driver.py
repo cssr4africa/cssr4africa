@@ -28,21 +28,21 @@ soundDetection by reading an audio file and publishing the audio signal to
 the /soundDetection/signal ROS topic periodically.
 
 Libraries:
-- Ubuntu libraries: portaudio19-dev, python3-dev, python3-pyaudio
-- Python libraries: numpy, pyaudio, rospy, scipy, std_msgs
+- Ubuntu libraries:
+    portaudio19-dev, python3-dev, python3-pyaudio
+- Python libraries:
+    numpy, pyaudio, rospy, scipy, std_msgs
 
 Parameters:
-- None
+- Command-line Parameters:
+    None
 
-Command-line Parameters:
-- None
-
-Configuration File Parameters:
-- channels                              1
-- chunkSize                             1024
-- sampleRate                            48000
-- speechAmplitudeThreshold              0.25
-- mode                                  mic
+- Configuration File Parameters:
+    channels                            1
+    chunkSize                           1024
+    sampleRate                          48000
+    speechAmplitudeThreshold            0.25
+    mode                                mic
 
 Subscribed Topics and Message Types:
 - None
@@ -79,55 +79,35 @@ import queue
 import sys
 import time
 
-import numpy as np
 import pyaudio
 import rospy
-from scipy.io import wavfile
+import torch
+import torchaudio
 from std_msgs.msg import Float32MultiArray
 
 from unit_tests.srv import set_next_test_file, set_next_test_fileResponse
+
+import speech_event_test_utils as se_utils
 
 
 # Static config options (not set via config file)
 NODE_NAME = "speechEventDriver"
 PUB_TOPIC = "/soundDetection/signal"
 FORMAT = pyaudio.paFloat32
+CHANNELS = 1
 ROS_LOGGER_THROTTLE_SPEECH_DETECTED = 1
 SET_NEXT_TEST_FILE_SERVICE = "/speechEventDriver/set_next_test_file"
 
 # Config options set via config file
-CHANNELS = 1
 CHUNK_SIZE = 1024
 SAMPLE_RATE = 48000
-SPEECH_AMPLITUDE_THRESHOLD = 0.125  # amplitude below which a signal is assumed to be ambient noise
-MODE = "mic"  # whether to use audio from PC's microphones or from saved audio files
+SPEECH_AMPLITUDE_THRESHOLD = 0.125  # amplitude below which a signal is ignored as ambient noise
+MODE = "mic"  # mic or file
 
+# Global variables
 buffer_size = SAMPLE_RATE // CHUNK_SIZE
 testing_samples = None
 test_files = {}  # {cursor_position: [transcription_text, audio_file_path], ...}
-
-
-def _parse_config_file(config_file_path):
-    """ Get a dict representing the configuration options stored in the
-    passed configuration file
-
-    Parameters:
-        config_file_path (str): path to a configuration file
-
-    Returns:
-        dict:    key-value pairs of configurations stored in the passed
-            config file
-    """
-    config = {}
-
-    with open(config_file_path, "r") as f:
-        for line in f.readlines():
-            if len(line) < 1:
-                continue
-            a_list = line.split("\t") if "\t" in line else line.split(" ")
-            config[a_list[0]] = a_list[-1]
-    
-    return config
 
 
 def _is_utterance_present(samples):
@@ -136,13 +116,13 @@ def _is_utterance_present(samples):
     utterance, is contained in the signal)
 
     Parameters:
-    samples (np.array): array of audio samples
+    samples (torch.tensor): tensor of audio samples
 
     Returns:
     bool:    True if an utterance is found in the signal samples, else False
     """
     for i in samples:
-        if np.abs(i) >= SPEECH_AMPLITUDE_THRESHOLD:
+        if torch.abs(i) >= SPEECH_AMPLITUDE_THRESHOLD:
             return True
 
     return False
@@ -162,7 +142,7 @@ def _run_mic_mode_helper(stream, publisher):
     rate = rospy.Rate(500)
 
     while not rospy.is_shutdown():
-        incoming_samples = np.frombuffer(stream.read(CHUNK_SIZE), dtype=np.float32)
+        incoming_samples = torch.frombuffer(bytearray(stream.read(CHUNK_SIZE)), dtype=torch.float32)
         is_utterance = _is_utterance_present(incoming_samples)
 
         if not is_utterance:
@@ -206,7 +186,7 @@ def _set_next_test_file_handler(req):
     if req.cursor not in test_files:
         return set_next_test_fileResponse(response=0, transcription="<No more test files>")
 
-    _, testing_samples = wavfile.read(test_files[req.cursor][1])
+    testing_samples = torchaudio.load(test_files[req.cursor][1])[0][0]
 
     return set_next_test_fileResponse(response=1, transcription=test_files[req.cursor][0])
 
@@ -248,11 +228,17 @@ def run_file_mode():
     """
     publisher = rospy.Publisher(PUB_TOPIC, Float32MultiArray, queue_size=3)
 
-    rospy.loginfo("speechEventDriver: ROS node '%s' is running ..." % NODE_NAME)
     rospy.Service(
         SET_NEXT_TEST_FILE_SERVICE, set_next_test_file, _set_next_test_file_handler
     )
-    rospy.loginfo("speechEventDriver: {NODE_NAME} is running")
+
+    print(
+        """
+        \rspeechEventDriver: The speechEventDriver is publishing audio samples of saved audio files. To change the audio being
+        \rpublished, use the /speechEventDriver/set_next_test_file ROS service.
+        """
+    )
+    rospy.loginfo(f"speechEventDriver: {NODE_NAME} is running")
 
     try:
         while not rospy.is_shutdown():
@@ -265,9 +251,6 @@ def run_file_mode():
 if __name__ == "__main__":
     current_file_path = os.path.abspath(__file__)
     current_file_dir = os.path.dirname(current_file_path)
-    config_file_path = os.path.join(
-        os.path.dirname(current_file_dir), "config", "speech_event_driver_configuration.ini"
-    )
     test_audio_files = [
         (
             i.split(".")[0].replace("_", " "),
@@ -275,18 +258,18 @@ if __name__ == "__main__":
         ) for i in os.listdir(os.path.join(os.path.dirname(current_file_dir), "data"))
         if i.split(".")[1] == "wav"
     ]
+    config = se_utils.parse_config_file(os.path.join(
+        os.path.dirname(current_file_dir), "config", "speech_event_driver_configuration.ini"
+    ))
 
-    config = _parse_config_file(config_file_path)
-
-    CHANNELS = int(config["channels"].strip())
     CHUNK_SIZE = int(config["chunkSize"].strip())
     SAMPLE_RATE = int(config["sampleRate"].strip())
     SPEECH_AMPLITUDE_THRESHOLD = float(config["speechAmplitudeThreshold"].strip())
     MODE = config["mode"].strip().lower()
 
-    buffer_size = (SAMPLE_RATE // CHUNK_SIZE) * 2
+    buffer_size = SAMPLE_RATE // CHUNK_SIZE
     test_files = {idx: item for idx, item in enumerate(test_audio_files)}
-    _, testing_samples = wavfile.read(test_files[0][1])
+    testing_samples = torchaudio.load(test_files[0][1])[0][0]
 
     rospy.init_node(NODE_NAME, anonymous=True)
 

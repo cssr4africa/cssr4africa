@@ -83,33 +83,44 @@ import os
 import sys
 
 import rospy
+import torch
 
-sys.path.insert(0, os.path.dirname(__file__))
 import speech_event_implementation as se_imp
+import speech_event_utils as se_utils
+
+
+SUPPORTED_MODELS = ["conformer-transducer", "parakeet", "whisper"]
+RW_MODELS = {
+    "conformer-transducer": "stt_rw_conformer_transducer_large.nemo",
+    "parakeet": "stt_rw_parakeet-tdt_ctc-110m.nemo",
+    "whisper": "whisper_small_rw.pt"
+}
+EN_MODELS = {
+    "conformer-transducer": "stt_en_conformer_transducer_large.nemo",
+    "parakeet": "stt_en_parakeet-tdt_ctc-110m.nemo",
+    "whisper": "whisper_small_en.pt"
+}
 
 
 if __name__ == "__main__":
-    current_file_dir = os.path.dirname(__file__)
-    config_file_path = os.path.join(
-        os.path.dirname(current_file_dir), "config", "speech_event_configuration.ini"
-    )
-    topics_file_path = os.path.join(
-        os.path.dirname(current_file_dir), "data", "pepper_topics.dat"
-    )
-    rw_model_path = os.path.join(
-        os.path.dirname(current_file_dir), "models", "stt_rw_conformer_transducer_large.nemo"
-    )
-    en_model_path = os.path.join(
-        os.path.dirname(current_file_dir), "models", "stt_en_conformer_transducer_large.nemo"
-    )
-    audio_storage_dir = os.path.join(
-        os.path.dirname(current_file_dir), "data", "audio_storage"
-    )
+    torch.multiprocessing.set_start_method("spawn", force=True)
 
-    config = se_imp.parse_config_file(config_file_path)
-    topics = se_imp.parse_config_file(topics_file_path)
-    
-    se_imp.initialise(config, topics, rw_model_path, en_model_path, audio_storage_dir)
+    current_file_dir = os.path.dirname(__file__)
+
+    topics_file = os.path.join(os.path.dirname(current_file_dir), "data", "pepper_topics.dat")
+    config_file = os.path.join(os.path.dirname(current_file_dir), "config", "speech_event_configuration.ini")
+    topics = se_utils.parse_config_file(topics_file)
+    config = se_utils.parse_config_file(config_file)
+    model_name = config["model"].strip().lower()
+
+    if model_name not in SUPPORTED_MODELS:
+        print(f"speechEvent: '{model_name}' not supported, supported models are {SUPPORTED_MODELS}")
+        sys.exit(1)
+
+    rw_model_path = os.path.join(os.path.dirname(current_file_dir), "models", RW_MODELS[model_name])
+    en_model_path = os.path.join(os.path.dirname(current_file_dir), "models", EN_MODELS[model_name])
+
+    se_imp.initialise(config, topics, rw_model_path, en_model_path)
 
     try:
         se_imp.run()
