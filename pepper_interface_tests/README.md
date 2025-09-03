@@ -1,45 +1,96 @@
-# Pepper Interface Tests
+<div align="center">
+<h1> Pepper Interface Tests </h1>
+</div>
 
-<img src="../CSSR4AfricaLogo.svg" alt="CSSR4Africa Logo" style="width:100%; height:auto;">
+<div align="center">
+  <img src="../CSSR4AfricaLogo.svg" alt="CSSR4Africa Logo" style="width:50%; height:auto;">
+</div>
 
-The Pepper interface tests package is a ROS package designed to test the sensors and actuators of the Pepper robot on both physical and simulated platforms. After setting up the development environment using the software installation document as outlined in the [D3.3 Software Installation Manual](https://cssr4africa.github.io/deliverables/CSSR4Africa_Deliverable_D3.3.pdf), the package can be installed and run on the Pepper robot.
+The **Pepper Interface Tests** package is a ROS package designed to test the sensors and actuators of the Pepper robot on both physical and simulated platforms. The package is divided into two parts: sensor tests and actuator tests. The sensor tests evaluate the performance of sonar, laser, microphone, and camera sensors. The actuator tests assess the functionality of head, arms, hands, legs, and wheels actuators.
 
-The package is divided into two parts: sensor tests and actuator tests. The sensor tests are designed to evaluate the performance of the following sensors: sonar, laser, microphone, and camera. The actuator tests assess the functionality of the following actuators: head, arms, hands, legs, and wheels.
+# 📄 Documentation
+The main documentation for this deliverable is found in [D4.1 Sensor Test](https://cssr4africa.github.io/deliverables/CSSR4Africa_Deliverable_D4.1.pdf) and [D5.1 Actuator Test](https://cssr4africa.github.io/deliverables/CSSR4Africa_Deliverable_D5.1.pdf) that provide more details.
 
-## Documentation
-Accompnaying this code, there are deliverable reports that provides a detailed explanation of the code and how to run the tests. The deliverable reports are can be found in [D4.1 Sensor test](https://cssr4africa.github.io/deliverables/CSSR4Africa_Deliverable_D4.1.pdf) and [5.1 Actuator test](https://cssr4africa.github.io/deliverables/CSSR4Africa_Deliverable_D5.1.pdf)
+# 🛠️ Installation 
 
-## Running Tests
-To run the test on the physical platform, change the first line of `actuatorTestConfiguration.ini` file in the config folder
-to “platform robot”. On the other hand, to run the test on the simulator platform, change the first line of simulatorTestConfiguration.ini file to “platform simulator”.
+Install the required software components to instantiate and set up the development environment for controlling the Pepper robot. Use the [CSSR4Africa Software Installation Manual](https://cssr4africa.github.io/deliverables/CSSR4Africa_Deliverable_D3.3.pdf).
 
-## Physical Robot
-This command launches actuator test
+## Installation on Ubuntu (x86-based Systems)
+
+1. Prerequisites  
+Make sure you are running Ubuntu 20.04. The ROS environment should be properly set up with the CSSR4Africa workspace.
+
+2. Build the Package
 ```sh
+# Source the workspace
+cd $HOME/workspace/pepper_rob_ws && source devel/setup.bash
+
+# Build the package
+catkin build pepper_interface_tests
+```
+
+# 🔧 Configuration Parameters
+The following configuration files are used to specify test parameters:
+
+| File | Description | Platform |
+|------|-------------|----------|
+| `actuatorTestConfiguration.ini` | Configuration for actuator tests | Set first line to "platform robot" for physical robot or "platform simulator" for simulator |
+| `sensorTestConfiguration.ini` | Configuration for sensor tests | Set first line to "platform robot" for physical robot or "platform simulator" for simulator |
+
+Test input files:
+- `actuatorTestInput.dat` - Key-value pairs to test different actuators
+- `sensorTestInput.dat` - Key-value pairs to test different sensors
+
+# 🚀 Running the Tests
+
+**Run the Pepper Interface Tests from the `pepper_interface_tests` package:**
+
+Source the workspace in first terminal:
+```bash
+cd $HOME/workspace/pepper_rob_ws && source devel/setup.bash
+```
+
+Follow below steps, run in different terminals.
+
+## Physical Robot Tests
+
+1️. Launch actuator tests on physical robot:
+```bash
 roslaunch pepper_interface_tests actuatorTestLaunchRobot.launch robot_ip:=<robot_ip> roscore_ip:=<roscore_ip> network_interface:=<network_interface>
 ```
 
-This command launches sensor test 
-```sh
-roslaunch roslaunch pepper_interface_tests sensorTestLaunchRobot.launch robot_ip:=<robot_ip> roscore_ip:=<roscore_ip> network_interface:=<network_interface_name>
+2️. Launch sensor tests on physical robot:
+```bash
+roslaunch pepper_interface_tests sensorTestLaunchRobot.launch robot_ip:=<robot_ip> roscore_ip:=<roscore_ip> network_interface:=<network_interface_name>
 ```
 
-## Simulator Robot
-This command launches pepper interface test for the simulator robot.
-```sh
-roslaunch pepper_interface_tests interfaceTestLaunchSimulator.launch
+3️. Run actuator test executable:
+```bash
+rosrun pepper_interface_tests actuatorTest
 ```
 
-
-## Sensor and actuator Test
-actuatorTestInput.dat and sensorTestInput.dat are provided that container key-value pair to test the different actuator and sensor found in Pepper robot.
-
-This command test the sensor for the physical robot
-```sh
+4️. Run sensor test executable:
+```bash
 rosrun pepper_interface_tests sensorTest
 ```
 
-This command test the actuator for the physical robot
-```sh
-rosrun pepper_interface_tests actuatorTest
+## Simulator Robot Tests
+
+1️. Launch interface tests for simulator robot:
+```bash
+roslaunch pepper_interface_tests interfaceTestLaunchSimulator.launch
 ```
+
+# 💡 Support
+
+For issues or questions:
+- Create an issue on GitHub
+- Contact: <a href="mailto:david@vernon.eu">david@vernon.eu</a>, <a href="mailto:africa-robotics@andrew.cmu.edu">africa-robotics@andrew.cmu.edu</a><br>, <a href="mailto:dvernon@andrew.cmu.edu">dvernon@andrew.cmu.edu</a>, <a href="mailto:yohanneh@andrew.cmu.edu">yohanneh@andrew.cmu.edu</a><br>
+- Visit: <a href="http://www.cssr4africa.org">www.cssr4africa.org</a>
+
+# 📜License
+Copyright (C) 2023 CSSR4Africa Consortium  
+Funded by African Engineering and Technology Network (Afretec)  
+Inclusive Digital Transformation Research Grant Programme
+
+2025-09-03

@@ -1,12 +1,13 @@
 <launch>
-  <arg name="robot_ip" default="172.29.111.230" />
-  <arg name="robot_port" default="9559" />
-  <arg name="roscore_ip" default="127.0.0.1" />
-  <arg name="network_interface" default="eth0" />
-  <arg name="namespace" default="naoqi_driver" />
-  <arg name="launch_audio_nodes" default="true" />  <!-- Flag to control audio nodes -->
+  <arg name="robot_ip"            default="172.29.111.230" />
+  <arg name="robot_port"          default="9559" />
+  <arg name="roscore_ip"          default="127.0.0.1" />
+  <arg name="network_interface"   default="eth0" />
+  <arg name="namespace"           default="naoqi_driver" />
+  <arg name="launch_audio_nodes"  default="true" />                    <!-- Flag to control audio nodes -->
+  <arg name="camera"              default="both" doc="Set 'pepper' for Pepper only, 'realsense' for RealSense only, 'both' for Pepper + RealSense" />
 
-  <!-- Launch naoqi_driver_node -->
+  <!-- Launch naoqi_driver_node (always launched regardless of camera choice) -->
   <node pkg="naoqi_driver" type="naoqi_driver_node" name="$(arg namespace)" required="true"
         args="--qi-url=tcp://$(arg robot_ip):$(arg robot_port) --roscore_ip=$(arg roscore_ip) --network_interface=$(arg network_interface) --namespace=$(arg namespace)"
         output="screen" />
@@ -20,4 +21,19 @@
   <group if="$(arg launch_audio_nodes)">
     <node pkg="naoqi_driver" type="run_naoqiAudio.sh" name="naoqiAudio" args="--ip=$(arg robot_ip) --port=$(arg robot_port)"/>
   </group>
+
+  <!-- Launch RealSense camera when camera arg is 'realsense' or 'both' -->
+  <group if="$(eval arg('camera') == 'realsense' or arg('camera') == 'both')">
+    <include file="$(find realsense2_camera)/launch/rs_camera.launch">
+      <arg name="color_width"     value="640" />
+      <arg name="color_height"    value="480" />
+      <arg name="color_fps"       value="15" />
+      <arg name="depth_width"     value="640" />
+      <arg name="depth_height"    value="480" />
+      <arg name="depth_fps"       value="15" />
+      <arg name="align_depth"     value="true" />
+      <arg name="enable_sync"     value="true" />
+    </include>
+  </group>
+
 </launch>

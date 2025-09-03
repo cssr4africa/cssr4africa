@@ -30,24 +30,28 @@
 
 * Key | Value
 * --- | ---
-* BackSonar     |   true
-* FrontSonar    |   true    
-* BottomCamera  |   true
-* FrontCamera   |   true
-* DepthCamera   |   true
-* StereoCamera  |   true
-* LaserSensor   |   true
-* Microphone    |   true
-* JointState    |   true
-* Odometry      |   true
-* IMU           |   true
-* Speech        |   true
+* BackSonar             |   true
+* FrontSonar            |   true    
+* BottomCamera          |   true
+* FrontCamera           |   true
+* realsenseRGBDCamera   |   true
+* realsenseDepthCamera  |   true
+* DepthCamera           |   true
+* StereoCamera          |   true
+* LaserSensor           |   true
+* Microphone            |   true
+* JointState            |   true
+* Odometry              |   true
+* IMU                   |   true
+* Speech                |   true
 ...
 * Subscribed Topics and Message Types
 *
 * /naoqi_driver/sonar/back                      sensor_msgs/Range                 
 * /naoqi_driver/sonar/front                     sensor_msgs/Range
 * /naoqi_driver/camera/front/image_raw          sensor_msgs/Image
+* /camera/color/image_raw                       sensor_msgs/Image
+* /camera/aligned_depth_to_color/image_raw      sensor_msgs/Image
 * /naoqi_driver/camera/bottom/image_raw         sensor_msgs/Image
 * /naoqi_driver/camera/depth/image_raw          sensor_msgs/Image
 * /naoqi_driver/laser                           sensor_msgs/LaserScan
@@ -78,6 +82,8 @@
 *
 * sensorTestOutput.dat, 
 * frontCameraOutput.mp4,
+* realsenseRGBOutput.mp4,
+* realsenseDepthOutput.mp4,
 * bottomCameraOutput.mp4,
 * depthCameraOutput.mp4,
 * stereoCameraOutput.mp4,
@@ -95,8 +101,8 @@
 *
 * Author: Yohannes Tadesse Haile, Carnegie Mellon University Africa
 * Email: yohanneh@andrew.cmu.edu
-* Date: March 19, 2024
-* Version: v1.0
+* Date: May 21, 2025
+* Version: v1.1
 *
 */
 

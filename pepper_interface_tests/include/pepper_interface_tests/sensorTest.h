@@ -46,6 +46,8 @@ void jointState(ros::NodeHandle nh);
 void odom(ros::NodeHandle nh);
 void imu(ros::NodeHandle nh);
 void speech(ros::NodeHandle nh);
+void realsenseRGBCamera(ros::NodeHandle nh);
+void realsenseDepthCamera(ros::NodeHandle nh);
 
 /* Call back functions executed when a sensor data arrived */
 void backSonarMessageReceived(const sensor_msgs::Range& msg);
@@ -58,6 +60,8 @@ void laserSensorMessageReceived(const sensor_msgs::LaserScan& msg);
 void jointStateMessageReceived(const sensor_msgs::JointState& msg);
 void odomMessageReceived(const nav_msgs::Odometry& msg);
 void imuMessageReceived(const sensor_msgs::Imu& msg);
+void realsenseRGBCameraMessageReceived(const sensor_msgs::ImageConstPtr& msg);
+void realsenseDepthCameraMessageReceived(const sensor_msgs::ImageConstPtr& msg);
 
 #ifdef PEPPER_ROBOT
 void microphone(ros::NodeHandle nh);
@@ -65,7 +69,7 @@ void microphoneMessageReceived(const naoqi_driver::AudioCustomMsg& msg);
 #endif // DEBUG
 
 std::vector<string> extractTests(string key);
-string extractTopic(string set);   
+string extractTopic(string key);   
 std::string extractMode();
 void writeWavHeader(std::ofstream &file, int sampleRate, int numSamples);
 void playAndDeleteFile();
