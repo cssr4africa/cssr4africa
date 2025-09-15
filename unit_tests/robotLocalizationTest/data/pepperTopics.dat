@@ -1,0 +1,2 @@
+Odometry            /naoqi_driver/odom
+Pose                /robotLocalization/pose

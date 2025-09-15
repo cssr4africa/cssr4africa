@@ -1,0 +1,55 @@
+<!-- robotLocalizationLaunchTestHarness.launch -->
+<launch>
+    <!-- Launch file parameters -->
+    <arg name="robot_ip" default="172.29.111.230" />
+    <arg name="launch_test" default="true" />
+    <arg name="launch_drivers" default="false" />
+    <arg name="initial_robot_x" default="2.0" />
+    <arg name="initial_robot_y" default="7.8" />
+    <arg name="initial_robot_theta" default="270.0" />
+    <arg name="test_output_screen" default="true" />
+    <arg name="localization_output_screen" default="false" />
+    <arg name="driver_output_screen" default="false" />
+
+    <!-- Set ROS parameters for the entire system -->
+    <param name="robot_ip" value="$(arg robot_ip)" />
+    <param name="initial_robot_x" value="$(arg initial_robot_x)" />
+    <param name="initial_robot_y" value="$(arg initial_robot_y)" />
+    <param name="initial_robot_theta" value="$(arg initial_robot_theta)" />
+
+    <!-- Launch Robot Localization Test Driver (if using drivers) -->
+    <group if="$(arg launch_drivers)">
+        <node pkg="unit_tests" type="robotLocalizationTestDriver" name="robotLocalizationTestDriver"
+              required="true" 
+              output="$(eval 'screen' if arg('driver_output_screen') else 'log')"
+              launch-prefix="bash -c 'sleep 2; $0 $@'">
+            <param name="robot_ip" value="$(arg robot_ip)" />
+            <rosparam>
+                initial_robot_x: $(arg initial_robot_x)
+                initial_robot_y: $(arg initial_robot_y)
+                initial_robot_theta: $(arg initial_robot_theta)
+            </rosparam>
+        </node>
+    </group>
+
+    <!-- Launch Robot Localization Node -->
+    <group unless="$(arg launch_drivers)">
+        <node pkg="cssr_system" type="robotLocalization" name="robotLocalization"
+              required="true" 
+              output="$(eval 'screen' if arg('localization_output_screen') else 'log')"
+              launch-prefix="bash -c 'sleep 5; $0 $@'">
+            <param name="robot_ip" value="$(arg robot_ip)" />
+        </node>
+    </group>
+
+    <!-- Launch Robot Localization Unit Tests Node -->
+    <group if="$(arg launch_test)">
+        <node pkg="unit_tests" type="robotLocalizationTest" name="robotLocalizationTest"
+              required="true" 
+              output="$(eval 'screen' if arg('test_output_screen') else 'log')"
+              launch-prefix="bash -c 'sleep 10; $0 $@'">
+            <param name="robot_ip" value="$(arg robot_ip)" />
+        </node>
+    </group>
+
+</launch>

@@ -1,0 +1,16 @@
+{
+  "verboseMode": false,
+  "camera": "RGBRealSense",
+  "depthCamera": "DepthRealSense",
+  "useDepth": false,
+  "resetInterval": 30.0,
+  "absolutePoseTimeout": 300.0,
+  "cameraInfoTimeout": 15.0,
+  "useHeadYaw": true,
+  "headYawJointName": "HeadYaw",
+  "mapFrame": "map",
+  "odomFrame": "odom",
+  "landmarkFile": "/robotLocalization/data/arucoLandmarks.json",
+  "topicsFile": "/robotLocalization/data/pepperTopics.dat",
+  "cameraInfoFile": "/robotLocalization/data/cameraInfo.json"
+}
