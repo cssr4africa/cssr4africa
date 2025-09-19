@@ -15,20 +15,12 @@ Website: www.cssr4africa.org
 This program comes with ABSOLUTELY NO WARRANTY.
 """
 
+import multiprocessing
+import signal
 import subprocess
 import threading
+import time
 import tkinter as tk
-
-
-class _FixedSizeList(list):
-    def __init__(self, capacity, *args):
-        super().__init__(*args)
-        self._capacity = capacity
-
-    def append(self, object):
-        while len(self) >= self._capacity:
-            self.pop(0)
-        super().append(object)
 
 
 class GUI:
@@ -62,57 +54,88 @@ class GUI:
         
         return frame
 
-    def _listen_on_topic(window, text, process):
+    def _listen_on_topic(pub_topic, q):
         """ A forever running loop that listens on the /speechEvent/text ROS topic
-        and updates the GUI with any text that gets published on the topic
 
         Parameters:
-            window (tk.Tk): the main/root Tkinter window
-            text (tk.Text): the Tkinter widget to be updated with text
-                transcriptions published on /speechEvent/text
-            process (subprocess.Popen): process that reads text published on
-                /speechEvent/text
+            pub_topic (str): topic to listen on
+            q (queue.Queue): a queue to write incoming transcriptions into
 
         Returns:
             None
         """
-        def update_text(text_widget, incoming_text):
-            text_widget.config(state="normal")
-            text_widget.insert(tk.END, f"{incoming_text} ")
-            text_widget.config(state="disabled")
-
-        while True:
-            if process.poll():
-                break
-            stdout = process.stdout.readline().decode("UTF-8")
-            incoming = stdout[7:-2] if "data" in stdout else f" {stdout[4:-2]}" if stdout[:-2].strip() != "--" else ""
-            window.after(0, lambda: update_text(text, incoming)) if len(incoming) > 0 else "pass"
-
-    def run(pub_topic):
-        """
-        Run GUI application to display text transcriptions being published on the
-        /speechEvent/text ROS topic
-        """
-        window = GUI._get_main_window(f"SpeechEvent output (rostopic echo {pub_topic})")
-        frame = GUI._get_main_frame(window)
         process = subprocess.Popen(
             ["rostopic", "echo", pub_topic],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE
         )
 
+        signal.signal(signal.SIGINT, lambda _, __: process.kill())
+        signal.signal(signal.SIGTERM, lambda _, __: process.kill())
+
+        while not process.poll():
+            stdout = process.stdout.readline().decode("UTF-8")
+            incoming = stdout[7:-2] if "data" in stdout else f" {stdout[4:-2]}" if stdout[:-2].strip() != "--" else "\n\n"
+            q.put(incoming) if len(incoming) > 0 else "pass"
+
+    def _write_text(text, q, stop_event):
+        """ A forever running loop that updates the GUI with text
+
+        Parameters:
+            text (tk.Text): the Tkinter widget to be updated with text
+                transcriptions published on /speechEvent/text
+            q (queue.Queue): a queue to write incoming transcriptions into
+
+        Returns:
+            None
+        """
+        while not stop_event.is_set():
+            if q.empty():
+                time.sleep(0.5)
+                continue
+            incoming = q.get()
+            text.config(state="normal")
+            text.insert(tk.END, incoming)
+            text.config(state="disabled")
+
+    def run(pub_topic):
+        """
+        Run GUI application to display text transcriptions being published on the
+        /speechEvent/text ROS topic
+        """
+        q = multiprocessing.Queue()
+        stop_event = multiprocessing.Event()
+        window = GUI._get_main_window(f"SpeechEvent output (rostopic echo {pub_topic})")
+        frame = GUI._get_main_frame(window)
+
         text = tk.Text(frame, font=("Helvetica", 16))
         text.grid(column=0, row=0, sticky=(tk.N, tk.W, tk.E, tk.S))
         text.config(state="disabled")
         text.pack(side="top", fill="both", expand=True)
 
-        topic_p = threading.Thread(
-            target=GUI._listen_on_topic,
-            args=(window, text, process)
-        )
+        topic_p = multiprocessing.Process(target=GUI._listen_on_topic, args=(pub_topic, q))
+        write_p = threading.Thread(target=GUI._write_text, args=(text, q, stop_event))
+
+        def kill_processes(_, __):
+            topic_p.kill()
+            q.close()
+            q.join_thread()
+            stop_event.clear()
+
+        signal.signal(signal.SIGINT, kill_processes)
+        signal.signal(signal.SIGTERM, kill_processes)
+
         topic_p.start()
+        write_p.start()
+
         window.mainloop()
-        topic_p.join()
+
+        topic_p.kill()
+        stop_event.set()
+        write_p.join()
+
+        q.close()
+        q.join_thread()
+        stop_event.clear()
 
         window.destroy()
-        process.kill()

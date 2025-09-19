@@ -354,6 +354,7 @@ def run():
 
     transcription_process.start()
     signal.signal(signal.SIGINT, kill_processes)
+    signal.signal(signal.SIGTERM, kill_processes)
 
     try:
         rospy.spin()
