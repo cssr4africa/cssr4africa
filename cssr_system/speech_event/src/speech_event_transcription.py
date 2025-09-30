@@ -1,3 +1,4 @@
+import signal
 import time
 
 import nemo.utils.nemo_logging as nemo_logging
@@ -52,8 +53,16 @@ def run_transcriptions(
     resampler = None
     current_idx = 0
     prev_num_of_samples = 0
+    to_exit = False
 
-    while True:
+    def set_to_exit(_, __):
+        nonlocal to_exit
+        to_exit = True
+
+    signal.signal(signal.SIGINT, set_to_exit)
+    signal.signal(signal.SIGTERM, set_to_exit)
+
+    while not to_exit:
         with mp_misc_lock:
             received_lang = mp_lang.value.decode("UTF-8")
 

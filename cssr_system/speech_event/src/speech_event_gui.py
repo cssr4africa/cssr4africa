@@ -70,8 +70,12 @@ class GUI:
             stderr=subprocess.PIPE
         )
 
-        signal.signal(signal.SIGINT, lambda _, __: process.kill())
-        signal.signal(signal.SIGTERM, lambda _, __: process.kill())
+        def stop_process(_, __):
+            process.kill()
+            process.wait()
+
+        signal.signal(signal.SIGINT, stop_process)
+        signal.signal(signal.SIGTERM, stop_process)
 
         while not process.poll():
             stdout = process.stdout.readline().decode("UTF-8")
@@ -82,21 +86,26 @@ class GUI:
         """ A forever running loop that updates the GUI with text
 
         Parameters:
-            text (tk.Text): the Tkinter widget to be updated with text
-                transcriptions published on /speechEvent/text
-            q (queue.Queue): a queue to write incoming transcriptions into
+            text (tk.Text):                 the Tkinter widget to be updated with
+                text transcriptions published on /speechEvent/text
+            q (queue.Queue):                a queue to write incoming transcriptions into
+            stop_event (threading.Event):   an event for flagging the termination
+                of this thread
 
         Returns:
             None
         """
+        def write_text(incoming):
+            text.config(state="normal")
+            text.insert(tk.END, incoming)
+            text.config(state="disabled")
+
         while not stop_event.is_set():
             if q.empty():
                 time.sleep(0.5)
                 continue
             incoming = q.get()
-            text.config(state="normal")
-            text.insert(tk.END, incoming)
-            text.config(state="disabled")
+            text.after(0, write_text, incoming)
 
     def run(pub_topic):
         """
@@ -104,7 +113,7 @@ class GUI:
         /speechEvent/text ROS topic
         """
         q = multiprocessing.Queue()
-        stop_event = multiprocessing.Event()
+        stop_event = threading.Event()
         window = GUI._get_main_window(f"SpeechEvent output (rostopic echo {pub_topic})")
         frame = GUI._get_main_frame(window)
 
@@ -114,28 +123,26 @@ class GUI:
         text.pack(side="top", fill="both", expand=True)
 
         topic_p = multiprocessing.Process(target=GUI._listen_on_topic, args=(pub_topic, q))
-        write_p = threading.Thread(target=GUI._write_text, args=(text, q, stop_event))
+        write_p = threading.Thread(target=GUI._write_text, args=(text, q, stop_event), daemon=True)
 
-        def kill_processes(_, __):
-            topic_p.kill()
-            q.close()
-            q.join_thread()
-            stop_event.clear()
+        def stop_processes(sig_num=None, frame=None):
+            stop_event.set()
 
-        signal.signal(signal.SIGINT, kill_processes)
-        signal.signal(signal.SIGTERM, kill_processes)
+            if topic_p.is_alive():
+                topic_p.terminate()
+                topic_p.join()
+
+            window.quit()
+
+        signal.signal(signal.SIGINT, stop_processes)
+        signal.signal(signal.SIGTERM, stop_processes)
 
         topic_p.start()
         write_p.start()
 
         window.mainloop()
 
-        topic_p.kill()
-        stop_event.set()
-        write_p.join()
-
         q.close()
         q.join_thread()
-        stop_event.clear()
 
         window.destroy()

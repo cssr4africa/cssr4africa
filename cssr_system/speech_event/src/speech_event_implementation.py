@@ -332,10 +332,6 @@ def run():
     _set_transcription_language(LANGUAGE, mp_misc_lock, mp_lang)
     _publisher = rospy.Publisher(PUB_TOPIC, String, queue_size=10)
 
-    if VERBOSE_MODE:
-        display_process = torch.multiprocessing.Process(target=se_gui.GUI.run, args=(PUB_TOPIC,))
-        display_process.start()
-
     transcription_process = torch.multiprocessing.Process(
         target=run_transcriptions,
         args=(
@@ -345,21 +341,24 @@ def run():
             VERBOSE_MODE, MODEL_NAME
         )
     )
+    transcription_process.start()
 
-    def kill_processes(_, __):
-        transcription_process.kill()
+    if VERBOSE_MODE:
+        display_process = torch.multiprocessing.Process(target=se_gui.GUI.run, args=(PUB_TOPIC,))
+        display_process.start()
+
+    def stop_processes(_, __):
+        transcription_process.terminate()
+        transcription_process.join()
         if VERBOSE_MODE:
-            display_process.kill()
+            display_process.terminate()
+            display_process.join()
         sys.exit(0)
 
-    transcription_process.start()
-    signal.signal(signal.SIGINT, kill_processes)
-    signal.signal(signal.SIGTERM, kill_processes)
+    signal.signal(signal.SIGINT, stop_processes)
+    signal.signal(signal.SIGTERM, stop_processes)
 
-    try:
-        rospy.spin()
-    except rospy.ROSInterruptException as e:
-        raise e
+    rospy.spin()
 
 
 def initialise(config, topics, rw_model_path, en_model_path):
