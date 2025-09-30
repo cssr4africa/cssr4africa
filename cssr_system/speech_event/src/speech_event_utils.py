@@ -16,8 +16,12 @@ This program comes with ABSOLUTELY NO WARRANTY.
 """
 
 import nemo.collections.asr as nemo_asr
+import nemo.utils.nemo_logging as nemo_logging
 import torch
 import whisper
+
+
+nemo_logging.Logger().set_verbosity(nemo_logging.Logger.ERROR)
 
 
 def parse_config_file(config_file_path):

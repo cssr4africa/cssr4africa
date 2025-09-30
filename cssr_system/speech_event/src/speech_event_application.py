@@ -100,6 +100,7 @@ EN_MODELS = {
     "parakeet": "stt_en_parakeet-tdt_ctc-110m.nemo",
     "whisper": "whisper_small_en.pt"
 }
+VAD_MODEL = "silero_vad.jit"
 
 
 if __name__ == "__main__":
@@ -119,8 +120,9 @@ if __name__ == "__main__":
 
     rw_model_path = os.path.join(os.path.dirname(current_file_dir), "models", RW_MODELS[model_name])
     en_model_path = os.path.join(os.path.dirname(current_file_dir), "models", EN_MODELS[model_name])
+    vad_model_path = os.path.join(os.path.dirname(current_file_dir), "models", VAD_MODEL)
 
-    se_imp.initialise(config, topics, rw_model_path, en_model_path)
+    se_imp.initialise(config, topics, rw_model_path, en_model_path, vad_model_path)
 
     try:
         se_imp.run()

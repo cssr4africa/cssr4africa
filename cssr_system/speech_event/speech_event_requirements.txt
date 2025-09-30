@@ -4,3 +4,4 @@ rospkg
 rospy
 torch==2.7.1
 torchaudio==2.7.1
+silero-vad==6.0.0

@@ -19,7 +19,6 @@ import ctypes
 import os
 import signal
 import sys
-import time
 from functools import partial
 
 import rospy
@@ -30,7 +29,7 @@ from cssr_system.srv import set_enabled, set_enabledResponse
 from cssr_system.srv import set_language, set_languageResponse
 
 import speech_event_gui as se_gui
-from speech_event_transcription import run_transcriptions
+from speech_event_transcription import LOG_LEVELS, run_transcriptions
 
 
 # Static config options (not set via config file)
@@ -38,20 +37,9 @@ NODE_NAME = "speech_event"
 PUB_TOPIC = "/speechEvent/text"
 SET_ENABLED_SERVICE = "/speechEvent/set_enabled"
 SET_LANGUAGE_SERVICE = "/speechEvent/set_language"
-SOUND_DETECTION_TOPIC_CHECK_PERIOD = 0.05  # seconds
 SOUND_DETECTION_HEALTH_CHECK_PERIOD = 5  # seconds
-SPEECH_NOT_RECOGNISED_TEXT = "Error: speech not recognized"
 SOUND_DETECTION_DOWN_TEXT = "Error: soundDetection is down"
-NEMO_SAMPLE_RATE = 16000  # of audio required by nemo ASR
 IS_TRANSCRIPTION_ENABLED = True
-LOG_LEVELS = {
-    "none": -1,
-    "debug": 0,
-    "info": 1,
-    "warning": 2,
-    "error": 3,
-    "critical": 4
-}
 LOG_LEVELS_INV = {v: k for k, v in LOG_LEVELS.items()}
 LOG_FUNCTIONS = {
     "debug": rospy.logdebug,
@@ -68,6 +56,9 @@ MODEL_NAME = "parakeet"  # one of SUPPORTED_MODELS
 VERBOSE_MODE = True
 CUDA = False
 CONFIDENCE = 0.5  # on a scale of 0 t0 1
+INTER_UTTERANCE_LEN = 0.5  # seconds
+VAD_THRESHOLD = 0.5  # range of [0, 1]
+VAD_MIN_SPEECH_DURATION = 250  # milliseconds
 SAMPLE_RATE = 48000  # of audio signal incoming from soundDetection
 HEARTBEAT_MSG_PERIOD = 10  # seconds
 
@@ -75,15 +66,14 @@ HEARTBEAT_MSG_PERIOD = 10  # seconds
 SOUND_DETECTION_TOPIC = "/soundDetection/signal"
 
 # Config options that are resolved dynamically
-RW_MODEL_PATH = "/stt_rw_conformer_transducer_large.nemo"
-EN_MODEL_PATH = "/stt_en_conformer_transducer_large.nemo"
+RW_MODEL_PATH = "/rw.model"
+EN_MODEL_PATH = "/en.model"
+VAD_MODEL_PATH = "/vad.model"
 AUDIO_MAX_LEN = SAMPLE_RATE * 60  # number of samples
 
 # Global variables
 _publisher = None
 _mp_streamed_samples = torch.zeros(AUDIO_MAX_LEN, dtype=torch.float32).share_memory_()
-_last_audio_received_at = None
-_first_audio_received_at = None
 _current_idx = 0
 
 
@@ -166,24 +156,17 @@ def _sound_detection_callback(data, mp_tensor_lock, mp_samples_len):
         mp_tensor_lock: [multi-processing] lock object
         mp_samples_len: [multi-processing] audio samples length variable
     """
-    global _mp_streamed_samples, _last_audio_received_at, _first_audio_received_at, _current_idx
-
-    time_now = time.time()
-
-    if _last_audio_received_at is None:
-        _first_audio_received_at = time_now
-
-    _last_audio_received_at = time_now
+    global _mp_streamed_samples, _current_idx
 
     audio_tensor = torch.tensor(data.data, dtype=torch.float32)
-    audio_tensor_len = audio_tensor.shape[0]
+    audio_len = audio_tensor.shape[0]
 
     with mp_tensor_lock:
-        _mp_streamed_samples[_current_idx:_current_idx+audio_tensor_len] = audio_tensor
-        _current_idx += audio_tensor_len
-        mp_samples_len.value += audio_tensor_len
+        _mp_streamed_samples[_current_idx:_current_idx+audio_len] = audio_tensor
+        _current_idx += audio_len
+        mp_samples_len.value += audio_len
 
-    if _current_idx > AUDIO_MAX_LEN - audio_tensor_len:
+    if _current_idx > AUDIO_MAX_LEN - audio_len:
         _current_idx = 0
 
 
@@ -338,7 +321,8 @@ def run():
             _mp_streamed_samples, mp_tensor_lock, mp_misc_lock, mp_samples_len, mp_lang,
             mp_log_lock, mp_log_level, mp_log_message, mp_pub_lock, mp_pub_transcription,
             CUDA, RW_MODEL_PATH, EN_MODEL_PATH, SAMPLE_RATE, AUDIO_MAX_LEN, CONFIDENCE,
-            VERBOSE_MODE, MODEL_NAME
+            VERBOSE_MODE, MODEL_NAME, INTER_UTTERANCE_LEN, VAD_MODEL_PATH, VAD_THRESHOLD,
+            VAD_MIN_SPEECH_DURATION
         )
     )
     transcription_process.start()
@@ -361,18 +345,19 @@ def run():
     rospy.spin()
 
 
-def initialise(config, topics, rw_model_path, en_model_path):
+def initialise(config, topics, rw_model_path, en_model_path, vad_model_path):
     """ Make preparatory initialisations before running a speechEvent ROS node
 
     Patameters:
         config:             object containing configuration arguments
         topics:             object containing ROS topics to be subscribed to
-        rw_model_path:      path to Kinyarwanda ASR model
+        rw_model_path:      path to Kinyarwanda silero_vadASR model
         en_model_path:      path to English ASR model
+        vad_model_path:     path to Silero voice activity detection model
     """
-    global LANGUAGE, MODEL_NAME, VERBOSE_MODE, CUDA, CONFIDENCE, SAMPLE_RATE, HEARTBEAT_MSG_PERIOD
-    global RW_MODEL_PATH, EN_MODEL_PATH
-    global SOUND_DETECTION_TOPIC
+    global LANGUAGE, MODEL_NAME, VERBOSE_MODE, CUDA, CONFIDENCE, INTER_UTTERANCE_LEN
+    global VAD_THRESHOLD, VAD_MIN_SPEECH_DURATION, SAMPLE_RATE, HEARTBEAT_MSG_PERIOD
+    global RW_MODEL_PATH, EN_MODEL_PATH, VAD_MODEL_PATH, SOUND_DETECTION_TOPIC
 
     rospy.init_node(NODE_NAME, anonymous=True)
 
@@ -421,8 +406,12 @@ def initialise(config, topics, rw_model_path, en_model_path):
     VERBOSE_MODE = True if config["verboseMode"].strip().lower() == "true" else False
     CUDA = True if config["cuda"].strip().lower() == "true" else False
     CONFIDENCE = float(config["confidence"].strip())
+    INTER_UTTERANCE_LEN = float(config["interUtteranceLen"].strip())
+    VAD_THRESHOLD = float(config["vadThreshold"].strip())
+    VAD_MIN_SPEECH_DURATION = int(config["vadMinSpeechDuration"].strip())
     SAMPLE_RATE = int(config["sampleRate"].strip())
     HEARTBEAT_MSG_PERIOD = int(config["heartbeatMsgPeriod"].strip())
     SOUND_DETECTION_TOPIC = topics["soundDetection"].strip()
     RW_MODEL_PATH = rw_model_path
     EN_MODEL_PATH = en_model_path
+    VAD_MODEL_PATH = vad_model_path
