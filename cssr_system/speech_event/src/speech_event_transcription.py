@@ -43,7 +43,7 @@ def run_transcriptions(
     mp_streamed_samples, mp_tensor_lock, mp_misc_lock, mp_samples_len, mp_lang,
     mp_log_lock, mp_log_level, mp_log_message, mp_pub_lock, mp_pub_transcription,
     cuda, rw_model_path, en_model_path, sample_rate, audio_max_len, conf, verbose,
-    model_name, inter_utterance_len, vad_model_path, vad_threshold, vad_min_speech_duration
+    model_name, inter_utterance_len, vad_model_path, vad_threshold
 ):
     global MODEL_NAME
 
@@ -56,6 +56,9 @@ def run_transcriptions(
         torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
     )
     vad = silero_vad.utils_vad.init_jit_model(vad_model_path, device)
+    min_utterance_len = sample_rate
+    vad_frame_size = sample_rate
+    voice_activity_detected = False
 
     def set_to_exit(_, __):
         nonlocal to_exit
@@ -74,24 +77,35 @@ def run_transcriptions(
         with mp_tensor_lock:
             num_of_samples = mp_samples_len.value
 
-        if num_of_samples == 0:
-            time.sleep(inter_utterance_len)
-            continue
-
-        # Checking for pause here, maybe check for no VAD somewhere above or below here
-        # Checking for pause here, maybe check for no VAD somewhere above or below here
-        # Checking for pause here, maybe check for no VAD somewhere above or below here
-        # Checking for pause here, maybe check for no VAD somewhere above or below here
-        # Checking for pause here, maybe check for no VAD somewhere above or below here
-        # Checking for pause here, maybe check for no VAD somewhere above or below here
-        # Checking for pause here, maybe check for no VAD somewhere above or below here
-        # Checking for pause here, maybe check for no VAD somewhere above or below here
-        # Checking for pause here, maybe check for no VAD somewhere above or below here
-        # Checking for pause here, maybe check for no VAD somewhere above or below here
-        if prev_num_of_samples != num_of_samples:  # Checking for pause here, maybe check for no VAD somewhere above or below here
+        if num_of_samples == 0 or prev_num_of_samples == num_of_samples:
             prev_num_of_samples = num_of_samples
             time.sleep(inter_utterance_len)
-            continue
+            if not voice_activity_detected:
+                continue
+            else:
+                with mp_tensor_lock:
+                    num_of_samples = mp_samples_len.value
+                if prev_num_of_samples != num_of_samples:
+                    prev_num_of_samples = num_of_samples
+                    continue
+        else:
+            prev_num_of_samples = num_of_samples
+            last_idx = current_idx + num_of_samples
+
+            if num_of_samples < min_utterance_len:
+                time.sleep(inter_utterance_len)
+                continue
+
+            with mp_tensor_lock:
+                if voice_activity_detected:
+                    audio = mp_streamed_samples[last_idx - vad_frame_size: last_idx].clone()
+                else:
+                    audio = mp_streamed_samples[current_idx: last_idx].clone()
+            resampled_audio = resampler(audio)
+
+            if len(silero_vad.get_speech_timestamps(resampled_audio, vad, threshold=vad_threshold)) > 0:
+                voice_activity_detected = True
+                continue
 
         start_time = time.time()
         with mp_tensor_lock:
@@ -99,21 +113,7 @@ def run_transcriptions(
 
         resampled = resampler(audio_tensor)
 
-        ############## Run VAD on last inter_utterance_len samples, if they are noise then do transcription (if a pause is detected, or no VAD detected)
-        ############## Run VAD on last inter_utterance_len samples, if they are noise then do transcription
-        ############## Run VAD on last inter_utterance_len samples, if they are noise then do transcription
-        ############## Run VAD on last inter_utterance_len samples, if they are noise then do transcription
-        ############## Run VAD on last inter_utterance_len samples, if they are noise then do transcription
-        ############## Run VAD on last inter_utterance_len samples, if they are noise then do transcription
-        ############## Run VAD on last inter_utterance_len samples, if they are noise then do transcription
-        ############## Run VAD on last inter_utterance_len samples, if they are noise then do transcription
-        ############## Run VAD on last inter_utterance_len samples, if they are noise then do transcription
-        ############## Run VAD on last inter_utterance_len samples, if they are noise then do transcription
-        ############## Run VAD on last inter_utterance_len samples, if they are noise then do transcription
-        ############## Run VAD on last inter_utterance_len samples, if they are noise then do transcription
-        if len(silero_vad.get_speech_timestamps(
-            resampled, vad, threshold=vad_threshold, min_speech_duration_ms=vad_min_speech_duration
-        )) > 0:
+        if voice_activity_detected:
             normalised = resampled / resampled.abs().max()
             hypotheses = se_utils.get_hypotheses(MODEL_NAME, model, normalised)
             transcription, log_message = se_utils.get_transcription(
@@ -128,6 +128,7 @@ def run_transcriptions(
                 mp_pub_transcription.value = transcription.encode("UTF-8") if transcription != SPEECH_NOT_RECOGNISED_TEXT else "".encode("UTF-8")
 
         current_idx += num_of_samples
+        voice_activity_detected = False
 
         if current_idx >= audio_max_len:
             current_idx = 0

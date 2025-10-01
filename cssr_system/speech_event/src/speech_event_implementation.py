@@ -58,7 +58,6 @@ CUDA = False
 CONFIDENCE = 0.5  # on a scale of 0 t0 1
 INTER_UTTERANCE_LEN = 0.5  # seconds
 VAD_THRESHOLD = 0.5  # range of [0, 1]
-VAD_MIN_SPEECH_DURATION = 250  # milliseconds
 SAMPLE_RATE = 48000  # of audio signal incoming from soundDetection
 HEARTBEAT_MSG_PERIOD = 10  # seconds
 
@@ -321,8 +320,7 @@ def run():
             _mp_streamed_samples, mp_tensor_lock, mp_misc_lock, mp_samples_len, mp_lang,
             mp_log_lock, mp_log_level, mp_log_message, mp_pub_lock, mp_pub_transcription,
             CUDA, RW_MODEL_PATH, EN_MODEL_PATH, SAMPLE_RATE, AUDIO_MAX_LEN, CONFIDENCE,
-            VERBOSE_MODE, MODEL_NAME, INTER_UTTERANCE_LEN, VAD_MODEL_PATH, VAD_THRESHOLD,
-            VAD_MIN_SPEECH_DURATION
+            VERBOSE_MODE, MODEL_NAME, INTER_UTTERANCE_LEN, VAD_MODEL_PATH, VAD_THRESHOLD
         )
     )
     transcription_process.start()
@@ -356,8 +354,8 @@ def initialise(config, topics, rw_model_path, en_model_path, vad_model_path):
         vad_model_path:     path to Silero voice activity detection model
     """
     global LANGUAGE, MODEL_NAME, VERBOSE_MODE, CUDA, CONFIDENCE, INTER_UTTERANCE_LEN
-    global VAD_THRESHOLD, VAD_MIN_SPEECH_DURATION, SAMPLE_RATE, HEARTBEAT_MSG_PERIOD
-    global RW_MODEL_PATH, EN_MODEL_PATH, VAD_MODEL_PATH, SOUND_DETECTION_TOPIC
+    global VAD_THRESHOLD, SAMPLE_RATE, HEARTBEAT_MSG_PERIOD, RW_MODEL_PATH
+    global EN_MODEL_PATH, VAD_MODEL_PATH, SOUND_DETECTION_TOPIC
 
     rospy.init_node(NODE_NAME, anonymous=True)
 
@@ -408,7 +406,6 @@ def initialise(config, topics, rw_model_path, en_model_path, vad_model_path):
     CONFIDENCE = float(config["confidence"].strip())
     INTER_UTTERANCE_LEN = float(config["interUtteranceLen"].strip())
     VAD_THRESHOLD = float(config["vadThreshold"].strip())
-    VAD_MIN_SPEECH_DURATION = int(config["vadMinSpeechDuration"].strip())
     SAMPLE_RATE = int(config["sampleRate"].strip())
     HEARTBEAT_MSG_PERIOD = int(config["heartbeatMsgPeriod"].strip())
     SOUND_DETECTION_TOPIC = topics["soundDetection"].strip()
