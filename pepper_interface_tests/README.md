@@ -26,7 +26,7 @@ Make sure you are running Ubuntu 20.04. The ROS environment should be properly s
 cd $HOME/workspace/pepper_rob_ws && source devel/setup.bash
 
 # Build the package
-catkin build pepper_interface_tests
+catkin_make
 ```
 
 # 🔧 Configuration Parameters
@@ -85,7 +85,7 @@ roslaunch pepper_interface_tests interfaceTestLaunchSimulator.launch
 
 For issues or questions:
 - Create an issue on GitHub
-- Contact: <a href="mailto:david@vernon.eu">david@vernon.eu</a>, <a href="mailto:africa-robotics@andrew.cmu.edu">africa-robotics@andrew.cmu.edu</a><br>, <a href="mailto:dvernon@andrew.cmu.edu">dvernon@andrew.cmu.edu</a>, <a href="mailto:yohanneh@andrew.cmu.edu">yohanneh@andrew.cmu.edu</a><br>
+- Contact: <a href="mailto:dvernon@andrew.cmu.edu">dvernon@andrew.cmu.edu</a>, <a href="mailto:yohanneh@andrew.cmu.edu">yohanneh@andrew.cmu.edu</a><br>
 - Visit: <a href="http://www.cssr4africa.org">www.cssr4africa.org</a>
 
 # 📜License
@@ -93,4 +93,4 @@ Copyright (C) 2023 CSSR4Africa Consortium
 Funded by African Engineering and Technology Network (Afretec)  
 Inclusive Digital Transformation Research Grant Programme
 
-2025-09-03
+2025-03-15

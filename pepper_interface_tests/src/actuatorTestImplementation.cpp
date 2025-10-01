@@ -1,7 +1,7 @@
-/* actuatorTestImplementation.cpp
+/* actuatorTestImplementation.cpp Implementation code for running the actuator tests on Pepper robot
 *
 * Author: Yohannes Tadesse Haile and Mihirteab Taye Hordofa 
-* Date: May 21, 2025
+* Date: September 25, 2025
 * Version: v1.1
 *
 * Copyright (C) 2023 CSSR4Africa Consortium
@@ -14,7 +14,6 @@
 * This program comes with ABSOLUTELY NO WARRANTY.
 */
 
-
 /*  Description:
 * This file contains the implementation of the actuator tests for the Pepper robot.  The tests are designed 
 * to test the head, arms, hands, legs and wheels of the robot. The tests are implemented using the ROS actionlib 
@@ -25,9 +24,10 @@
 * do 90 degree turns both clockwise and counter-clockwise.
 */
 
-# include "pepper_interface_tests/actuatorTest.h"
+# include "pepper_interface_tests/actuatorTestInterface.h"
 
 // Global variables for the wheels
+bool verboseMode = false; 
 bool shutdownInitiated = false;
 ros::Time startTime;
 ros::Publisher pub;
@@ -41,6 +41,21 @@ enum Robotstate{
 };
 
 Robotstate state = MOVE_FORWARD;
+
+static inline std::string rstrip_slash(std::string s) {
+    while (!s.empty() && s.back() == '/') s.pop_back();
+    return s;
+}
+
+// Strip leading '/' from a ROS node name
+std::string cleanNodeName(const std::string& name) {
+    return (!name.empty() && name.front() == '/') ? name.substr(1) : name;
+}
+
+// 10-second heartbeat
+void heartbeatCb(const ros::TimerEvent&) {
+    ROS_INFO_STREAM( cleanNodeName(ros::this_node::getName()) << ": running..." );
+}
 
 void signalHandler(int signum) {
     /*
@@ -180,6 +195,7 @@ void head(ros::NodeHandle& nh) {
      */
     
     std::string headTopic = extractTopic("Head");
+    checkTopicAvailable(headTopic);
     ControlClientPtr headClient = createClient(headTopic);
     std::vector<std::string> jointNames = {"HeadPitch", "HeadYaw"};
     std::vector<double> position(2, 0.0);
@@ -228,6 +244,7 @@ void rArm(ros::NodeHandle& nh) {
      */
     
     std::string rightArmTopic = extractTopic("RArm");
+    checkTopicAvailable(rightArmTopic);
     ControlClientPtr rightArmClient = createClient(rightArmTopic);
     std::vector<std::string> jointNames = {"RShoulderPitch", "RShoulderRoll",  "RElbowRoll", "RElbowYaw", "RWristYaw"};
     std::vector<double> position(5, 0.0);
@@ -276,6 +293,7 @@ void rHand(ros::NodeHandle& nh) {
      */
     
     std::string rightHandTopic = extractTopic("RHand");
+    checkTopicAvailable(rightHandTopic);
     ControlClientPtr rightHandClient = createClient(rightHandTopic);
     std::vector<std::string> jointNames = {"RHand"};
     std::vector<double> position(1, 0.0);
@@ -324,6 +342,7 @@ void lArm(ros::NodeHandle& nh) {
      */
     
     std::string leftArmTopic = extractTopic("LArm");
+    checkTopicAvailable(leftArmTopic);
     ControlClientPtr leftArmClient = createClient(leftArmTopic);
     std::vector<std::string> jointNames = {"LShoulderPitch", "LShoulderRoll", "LElbowRoll", "LElbowYaw", "LWristYaw"};
     std::vector<double> position(5, 0.0);
@@ -372,6 +391,7 @@ void lHand(ros::NodeHandle& nh) {
      */
     
     std::string leftHandTopic = extractTopic("LHand");
+    checkTopicAvailable(leftHandTopic);
     ControlClientPtr leftHandClient = createClient(leftHandTopic);
     std::vector<std::string> jointNames = {"LHand"};
     std::vector<double> position(1, 0.0);
@@ -419,6 +439,7 @@ void leg(ros::NodeHandle& nh) {
      */
     
     std::string legTopic = extractTopic("Leg");
+    checkTopicAvailable(legTopic);
     ControlClientPtr legClient = createClient(legTopic);
     std::vector<std::string> jointNames = {"HipPitch", "HipRoll", "KneePitch"};
     std::vector<double> position(3, 0.0);
@@ -468,6 +489,7 @@ void wheels(ros::NodeHandle& nh) {
      */
     
     std::string wheelTopic = extractTopic("Wheels");
+    checkTopicAvailable(wheelTopic);
     pub = nh.advertise<geometry_msgs::Twist>(wheelTopic, 1000);
     ros::Rate rate(10);
 
@@ -562,6 +584,7 @@ std::string extractTopic(std::string key) {
     std::string platformKey = "platform";
     std::string robotTopicKey = "robottopics";
     std::string simulatorTopicKey = "simulatortopics";
+    std::string verboseModeKey = "verboseMode";
 
     std::string platformValue;
     std::string robotTopicValue;
@@ -603,6 +626,11 @@ std::string extractTopic(std::string key) {
         if (paramKey == platformKey) { platformValue = paramValue; }
         else if (paramKey == robotTopicKey) { robotTopicValue = paramValue; }
         else if (paramKey == simulatorTopicKey) { simulatorTopicValue = paramValue; }
+        else if (paramKey == verboseModeKey) { 
+            transform(paramValue.begin(), paramValue.end(), paramValue.begin(), ::tolower);
+            if (paramValue == "true") verboseMode = true;
+            else verboseMode = false;
+        }
     }
     configFile.close();
 
@@ -704,7 +732,7 @@ std::string extractMode() {
     return modeValue;
 }
 
-std::vector<std::string> extractTests(std::string test) {
+std::vector<std::string> extractTests() {
     /*
      * Extracts list of enabled tests from input configuration file
      * Reads test configuration and returns names of tests marked as "true"
@@ -721,7 +749,7 @@ std::vector<std::string> extractTests(std::string test) {
     
     bool debug = false;
     
-    std::string inputFileName = "actuatorTestInput.ini";
+    std::string inputFileName = "actuatorTestInput.dat";
     std::string packagePath;
     std::string inputPathFile;
     
@@ -734,7 +762,7 @@ std::vector<std::string> extractTests(std::string test) {
         promptAndExit(1);
     #endif
     
-    inputPathFile = packagePath + "/config/" + inputFileName;
+    inputPathFile = packagePath + "/data/" + inputFileName;
 
     if (debug) printf("Input file is %s\n", inputPathFile.c_str());
 
@@ -764,6 +792,12 @@ std::vector<std::string> extractTests(std::string test) {
         }
     }
     inputFile.close();
+
+    std::cout<<"Tests to be executed: ";
+    for (const auto& name : testName) {
+        std::cout << name << " ";
+    }
+    std::cout << std::endl;
 
     return testName;
 }
@@ -799,6 +833,61 @@ void promptAndContinue() {
     
     printf("Press any key to proceed ...\n");
     getchar();
+}
+
+bool checkTopicAvailable(const std::string& topic_name_raw) {
+    /*
+    * @brief
+    *     Checks availability of a specified ROS topic or action base in a single shot.
+    *
+    * @param:
+    *     topic_name_raw: Raw name of the topic or action base to check.
+    *
+    * @return:
+    *     true if the topic exists or if the action base has at least one standard subtopic,
+    *     false otherwise.
+    *
+    * @note:
+    *     Prints an informational message with the current node name when a subscription
+    *     is detected. Performs no retries or waiting — call repeatedly if you need
+    *     continuous checking.
+    */
+
+    if (!ros::master::check()) return false;
+
+    const std::string resolved = rstrip_slash(ros::names::resolve(topic_name_raw));
+    ros::master::V_TopicInfo topics;
+    if (!ros::master::getTopics(topics)) return false;
+
+    // Helper to strip leading slash
+    auto cleanNodeName = [](const std::string& s) {
+        return (!s.empty() && s.front() == '/') ? s.substr(1) : s;
+    };
+
+    const std::string nodeName = cleanNodeName(ros::this_node::getName());
+
+    // Fast path: exact match
+    for (const auto& t : topics) {
+        if (t.name == resolved) {
+            ROS_INFO_STREAM(nodeName << ": subscribed to " << resolved << ".");
+            return true;
+        }
+    }
+
+    // Action-style check
+    static const char* kActionSuffixes[] = {
+        "/goal", "/status", "/feedback", "/result", "/cancel"
+    };
+    for (const auto& t : topics) {
+        for (const char* suf : kActionSuffixes) {
+            if (t.name == resolved + suf) {
+                ROS_INFO_STREAM(nodeName << ": subscribed to " << resolved << ".");
+                return true;
+            }
+        }
+    }
+
+    return false;
 }
 
 void executeTestsSequentially(const std::vector<std::string>& testNames, ros::NodeHandle& nh) {

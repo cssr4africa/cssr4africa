@@ -1,7 +1,7 @@
-/* sensorTestImplementation.cpp
+/* sensorTestImplementation.cpp Implementation code to test the sensors of the Pepper robot using ROS interface.
 *
-* Author: Yohannes Tadesse Haile and Mihirteab Taye Hordofa 
-* Date: May 21, 2025
+* Author: Yohannes Tadesse Haile and Mihirteab Taye Hordofa
+* Date: September 25, 2025
 * Version: v1.1
 *
 * Copyright (C) 2023 CSSR4Africa Consortium
@@ -14,13 +14,34 @@
 * This program comes with ABSOLUTELY NO WARRANTY.
 */
 
-#include "pepper_interface_tests/sensorTest.h"
+#include "pepper_interface_tests/sensorTestInterface.h"
 
-// Global variables to handle the output file 
+// Global variables to handle the output file
+bool verboseMode = false;
 bool output;
 std::ofstream outputFile;
 int timeDuration = 10;
 std::string outputFilePath;
+
+static inline std::string rstrip_slash(std::string s) {
+    while (!s.empty() && s.back() == '/') s.pop_back();
+    return s;
+}
+
+// Strip leading '/' from a ROS node name
+std::string cleanNodeName(const std::string& name) {
+    return (!name.empty() && name.front() == '/') ? name.substr(1) : name;
+}
+
+// 10-second heartbeat
+void heartbeatCb(const ros::TimerEvent&) {
+    ROS_INFO_STREAM( cleanNodeName(ros::this_node::getName()) << ": running..." );
+}
+
+static inline std::string toLower(std::string s) {
+    std::transform(s.begin(), s.end(), s.begin(), ::tolower);
+    return s;
+}
 
 // Global variables to handle the audio file 
 std::ofstream outAudio;
@@ -46,6 +67,7 @@ void backSonar(ros::NodeHandle nh){
     
     // Find the respective topic for the back sonar sensor
     string topicName = extractTopic("BackSonar");
+    checkTopicAvailable(topicName);
     output = true;
 
     // Check if the topic name is empty
@@ -85,6 +107,7 @@ void frontSonar(ros::NodeHandle nh){
     
     // Find the respective topic for the front sonar sensor
     string topicName = extractTopic("FrontSonar");
+    checkTopicAvailable(topicName);
     output = true;
 
     // Check if the topic name is empty
@@ -125,6 +148,7 @@ void frontCamera(ros::NodeHandle nh) {
     
     // Find the respective topic for the front camera sensor
     string topicName = extractTopic("FrontCamera");
+    checkTopicAvailable(topicName);
     output = true;
 
     // Check if the topic name is empty
@@ -174,6 +198,7 @@ void bottomCamera(ros::NodeHandle nh){
     
     // Find the respective topic for the bottom camera sensor
     string topicName = extractTopic("BottomCamera");
+    checkTopicAvailable(topicName);
     output = true;
 
     // Check if the topic name is empty
@@ -223,6 +248,7 @@ void realsenseRGBCamera(ros::NodeHandle nh) {
     
     // Find the respective topic for the RealSense RGB camera sensor
     string topicName = extractTopic("RealSenseCameraRGB");
+    checkTopicAvailable(topicName);
     output = true;
 
     // Check if the topic name is empty
@@ -272,6 +298,7 @@ void depthCamera(ros::NodeHandle nh){
     
     // Find the respective topic for the depth camera sensor
     string topicName = extractTopic("DepthCamera");
+    checkTopicAvailable(topicName);
     output = true;
 
     // Check if the topic name is empty
@@ -321,6 +348,7 @@ void realsenseDepthCamera(ros::NodeHandle nh) {
     
     // Find the respective topic for the RealSense depth camera sensor
     string topicName = extractTopic("RealSenseCameraDepth");
+    checkTopicAvailable(topicName);
     output = true;
 
     // Check if the topic name is empty
@@ -370,6 +398,7 @@ void laserSensor(ros::NodeHandle nh){
     
     // Find the respective topic for the laser sensor
     string topicName = extractTopic("Laser");
+    checkTopicAvailable(topicName);
     output = true;
 
     // Check if the topic name is empty
@@ -410,6 +439,7 @@ void odom(ros::NodeHandle nh){
     
     // Find the respective topic for the odometry sensor
     string topicName = extractTopic("Odometry");
+    checkTopicAvailable(topicName);
     output = true;
 
     // Check if the topic name is empty
@@ -450,6 +480,7 @@ void imu(ros::NodeHandle nh){
     
     // Find the respective topic for the IMU sensor
     string topicName = extractTopic("IMU");
+    checkTopicAvailable(topicName);
     output = true;
 
     // Check if the topic name is empty
@@ -490,6 +521,7 @@ void jointState(ros::NodeHandle nh){
     
     // Find the respective topic for the joint state sensor
     string topicName = extractTopic("JointState");
+    checkTopicAvailable(topicName);
     output = true;
 
     // Check if the topic name is empty
@@ -532,6 +564,7 @@ void speech(ros::NodeHandle nh){
     
     // Extract the topic name for speech output using the custom extractTopic function
     std::string topicName = extractTopic("Speech");
+    checkTopicAvailable(topicName);
 
     // Create a publisher for the speech message topic
     ros::Publisher pub = nh.advertise<std_msgs::String>(topicName, 1);
@@ -560,6 +593,7 @@ void stereoCamera(ros::NodeHandle nh){
     
     // Find the respective topic for the stereo camera sensor
     string topicName = extractTopic("StereoCamera");
+    checkTopicAvailable(topicName);
     output = true;
 
     // Check if the topic name is empty
@@ -609,6 +643,7 @@ void microphone(ros::NodeHandle nh) {
     
     // Extract the topic name for microphone input and set the audio sample rate
     std::string topicName = extractTopic("Microphone");
+    checkTopicAvailable(topicName);
     int sampleRate = 48000;
 
     // Check if the topic name is empty
@@ -1809,69 +1844,96 @@ string extractTopic(string key){
     return topic_value;
 }
 
-std::vector<std::string> extractTests(std::string set){
+std::vector<std::string> extractTests(const std::string& cameraSel) {
     /*
-     * Function to extract test names from input configuration file based on enabled flags
-     * The function reads the input file and returns a vector of test names that are set to true
-     *
-     * @param:
-     *     set: Test set identifier (currently unused but reserved for future functionality)
-     *
-     * @return:
-     *     std::vector<std::string>: Vector containing names of tests that are enabled
-     */
-    
-    // Initialize debug flag and input file variables
-    bool debug = false;   // used to turn debug message on
-    
-    std::string inputFileName = "sensorTestInput.ini";  // input filename
-    std::string inputPath;                              // input path
-    std::string inputPathFile;                          // input path and filename
-    
+    * @param:
+    *     camera: Camera selection string from the node parameter (e.g., "~camera").
+    *             Expected values are "pepper", "realsense", or "both" (case-insensitive).
+    *
+    * @return:
+    *     std::vector<std::string>: Vector of enabled test names (lowercased) after applying
+    *     camera-based filtering. Order preserves the appearance order in the input file
+    *     minus any removed entries.
+    *
+    * @note:
+    *     - Relies on ROS package path resolution via ros::package::getPath(ROS_PACKAGE_NAME).
+    *     - Trims surrounding whitespace and lowercases both keys and boolean values.
+    *     - Lines beginning with '#' or empty lines are ignored.
+    *     - If the configuration file cannot be found or opened, the function prints an
+    *       error message and terminates via promptAndExit(1).
+    */
+
+    bool debug = false;
+
+    std::string inputFileName = "sensorTestInput.dat";
+    std::string inputPath;
+    std::string inputPathFile;
+
     std::vector<std::string> testName;
     std::string flag;
 
-    // Construct the full path of the input file using ROS package path
     #ifdef ROS
         inputPath = ros::package::getPath(ROS_PACKAGE_NAME).c_str();
     #else
-        // print out error message and exit if the package name is not defined
-        printf("ROS_PACKAGE_NAME is not defined. Please define the ROS_PACKAGE_NAME environment variable.\n");
+        printf("ROS_PACKAGE_NAME is not defined. Please define it.\n");
         promptAndExit(1);
     #endif
 
-    // Set input file path
-    inputPathFile = inputPath + "/config/" + inputFileName;
-
+    inputPathFile = inputPath + "/data/" + inputFileName;
     if (debug) printf("Input file is %s\n", inputPathFile.c_str());
 
-    // Open and read the input file
     std::ifstream inputFile(inputPathFile.c_str());
     if (!inputFile.is_open()){
         printf("Unable to open the input file %s\n", inputPathFile.c_str());
         promptAndExit(1);
     }
 
-    std::string inpLineRead;            // variable to read the line in the file
-    std::string paramKey, paramValue;   // variables to keep the key value pairs read
+    std::string line, key, value;
+    while (std::getline(inputFile, line)) {
+        if (line.empty() || line[0] == '#') continue;      // skip blanks/comments
+        std::istringstream iss(line);
+        if (!(iss >> key >> value)) continue;              // expect "key  true/false"
 
-    // Parse key-value pairs from the input file
-    while(std::getline(inputFile, inpLineRead)){
-        std::istringstream iss(inpLineRead);
-    
-        iss >> paramKey;
-        trim(paramKey);
-        std::getline(iss, paramValue);
-        iss >> paramValue;
-        
-        trim(paramValue);                                                                   // trim whitespace
-        transform(paramValue.begin(), paramValue.end(), paramValue.begin(), ::tolower);     // convert to lower case
-        transform(paramKey.begin(), paramKey.end(), paramKey.begin(), ::tolower);           // convert to lower case
+        trim(key);
+        trim(value);
+        key   = toLower(key);
+        value = toLower(value);
 
-        // Add test name to vector if it is enabled (set to true)
-        if (paramValue == "true"){ testName.push_back(paramKey);}
+        if (value == "true") {
+            testName.push_back(key);
+        }
     }
     inputFile.close();
+
+    // --- Camera-based filtering -----------------------------
+    // Use lowercase names since we lowercased keys above
+    const std::unordered_set<std::string> pepperCamTests = {
+        "frontcamera", "bottomcamera", "depthcamera", "stereocamera"
+    };
+    const std::unordered_set<std::string> realsenseCamTests = {
+        "realsensergbcamera", "realsensedepthcamera"
+    };
+
+    const std::string cam = toLower(cameraSel);
+    auto drop_if_in = [&](const std::unordered_set<std::string>& toDrop){
+        testName.erase(std::remove_if(testName.begin(), testName.end(),
+            [&](const std::string& name){ return toDrop.count(name) > 0; }),
+            testName.end());
+    };
+
+    if (cam == "pepper") {
+        // keep Pepper cameras, drop RealSense
+        drop_if_in(realsenseCamTests);
+    } else if (cam == "realsense") {
+        // keep RealSense, drop Pepper cameras
+        drop_if_in(pepperCamTests);
+    } // "both" → no filtering
+
+    // ---------------------------------------------------------
+
+    std::cout << "Tests to be executed: ";
+    for (const auto& name : testName) std::cout << name << " ";
+    std::cout << std::endl;
 
     return testName;
 }
@@ -2147,6 +2209,61 @@ std::string getOutputFilePath() {
     #endif
 
     return basePath + fileName;
+}
+
+bool checkTopicAvailable(const std::string& topic_name_raw) {
+    /*
+    * @brief
+    *     Checks availability of a specified ROS topic or action base in a single shot.
+    *
+    * @param:
+    *     topic_name_raw: Raw name of the topic or action base to check.
+    *
+    * @return:
+    *     true if the topic exists or if the action base has at least one standard subtopic,
+    *     false otherwise.
+    *
+    * @note:
+    *     Prints an informational message with the current node name when a subscription
+    *     is detected. Performs no retries or waiting — call repeatedly if you need
+    *     continuous checking.
+    */
+
+    if (!ros::master::check()) return false;
+
+    const std::string resolved = rstrip_slash(ros::names::resolve(topic_name_raw));
+    ros::master::V_TopicInfo topics;
+    if (!ros::master::getTopics(topics)) return false;
+
+    // Helper to strip leading slash
+    auto cleanNodeName = [](const std::string& s) {
+        return (!s.empty() && s.front() == '/') ? s.substr(1) : s;
+    };
+
+    const std::string nodeName = cleanNodeName(ros::this_node::getName());
+
+    // Fast path: exact match
+    for (const auto& t : topics) {
+        if (t.name == resolved) {
+            ROS_INFO_STREAM(nodeName << ": subscribed to " << resolved << ".");
+            return true;
+        }
+    }
+
+    // Action-style check
+    static const char* kActionSuffixes[] = {
+        "/goal", "/status", "/feedback", "/result", "/cancel"
+    };
+    for (const auto& t : topics) {
+        for (const char* suf : kActionSuffixes) {
+            if (t.name == resolved + suf) {
+                ROS_INFO_STREAM(nodeName << ": subscribed to " << resolved << ".");
+                return true;
+            }
+        }
+    }
+
+    return false;
 }
 
 void executeTestsSequentially(const std::vector<std::string>& testNames, ros::NodeHandle& nh) {

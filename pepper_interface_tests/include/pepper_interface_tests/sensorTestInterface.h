@@ -1,3 +1,20 @@
+/* sensorTestInterface.h - Header file for the sensorTest module to test the sensors of the Pepper robot using ROS interface.
+ *
+ * Author:  Yohannes Tadesse Haile and Mihirteab Taye Hordofa, Carnegie Mellon University Africa
+ * Email:   yohanneh@andrew.cmu.edu
+ * Date:    September 25, 2025
+ * Version: v1.1
+ *
+ * Copyright (C) 2023 CSSR4Africa Consortium
+ *
+ * This project is funded by the African Engineering and Technology Network (Afretec)
+ * Inclusive Digital Transformation Research Grant Programme.
+ *
+ * Website: www.cssr4africa.org
+ *
+ * This program comes with ABSOLUTELY NO WARRANTY.
+ */
+
 #ifndef SENSOR_TEST_H
 #define SENSOR_TEST_H
 
@@ -23,6 +40,10 @@
 #include <vector>
 #include <cstdlib>
 #include <filesystem>
+#include <unordered_set>
+#include <algorithm>
+#include <sstream>
+
 #ifdef PEPPER_ROBOT
 #include <naoqi_driver/AudioCustomMsg.h>
 #endif // DEBUG
@@ -32,6 +53,8 @@ using namespace std;
 using TestFunction = std::function<void(ros::NodeHandle&)>;
 extern bool output;
 extern int timeDuration;
+
+extern bool verboseMode;
 
 #define ROS
 
@@ -68,7 +91,7 @@ void microphone(ros::NodeHandle nh);
 void microphoneMessageReceived(const naoqi_driver::AudioCustomMsg& msg);
 #endif // DEBUG
 
-std::vector<string> extractTests(string key);
+std::vector<std::string> extractTests(const std::string& camera);
 string extractTopic(string key);   
 std::string extractMode();
 void writeWavHeader(std::ofstream &file, int sampleRate, int numSamples);
@@ -80,6 +103,9 @@ void finalizeOutputFile(std::ofstream& out_of, const std::string& path);
 void executeTestsSequentially(const std::vector<std::string>& testNames, ros::NodeHandle& nh);
 void executeTestsInParallel(const std::vector<std::string>& testNames, ros::NodeHandle& nh);
 void switchMicrophoneChannel();
+bool checkTopicAvailable(const std::string& topic_name);
+void heartbeatCb(const ros::TimerEvent&);
+std::string cleanNodeName(const std::string& name);
 
 void promptAndExit(int err);
 void promptAndContinue();
