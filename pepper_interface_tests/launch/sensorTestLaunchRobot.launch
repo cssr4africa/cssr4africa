@@ -1,13 +1,13 @@
 <launch>
-  <arg name="robot_ip"            default="172.29.111.240" />
-  <arg name="robot_port"          default="9559" />
-  <arg name="roscore_ip"          default="127.0.0.1" />
-  <arg name="network_interface"   default="eth0" />
-  <arg name="namespace"           default="naoqi_driver" />
-  <arg name="launch_audio_nodes"  default="true" />                    <!-- Flag to control audio nodes -->
-  <arg name="camera"              default="both" doc="Set 'pepper' for Pepper only, 'realsense' for RealSense only, 'both' for Pepper + RealSense" />
+  <arg name="robot_ip"                    default="172.29.111.240" />
+  <arg name="robot_port"                  default="9559" />
+  <arg name="roscore_ip"                  default="127.0.0.1" />
+  <arg name="network_interface"           default="eth0" />
+  <arg name="namespace"                   default="naoqi_driver" />
+  <arg name="launch_audio_nodes"          default="true" />                    <!-- Flag to control audio nodes -->
+  <arg name="camera_choice"               default="both" doc="Set 'pepper' for Pepper only, 'realsense' for RealSense only, 'both' for Pepper + RealSense" />
 
-  <param name="camera" value="$(arg camera)"/>
+  <param name="camera_choice" value="$(arg camera_choice)"/>
 
   <!-- Launch naoqi_driver_node (always launched regardless of camera choice) -->
   <node pkg="naoqi_driver" type="naoqi_driver_node" name="$(arg namespace)" required="true"
@@ -25,7 +25,7 @@
   </group>
 
   <!-- Launch RealSense camera when camera arg is 'realsense' or 'both' --> 
-  <group if="$(eval arg('camera') == 'realsense' or arg('camera') == 'both')">
+  <group if="$(eval arg('camera_choice') == 'realsense' or arg('camera_choice') == 'both')">
     <include file="$(find realsense2_camera)/launch/rs_camera.launch">
       <arg name="color_width"     value="640" />
       <arg name="color_height"    value="480" />

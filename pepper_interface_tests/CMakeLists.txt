@@ -8,6 +8,7 @@ project(pepper_interface_tests)
 option(SIMULATOR "Build for simulator without naoqi_driver and PEPPER_ROBOT definitions" OFF)
 
 # Find catkin and system dependencies
+find_package(X11 REQUIRED)
 
 # Conditionally find naoqi_driver unless building for the simulator
 if(NOT SIMULATOR)
@@ -58,6 +59,7 @@ endif()
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
+  ${X11_INCLUDE_DIR}   # Add this
 )
 
 # Declare a C++ executable for actuator test
@@ -68,4 +70,4 @@ target_link_libraries(${PROJECT_NAME}_actuatorTest ${catkin_LIBRARIES})
 # Declare a C++ executable for sensor test
 add_executable(${PROJECT_NAME}_sensorTest src/sensorTestImplementation.cpp src/sensorTestApplication.cpp)
 set_target_properties(${PROJECT_NAME}_sensorTest PROPERTIES OUTPUT_NAME sensorTest PREFIX "")
-target_link_libraries(${PROJECT_NAME}_sensorTest ${OpenCV_LIBS} ${catkin_LIBRARIES})
+target_link_libraries(${PROJECT_NAME}_sensorTest ${OpenCV_LIBS} ${catkin_LIBRARIES} ${X11_LIBRARIES})

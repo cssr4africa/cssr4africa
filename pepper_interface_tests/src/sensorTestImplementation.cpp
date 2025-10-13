@@ -1,7 +1,7 @@
 /* sensorTestImplementation.cpp Implementation code to test the sensors of the Pepper robot using ROS interface.
 *
 * Author: Yohannes Tadesse Haile and Mihirteab Taye Hordofa
-* Date: September 25, 2025
+* Date: October 13, 2025
 * Version: v1.1
 *
 * Copyright (C) 2023 CSSR4Africa Consortium
@@ -23,6 +23,115 @@ std::ofstream outputFile;
 int timeDuration = 10;
 std::string outputFilePath;
 
+
+// Global variables to handle the audio file 
+std::ofstream outAudio;
+int totalSamples = 0;
+std::string currentChannel = "rearLeft";
+
+// Global variables to handle the video file 
+bool saveVideo = true;
+
+struct WriterEntry {
+    cv::VideoWriter writer;
+    bool opened = false;
+};
+
+static std::mutex g_writer_mtx;
+static std::unordered_map<std::string, WriterEntry> g_writers;
+
+static WriterEntry& getOrOpenWriter(const std::string& key,
+                                    const std::string& videoPath,
+                                    int width, int height,
+                                    double fps,
+                                    bool isColor = true)
+{
+    std::lock_guard<std::mutex> lk(g_writer_mtx);
+    auto& entry = g_writers[key];
+    if (!entry.opened) {
+        entry.writer.open(videoPath,
+                          cv::VideoWriter::fourcc('m','p','4','v'),
+                          fps,
+                          cv::Size(width, height),
+                          isColor);
+        if (!entry.writer.isOpened()) {
+            ROS_ERROR_STREAM("Failed to initialize video writer with path: " << videoPath);
+        } else {
+            entry.opened = true;
+        }
+    }
+    return entry;
+}
+
+static void releaseWriter(const std::string& key) {
+    std::lock_guard<std::mutex> lk(g_writer_mtx);
+    auto it = g_writers.find(key);
+    if (it != g_writers.end()) {
+        if (it->second.opened) it->second.writer.release();
+        g_writers.erase(it);
+    }
+}
+
+// ---------- Single UI thread that owns all cv::imshow ----------
+class FrameBus {
+public:
+  void start(bool show=true, int wait_ms=1) {
+    if (!show) return;
+    running_.store(true);
+    ui_ = std::thread([this, wait_ms]{
+      std::unordered_set<std::string> created;
+      std::unique_lock<std::mutex> lk(m_);
+      while (running_.load()) {
+        cv_.wait_for(lk, std::chrono::milliseconds(50),
+                     [this]{ return dirty_ || !running_.load(); });
+        if (!running_.load()) break;
+
+        auto snapshot = latest_;   // shallow copy of map and Mats
+        dirty_ = false;
+        lk.unlock();
+
+        for (auto &kv : snapshot) {
+          const std::string &name = kv.first;
+          const cv::Mat &img = kv.second;
+          if (img.empty()) continue;
+          if (!created.count(name)) {
+            cv::namedWindow(name, cv::WINDOW_NORMAL);
+            cv::resizeWindow(name, std::max(320, img.cols), std::max(240, img.rows));
+            created.insert(name);
+          }
+          cv::imshow(name, img);
+        }
+        cv::waitKey(wait_ms);
+        lk.lock();
+      }
+      for (auto &kv : latest_) cv::destroyWindow(kv.first);
+    });
+  }
+
+  void stop() {
+    running_.store(false);
+    cv_.notify_all();
+    if (ui_.joinable()) ui_.join();
+  }
+
+  void publish(const std::string& name, const cv::Mat& bgr) {
+    std::lock_guard<std::mutex> lk(m_);
+    latest_[name] = bgr.clone();
+    dirty_ = true;
+    cv_.notify_one();
+  }
+
+private:
+  std::mutex m_;
+  std::condition_variable cv_;
+  std::unordered_map<std::string, cv::Mat> latest_;
+  std::thread ui_;
+  std::atomic<bool> running_{false};
+  bool dirty_ = false;
+};
+
+static FrameBus g_frameBus;
+
 static inline std::string rstrip_slash(std::string s) {
     while (!s.empty() && s.back() == '/') s.pop_back();
     return s;
@@ -43,15 +152,7 @@ static inline std::string toLower(std::string s) {
     return s;
 }
 
-// Global variables to handle the audio file 
-std::ofstream outAudio;
-int totalSamples = 0;
-std::string currentChannel = "rearLeft";
 
-// Global variables to handle the video file 
-bool saveVideo = true;
-cv::VideoWriter videoWriter;
-bool isVideoWriterInitialized = false;
 
 void backSonar(ros::NodeHandle nh){
     /*
@@ -147,40 +248,23 @@ void frontCamera(ros::NodeHandle nh) {
      */
     
     // Find the respective topic for the front camera sensor
-    string topicName = extractTopic("FrontCamera");
+     std::string topicName = extractTopic("FrontCamera");
     checkTopicAvailable(topicName);
     output = true;
 
-    // Check if the topic name is empty
-    if (topicName.empty()) {
-        ROS_WARN_STREAM("No valid topic found for FrontCamera. Skipping this sensor test.");
-        return;
-    }
+    if (topicName.empty()) { ROS_WARN_STREAM("No valid topic for FrontCamera"); return; }
 
-    ROS_INFO_STREAM("Subscribing to :" << topicName << "\n");
+    ROS_INFO_STREAM("Subscribing to :" << topicName);
     ros::Duration(1).sleep();
 
-    // Create an image transport instance and subscribe to the front camera topic
     image_transport::ImageTransport it(nh);
     image_transport::Subscriber sub = it.subscribe(topicName, 1, frontCameraMessageReceived);
 
-    // Listen for incoming image messages for the specified time duration
     ros::Rate rate(30);
-    ros::Time startTime = ros::Time::now(); // Record the start time
-    ros::Duration waitTime = ros::Duration(timeDuration);
-    ros::Time endTime = startTime + waitTime; // Calculate the end time
-    
-    while (ros::ok() && ros::Time::now() < endTime) {
-        ros::spinOnce();
-        rate.sleep();
-    }
+    const ros::Time endTime = ros::Time::now() + ros::Duration(timeDuration);
+    while (ros::ok() && ros::Time::now() < endTime) { ros::spinOnce(); rate.sleep(); }
 
-    // Clean up video writer if it was initialized and close the camera window
-    if (isVideoWriterInitialized) {
-        videoWriter.release();
-        isVideoWriterInitialized = false;
-    }
-
+    releaseWriter("front_camera");
     cv::destroyWindow("Front Camera");
 }
 
@@ -197,40 +281,23 @@ void bottomCamera(ros::NodeHandle nh){
      */
     
     // Find the respective topic for the bottom camera sensor
-    string topicName = extractTopic("BottomCamera");
+    std::string topicName = extractTopic("BottomCamera");
     checkTopicAvailable(topicName);
     output = true;
 
-    // Check if the topic name is empty
-    if (topicName.empty()) {
-        ROS_WARN_STREAM("No valid topic found for BottomCamera. Skipping this sensor test.");
-        return;
-    }
+    if (topicName.empty()) { ROS_WARN_STREAM("No valid topic for BottomCamera"); return; }
 
-    ROS_INFO_STREAM("Subscribing to :" << topicName << "\n");
+    ROS_INFO_STREAM("Subscribing to :" << topicName);
     ros::Duration(1).sleep();
 
-    // Create an image transport instance and subscribe to the bottom camera topic
     image_transport::ImageTransport it(nh);
     image_transport::Subscriber sub = it.subscribe(topicName, 1, bottomCameraMessageReceived);
 
-    // Listen for incoming image messages for the specified time duration
     ros::Rate rate(30);
-    ros::Time startTime = ros::Time::now(); // Record the start time
-    ros::Duration waitTime = ros::Duration(timeDuration);
-    ros::Time endTime = startTime + waitTime; // Calculate the end time
+    const ros::Time endTime = ros::Time::now() + ros::Duration(timeDuration);
+    while (ros::ok() && ros::Time::now() < endTime) { ros::spinOnce(); rate.sleep(); }
 
-    while (ros::ok() && ros::Time::now() < endTime) {
-        ros::spinOnce();
-        rate.sleep();
-    }
-
-    // Clean up video writer if it was initialized and close the camera window
-    if (isVideoWriterInitialized) {
-        videoWriter.release();
-        isVideoWriterInitialized = false;
-    }
-
+    releaseWriter("bottom_camera");
     cv::destroyWindow("Bottom Camera");
 }
 
@@ -247,11 +314,10 @@ void realsenseRGBCamera(ros::NodeHandle nh) {
      */
     
     // Find the respective topic for the RealSense RGB camera sensor
-    string topicName = extractTopic("RealSenseCameraRGB");
+    std::string topicName = extractTopic("RealSenseCameraRGB");
     checkTopicAvailable(topicName);
     output = true;
 
-    // Check if the topic name is empty
     if (topicName.empty()) {
         ROS_WARN_STREAM("No valid topic found for RealSenseRGB. Skipping this sensor test.");
         return;
@@ -260,27 +326,19 @@ void realsenseRGBCamera(ros::NodeHandle nh) {
     ROS_INFO_STREAM("Subscribing to :" << topicName << "\n");
     ros::Duration(1).sleep();
 
-    // Create an image transport instance and subscribe to the RealSense RGB camera topic
     image_transport::ImageTransport it(nh);
     image_transport::Subscriber sub = it.subscribe(topicName, 1, realsenseRGBCameraMessageReceived);
 
-    // Listen for incoming image messages for the specified time duration
     ros::Rate rate(30);
-    ros::Time startTime = ros::Time::now(); // Record the start time
-    ros::Duration waitTime = ros::Duration(timeDuration);
-    ros::Time endTime = startTime + waitTime; // Calculate the end time
-    
+    const ros::Time startTime = ros::Time::now();
+    const ros::Time endTime   = startTime + ros::Duration(timeDuration);
     while (ros::ok() && ros::Time::now() < endTime) {
         ros::spinOnce();
         rate.sleep();
     }
 
-    // Clean up video writer if it was initialized and close the camera window
-    if (isVideoWriterInitialized) {
-        videoWriter.release();
-        isVideoWriterInitialized = false;
-    }
-
+    // NEW: release this stream’s writer and close the window
+    releaseWriter("realsense_rgb_camera");
     cv::destroyWindow("RealSense RGB Camera");
 }
 
@@ -297,40 +355,23 @@ void depthCamera(ros::NodeHandle nh){
      */
     
     // Find the respective topic for the depth camera sensor
-    string topicName = extractTopic("DepthCamera");
+    std::string topicName = extractTopic("DepthCamera");
     checkTopicAvailable(topicName);
     output = true;
 
-    // Check if the topic name is empty
-    if (topicName.empty()) {
-        ROS_WARN_STREAM("No valid topic found for DepthCamera. Skipping this sensor test.");
-        return;
-    }
+    if (topicName.empty()) { ROS_WARN_STREAM("No valid topic for DepthCamera"); return; }
 
-    ROS_INFO_STREAM("Subscribing to :" << topicName << "\n");
+    ROS_INFO_STREAM("Subscribing to :" << topicName);
     ros::Duration(1).sleep();
 
-    // Create an image transport instance and subscribe to the depth camera topic
     image_transport::ImageTransport it(nh);
     image_transport::Subscriber sub = it.subscribe(topicName, 1, depthCameraMessageReceived);
 
-    // Listen for incoming depth image messages for the specified time duration
     ros::Rate rate(30);
-    ros::Time startTime = ros::Time::now(); // Record the start time
-    ros::Duration waitTime = ros::Duration(timeDuration);
-    ros::Time endTime = startTime + waitTime; // Calculate the end time
+    const ros::Time endTime = ros::Time::now() + ros::Duration(timeDuration);
+    while (ros::ok() && ros::Time::now() < endTime) { ros::spinOnce(); rate.sleep(); }
 
-    while (ros::ok() && ros::Time::now() < endTime) {
-        ros::spinOnce();
-        rate.sleep();
-    }
-
-    // Clean up video writer if it was initialized and close the camera window
-    if (isVideoWriterInitialized) {
-        videoWriter.release();
-        isVideoWriterInitialized = false;
-    }
-
+    releaseWriter("depth_camera");
     cv::destroyWindow("Depth Camera");
 }
 
@@ -347,40 +388,23 @@ void realsenseDepthCamera(ros::NodeHandle nh) {
      */
     
     // Find the respective topic for the RealSense depth camera sensor
-    string topicName = extractTopic("RealSenseCameraDepth");
+    std::string topicName = extractTopic("RealSenseCameraDepth");
     checkTopicAvailable(topicName);
     output = true;
 
-    // Check if the topic name is empty
-    if (topicName.empty()) {
-        ROS_WARN_STREAM("No valid topic found for RealSenseDepth. Skipping this sensor test.");
-        return;
-    }
+    if (topicName.empty()) { ROS_WARN_STREAM("No valid topic for RealSenseDepth"); return; }
 
-    ROS_INFO_STREAM("Subscribing to :" << topicName << "\n");
+    ROS_INFO_STREAM("Subscribing to :" << topicName);
     ros::Duration(1).sleep();
 
-    // Create an image transport instance and subscribe to the RealSense depth camera topic
     image_transport::ImageTransport it(nh);
     image_transport::Subscriber sub = it.subscribe(topicName, 1, realsenseDepthCameraMessageReceived);
 
-    // Listen for incoming depth image messages for the specified time duration
     ros::Rate rate(30);
-    ros::Time startTime = ros::Time::now(); // Record the start time
-    ros::Duration waitTime = ros::Duration(timeDuration);
-    ros::Time endTime = startTime + waitTime; // Calculate the end time
+    const ros::Time endTime = ros::Time::now() + ros::Duration(timeDuration);
+    while (ros::ok() && ros::Time::now() < endTime) { ros::spinOnce(); rate.sleep(); }
 
-    while (ros::ok() && ros::Time::now() < endTime) {
-        ros::spinOnce();
-        rate.sleep();
-    }
-
-    // Clean up video writer if it was initialized and close the camera window
-    if (isVideoWriterInitialized) {
-        videoWriter.release();
-        isVideoWriterInitialized = false;
-    }
-
+    releaseWriter("realsense_depth_camera");
     cv::destroyWindow("RealSense Depth Camera");
 }
 
@@ -592,40 +616,23 @@ void stereoCamera(ros::NodeHandle nh){
      */
     
     // Find the respective topic for the stereo camera sensor
-    string topicName = extractTopic("StereoCamera");
+    std::string topicName = extractTopic("StereoCamera");
     checkTopicAvailable(topicName);
     output = true;
 
-    // Check if the topic name is empty
-    if (topicName.empty()) {
-        ROS_WARN_STREAM("No valid topic found for StereoCamera. Skipping this sensor test.");
-        return; // Exit the function early if no valid topic is found
-    }
+    if (topicName.empty()) { ROS_WARN_STREAM("No valid topic for StereoCamera"); return; }
 
-    ROS_INFO_STREAM("Start " << topicName << " Subscribe Test \n"  ); 
+    ROS_INFO_STREAM("Subscribing to :" << topicName);
     ros::Duration(1).sleep();
 
-    // Create an image transport instance and subscribe to the stereo camera topic
     image_transport::ImageTransport it(nh);
     image_transport::Subscriber sub = it.subscribe(topicName, 1, stereoCameraMessageReceived);
 
-    // Listen for incoming stereo image messages for the specified time duration
     ros::Rate rate(30);
-    ros::Time startTime = ros::Time::now(); // Record the start time
-    ros::Duration waitTime = ros::Duration(timeDuration);
-    ros::Time endTime = startTime + waitTime; // Calculate the end time
+    const ros::Time endTime = ros::Time::now() + ros::Duration(timeDuration);
+    while (ros::ok() && ros::Time::now() < endTime) { ros::spinOnce(); rate.sleep(); }
 
-    while (ros::ok() && ros::Time::now() < endTime) {
-        ros::spinOnce();
-        rate.sleep();
-    }
-
-    // Clean up video writer if it was initialized and close the camera window
-    if (isVideoWriterInitialized) {
-        videoWriter.release();
-        isVideoWriterInitialized = false;
-    }
-
+    releaseWriter("stereo_camera");
     cv::destroyWindow("Stereo Camera");
 }
 
@@ -747,75 +754,44 @@ void stereoCameraMessageReceived(const sensor_msgs::ImageConstPtr& msg) {
      */
     
     // Variables to store file paths for output
-    string path;
-    string videoPath;
+    static std::string basePath, videoPath, writerKey = "stereo_camera";
+    static bool pathReady = false;
 
-    // Extract the path of the ROS package for file output
+    if (!pathReady) {
     #ifdef ROS
-        path = ros::package::getPath(ROS_PACKAGE_NAME).c_str();
+        basePath = ros::package::getPath(ROS_PACKAGE_NAME);
     #else
-        ROS_INFO_STREAM("Unable to find the ROS package\n");
+        ROS_INFO_STREAM("Unable to find the ROS package");
         promptAndExit(1);
     #endif
+        videoPath = basePath + "/data/stereoCameraOutput.mp4";
+        pathReady = true;
+    }
 
-    // Extract image attributes from the received message
-    int imgWidth = msg->width;
-    int imgHeight = msg->height;
+    const int imgWidth  = msg->width;
+    const int imgHeight = msg->height;
+    ROS_INFO("[MESSAGE] Stereo Image W:%d H:%d", imgWidth, imgHeight);
 
-    ROS_INFO("[MESSAGE] Image received has a width: %d and height: %d", imgWidth, imgHeight);
-
-    // Write image information to the output file if output flag is true
-    if (output == true) {
-        // Set the path for the text output file
-        outputFilePath = path + "/data/sensorTestOutput.dat";
-
-        // Set the path for the video file the first time the output is true
-        if (!isVideoWriterInitialized) {
-            videoPath = path + "/data/stereoCameraOutput.mp4";
-        }
-
-        // Open the output file and write stereo camera information
+    if (output) {
+        outputFilePath = basePath + "/data/sensorTestOutput.dat";
         outputFile.open(outputFilePath.c_str(), std::ofstream::app);
-        if (!outputFile.is_open()) {
-            printf("Unable to open the output file %s\n", outputFilePath.c_str());
-            promptAndExit(1);
-        }
-
+        if (!outputFile.is_open()) { printf("Unable to open %s\n", outputFilePath.c_str()); promptAndExit(1); }
         outputFile << "[TESTING] ---- STEREO CAMERA ----\n\n";
-        outputFile << "[MESSAGES] Printing stereo camera data information received.\n";
         outputFile << "Image Width: " << imgWidth << "\n";
         outputFile << "Image Height: " << imgHeight << "\n";
-        outputFile << "[END MESSAGES] Finished printing.\n\n";
-
+        outputFile << "[END MESSAGES]\n\n";
         outputFile.close();
-        output = false; // Set output flag to false to avoid repeated file writing
+        output = false;
     }
 
-    // Initialize the video writer if not already done
-    if (!isVideoWriterInitialized) {
-        // Initialize video writer with the path set for video output
-        videoWriter.open(videoPath, cv::VideoWriter::fourcc('m', 'p', '4', 'v'), 2, cv::Size(imgWidth, imgHeight), true);
-        
-        if (!videoWriter.isOpened()) {
-            ROS_ERROR_STREAM("Failed to initialize video writer with path: " << videoPath);
-            promptAndExit(1);
-        }
-        
-        isVideoWriterInitialized = true;
-    }
-
-    // Convert the ROS image message to OpenCV format
-    cv_bridge::CvImagePtr cv_ptr;
-    cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
-    
+    cv_bridge::CvImagePtr cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
     cv::Mat img = cv_ptr->image;
 
-    // Write the current frame to the video file
-    videoWriter.write(img);
+    auto& w = getOrOpenWriter(writerKey, videoPath, imgWidth, imgHeight, 10.0, true);
+    if (w.opened) w.writer.write(img);
 
-    // Display the stereo camera image in a window
     cv::imshow("Stereo Camera", img);
-    cv::waitKey(30); // Wait for a short time to allow the image to be displayed
+    cv::waitKey(1);
 }    
 #endif
 
@@ -1165,75 +1141,44 @@ void frontCameraMessageReceived(const sensor_msgs::ImageConstPtr& msg) {
      */
     
     // Variables to store file paths for output
-    string path;
-    string videoPath;
-        
-    // Extract the ROS package path for file operations
+    static std::string basePath, videoPath, writerKey = "front_camera";
+    static bool pathReady = false;
+
+    if (!pathReady) {
     #ifdef ROS
-        path = ros::package::getPath(ROS_PACKAGE_NAME).c_str();
+        basePath = ros::package::getPath(ROS_PACKAGE_NAME);
     #else
-        ROS_INFO_STREAM("Unable to find the ROS package\n");
+        ROS_INFO_STREAM("Unable to find the ROS package");
         promptAndExit(1);
     #endif
-   
-    // Extract image dimensions from the received message
-    int imgWidth = msg->width;
-    int imgHeight = msg->height;
+        videoPath = basePath + "/data/frontCameraOutput.mp4";
+        pathReady = true;
+    }
 
-    ROS_INFO("[MESSAGE] Image received has a width: %d and height: %d", imgWidth, imgHeight);
+    const int imgWidth  = msg->width;
+    const int imgHeight = msg->height;
+    ROS_INFO("[MESSAGE] Front Image received W:%d H:%d", imgWidth, imgHeight);
 
-    // Write image information to output file if output flag is true
-    if (output == true) {
-        // Set the path for the text output file
-        outputFilePath = path + "/data/sensorTestOutput.dat";
-
-        // Set the path for the video file the first time the output is true
-        if (!isVideoWriterInitialized) {
-            videoPath = path + "/data/frontCameraOutput.mp4";
-        }
-
-        // Open the output file and write front camera information
+    if (output) {
+        outputFilePath = basePath + "/data/sensorTestOutput.dat";
         outputFile.open(outputFilePath.c_str(), std::ofstream::app);
-        if (!outputFile.is_open()) {
-            printf("Unable to open the output file %s\n", outputFilePath.c_str());
-            promptAndExit(1);
-        }
-
+        if (!outputFile.is_open()) { printf("Unable to open %s\n", outputFilePath.c_str()); promptAndExit(1); }
         outputFile << "[TESTING] ---- FRONT CAMERA ----\n\n";
-        outputFile << "[MESSAGES] Printing front camera data information received.\n";
         outputFile << "Image Width: " << imgWidth << "\n";
         outputFile << "Image Height: " << imgHeight << "\n";
-        outputFile << "[END MESSAGES] Finished printing.\n\n";
-
+        outputFile << "[END MESSAGES]\n\n";
         outputFile.close();
-        output = false; // Set output flag to false to avoid repeated file writing
+        output = false;
     }
 
-    // Initialize the video writer if not already done
-    if (!isVideoWriterInitialized) {
-        // Initialize video writer with the path set for video output
-        videoWriter.open(videoPath, cv::VideoWriter::fourcc('m', 'p', '4', 'v'), 2, cv::Size(imgWidth, imgHeight), true);
-        
-        if (!videoWriter.isOpened()) {
-            ROS_ERROR_STREAM("Failed to initialize video writer with path: " << videoPath);
-            promptAndExit(1);
-        }
-        
-        isVideoWriterInitialized = true;
-    }
-
-    // Convert the ROS image message to OpenCV format
-    cv_bridge::CvImagePtr cv_ptr;
-    cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
-    
+    cv_bridge::CvImagePtr cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
     cv::Mat img = cv_ptr->image;
 
-    // Write the current frame to the video file
-    videoWriter.write(img);
+    auto& w = getOrOpenWriter(writerKey, videoPath, imgWidth, imgHeight, /*fps=*/10.0, /*isColor=*/true);
+    if (w.opened) w.writer.write(img);
 
-    // Display the front camera image in a window
     cv::imshow("Front Camera", img);
-    cv::waitKey(30); // Wait for a short time to allow the image to be displayed
+    cv::waitKey(1);
 }
 
 void bottomCameraMessageReceived(const sensor_msgs::ImageConstPtr& msg) {
@@ -1249,75 +1194,44 @@ void bottomCameraMessageReceived(const sensor_msgs::ImageConstPtr& msg) {
      */
     
     // Variables to store file paths for output
-    string path;
-    string videoPath;
+    static std::string basePath, videoPath, writerKey = "bottom_camera";
+    static bool pathReady = false;
 
-    // Extract the ROS package path for file operations
+    if (!pathReady) {
     #ifdef ROS
-        path = ros::package::getPath(ROS_PACKAGE_NAME).c_str();
+        basePath = ros::package::getPath(ROS_PACKAGE_NAME);
     #else
-        ROS_INFO_STREAM("Unable to find the ROS package\n");
-        promptAndExit(1); 
+        ROS_INFO_STREAM("Unable to find the ROS package");
+        promptAndExit(1);
     #endif
+        videoPath = basePath + "/data/bottomCameraOutput.mp4";
+        pathReady = true;
+    }
 
-    // Extract image dimensions from the received message
-    int imgWidth = msg->width;
-    int imgHeight = msg->height;
+    const int imgWidth  = msg->width;
+    const int imgHeight = msg->height;
+    ROS_INFO("[MESSAGE] Bottom Image received W:%d H:%d", imgWidth, imgHeight);
 
-    ROS_INFO("[MESSAGE] Image received has a width: %d and height: %d", imgWidth, imgHeight);
-
-    // Write image information to output file if output flag is true
-    if (output == true) {
-        // Set the path for the text output file
-        outputFilePath = path + "/data/sensorTestOutput.dat";
-
-        // Set the path for the video file the first time the output is true
-        if (!isVideoWriterInitialized) {
-            videoPath = path + "/data/bottomCameraOutput.mp4";
-        }
-
-        // Open the output file and write bottom camera information
+    if (output) {
+        outputFilePath = basePath + "/data/sensorTestOutput.dat";
         outputFile.open(outputFilePath.c_str(), std::ofstream::app);
-        if (!outputFile.is_open()) {
-            printf("Unable to open the output file %s\n", outputFilePath.c_str());
-            promptAndExit(1);
-        }
-
+        if (!outputFile.is_open()) { printf("Unable to open %s\n", outputFilePath.c_str()); promptAndExit(1); }
         outputFile << "[TESTING] ---- BOTTOM CAMERA ----\n\n";
-        outputFile << "[MESSAGES] Printing bottom camera data information received.\n";
         outputFile << "Image Width: " << imgWidth << "\n";
         outputFile << "Image Height: " << imgHeight << "\n";
-        outputFile << "[END MESSAGES] Finished printing.\n\n";
-
+        outputFile << "[END MESSAGES]\n\n";
         outputFile.close();
-        output = false; // Set output flag to false to avoid repeated file writing
+        output = false;
     }
 
-    // Initialize the video writer if not already done
-    if (!isVideoWriterInitialized) {
-        // Initialize video writer with the path set for video output
-        videoWriter.open(videoPath, cv::VideoWriter::fourcc('m', 'p', '4', 'v'), 2, cv::Size(imgWidth, imgHeight), true);
-        
-        if (!videoWriter.isOpened()) {
-            ROS_ERROR_STREAM("Failed to initialize video writer with path: " << videoPath);
-            promptAndExit(1);
-        }
-        
-        isVideoWriterInitialized = true;
-    }
-
-    // Convert the ROS image message to OpenCV format
-    cv_bridge::CvImagePtr cv_ptr;
-    cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
-
+    cv_bridge::CvImagePtr cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
     cv::Mat img = cv_ptr->image;
 
-    // Write the current frame to the video file
-    videoWriter.write(img);
+    auto& w = getOrOpenWriter(writerKey, videoPath, imgWidth, imgHeight, 10.0, true);
+    if (w.opened) w.writer.write(img);
 
-    // Display the bottom camera image in a window
     cv::imshow("Bottom Camera", img);
-    cv::waitKey(30); // Wait for a short time to allow the image to be displayed
+    cv::waitKey(1);
 }
 
 void realsenseRGBCameraMessageReceived(const sensor_msgs::ImageConstPtr& msg) {
@@ -1333,40 +1247,34 @@ void realsenseRGBCameraMessageReceived(const sensor_msgs::ImageConstPtr& msg) {
      */
     
     // Variables to store file paths for output
-    string path;
-    string videoPath;
-        
-    // Extract the ROS package path for file operations
-    #ifdef ROS
-        path = ros::package::getPath(ROS_PACKAGE_NAME).c_str();
-    #else
-        ROS_INFO_STREAM("Unable to find the ROS package\n");
-        promptAndExit(1);
-    #endif
-   
-    // Extract image dimensions from the received message
-    int imgWidth = msg->width;
-    int imgHeight = msg->height;
+    static std::string basePath;
+    static std::string videoPath;
+    static std::string writerKey = "realsense_rgb_camera";
+    static bool pathReady = false;
 
+    if (!pathReady) {
+        #ifdef ROS
+            basePath = ros::package::getPath(ROS_PACKAGE_NAME);
+        #else
+            ROS_INFO_STREAM("Unable to find the ROS package\n");
+            promptAndExit(1);
+        #endif
+        videoPath = basePath + "/data/realsenseRGBOutput.mp4";
+        pathReady = true;
+    }
+
+    const int imgWidth  = msg->width;
+    const int imgHeight = msg->height;
     ROS_INFO("[MESSAGE] RealSense RGB Image received has a width: %d and height: %d", imgWidth, imgHeight);
 
-    // Write image information to output file if output flag is true
+    // One-time “info to file” block (unchanged)
     if (output == true) {
-        // Set the path for the text output file
-        outputFilePath = path + "/data/sensorTestOutput.dat";
-
-        // Set the path for the video file the first time the output is true
-        if (!isVideoWriterInitialized) {
-            videoPath = path + "/data/realsenseRGBOutput.mp4";
-        }
-
-        // Open the output file and write RealSense RGB camera information
+        outputFilePath = basePath + "/data/sensorTestOutput.dat";
         outputFile.open(outputFilePath.c_str(), std::ofstream::app);
         if (!outputFile.is_open()) {
             printf("Unable to open the output file %s\n", outputFilePath.c_str());
             promptAndExit(1);
         }
-
         outputFile << "[TESTING] ---- REALSENSE RGB CAMERA ----\n\n";
         outputFile << "[MESSAGES] Printing RealSense RGB camera data information received.\n";
         outputFile << "Image Width: " << imgWidth << "\n";
@@ -1374,25 +1282,11 @@ void realsenseRGBCameraMessageReceived(const sensor_msgs::ImageConstPtr& msg) {
         outputFile << "Encoding: " << msg->encoding << "\n";
         outputFile << "Step: " << msg->step << "\n";
         outputFile << "[END MESSAGES] Finished printing.\n\n";
-
         outputFile.close();
-        output = false; // Set output flag to false to avoid repeated file writing
+        output = false;
     }
 
-    // Initialize the video writer if not already done
-    if (!isVideoWriterInitialized) {
-        // Initialize video writer with the path set for video output
-        videoWriter.open(videoPath, cv::VideoWriter::fourcc('m', 'p', '4', 'v'), 10, cv::Size(imgWidth, imgHeight), true);
-        
-        if (!videoWriter.isOpened()) {
-            ROS_ERROR_STREAM("Failed to initialize video writer with path: " << videoPath);
-            promptAndExit(1);
-        }
-        
-        isVideoWriterInitialized = true;
-    }
-
-    // Convert the ROS image message to OpenCV format
+    // Convert to OpenCV
     cv_bridge::CvImagePtr cv_ptr;
     try {
         cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
@@ -1400,15 +1294,15 @@ void realsenseRGBCameraMessageReceived(const sensor_msgs::ImageConstPtr& msg) {
         ROS_ERROR("cv_bridge exception: %s", e.what());
         return;
     }
-    
     cv::Mat img = cv_ptr->image;
 
-    // Write the current frame to the video file
-    videoWriter.write(img);
+    // Get the per-stream writer and write the frame
+    auto& w = getOrOpenWriter(writerKey, videoPath, imgWidth, imgHeight, /*fps=*/10.0, /*isColor=*/true);
+    if (w.opened) w.writer.write(img);
 
-    // Display the RealSense RGB camera image in a window
+    // Show the image
     cv::imshow("RealSense RGB Camera", img);
-    cv::waitKey(30); // Wait for a short time to allow the image to be displayed
+    cv::waitKey(1);  // keep UI responsive; 1ms is fine
 }
 
 void depthCameraMessageReceived(const sensor_msgs::ImageConstPtr& msg) {
@@ -1424,89 +1318,49 @@ void depthCameraMessageReceived(const sensor_msgs::ImageConstPtr& msg) {
      */
     
     // Variables to store file paths for output
-    string path;
-    string videoPath;
+    static std::string basePath, videoPath, writerKey = "depth_camera";
+    static bool pathReady = false;
 
-    // Extract the ROS package path for file operations
+    if (!pathReady) {
     #ifdef ROS
-        path = ros::package::getPath(ROS_PACKAGE_NAME).c_str();
+        basePath = ros::package::getPath(ROS_PACKAGE_NAME);
     #else
-        ROS_INFO_STREAM("Unable to find the ROS package\n");
+        ROS_INFO_STREAM("Unable to find the ROS package");
         promptAndExit(1);
     #endif
+        videoPath = basePath + "/data/depthCameraOutput.mp4";
+        pathReady = true;
+    }
 
-    // Extract image dimensions from the received message
-    int imgWidth = msg->width;
-    int imgHeight = msg->height;
+    const int imgWidth  = msg->width;
+    const int imgHeight = msg->height;
+    ROS_INFO("[MESSAGE] Depth Image received W:%d H:%d", imgWidth, imgHeight);
 
-    ROS_INFO("[MESSAGE] Image received has a width: %d and height: %d", imgWidth, imgHeight);
-
-    // Write image information to output file if output flag is true
-    if (output == true) {
-        // Set the path for the text output file
-        outputFilePath = path + "/data/sensorTestOutput.dat";
-
-        // Set the path for the video file the first time the output is true
-        if (!isVideoWriterInitialized) {
-            videoPath = path + "/data/depthCameraOutput.mp4";
-        }
-
-        // Open the output file and write depth camera information
+    if (output) {
+        outputFilePath = basePath + "/data/sensorTestOutput.dat";
         outputFile.open(outputFilePath.c_str(), std::ofstream::app);
-        if (!outputFile.is_open()) {
-            printf("Unable to open the output file %s\n", outputFilePath.c_str());
-            promptAndExit(1);
-        }
-
+        if (!outputFile.is_open()) { printf("Unable to open %s\n", outputFilePath.c_str()); promptAndExit(1); }
         outputFile << "[TESTING] ---- DEPTH CAMERA ----\n\n";
-        outputFile << "[MESSAGES] Printing depth camera data information received.\n";
         outputFile << "Image Width: " << imgWidth << "\n";
         outputFile << "Image Height: " << imgHeight << "\n";
-        outputFile << "[END MESSAGES] Finished printing.\n\n";
-
+        outputFile << "[END MESSAGES]\n\n";
         outputFile.close();
-        output = false; // Set output flag to false to avoid repeated file writing
+        output = false;
     }
 
-    // Initialize the video writer if not already done
-    if (!isVideoWriterInitialized) {
-        // Initialize video writer with the path set for video output
-        videoWriter.open(videoPath, cv::VideoWriter::fourcc('m', 'p', '4', 'v'), 2, cv::Size(imgWidth, imgHeight), true);
-        
-        if (!videoWriter.isOpened()) {
-            ROS_ERROR_STREAM("Failed to initialize video writer with path: " << videoPath);
-            promptAndExit(1);
-        }
-        
-        isVideoWriterInitialized = true;
-    }
+    cv_bridge::CvImagePtr cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::TYPE_16UC1);
+    cv::Mat depth = cv_ptr->image;               // 16U, millimeters expected
+    cv::Mat viz8u, color;
 
-    // Convert the ROS depth image message to OpenCV format with 16-bit unsigned format
-    cv_bridge::CvImagePtr cv_ptr;
-    cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::TYPE_16UC1);
+    // Scale 0..1000mm -> 0..255 for visualization
+    depth.convertTo(viz8u, CV_8UC1, 255.0 / 1000.0);
+    cv::applyColorMap(viz8u, color, cv::COLORMAP_JET);
 
-    cv::Mat img = cv_ptr->image;
+    auto& w = getOrOpenWriter(writerKey, videoPath, imgWidth, imgHeight, 10.0, /*isColor=*/true);
+    if (w.opened) w.writer.write(color);
 
-    // Set depth scaling parameters for visualization
-    double min = 0;
-    double max = 1000;
-
-    // Scale the depth image to 8-bit format for display and video recording
-    cv::Mat img_scaled_8u;
-    cv::Mat(cv_ptr->image-min).convertTo(img_scaled_8u, CV_8UC1, 255. / (max - min));
-    cv::Mat color_img;
-
-    // Convert grayscale depth image to color format for video output
-    if(img_scaled_8u.type() ==  CV_8UC1){
-        cv::cvtColor(img_scaled_8u, color_img, CV_GRAY2RGB); 
-    }
-
-    // Write the processed frame to the video file
-    videoWriter.write(color_img);
-
-    // Display the depth camera image in a window
-    cv::imshow("Depth Camera", color_img);
-    cv::waitKey(30); // Wait for a short time to allow the image to be displayed
+    cv::imshow("Depth Camera", color);
+    cv::waitKey(1);
 }
 
 void realsenseDepthCameraMessageReceived(const sensor_msgs::ImageConstPtr& msg) {
@@ -1522,69 +1376,40 @@ void realsenseDepthCameraMessageReceived(const sensor_msgs::ImageConstPtr& msg) 
      */
     
     // Variables to store file paths for output
-    string path;
-    string videoPath;
+    static std::string basePath, videoPath, writerKey = "realsense_depth_camera";
+    static bool pathReady = false;
 
-    // Extract the ROS package path for file operations
+    if (!pathReady) {
     #ifdef ROS
-        path = ros::package::getPath(ROS_PACKAGE_NAME).c_str();
+        basePath = ros::package::getPath(ROS_PACKAGE_NAME);
     #else
-        ROS_INFO_STREAM("Unable to find the ROS package\n");
+        ROS_INFO_STREAM("Unable to find the ROS package");
         promptAndExit(1);
     #endif
+        videoPath = basePath + "/data/realsenseDepthOutput.mp4";
+        pathReady = true;
+    }
 
-    // Extract image dimensions from the received message
-    int imgWidth = msg->width;
-    int imgHeight = msg->height;
+    const int imgWidth  = msg->width;
+    const int imgHeight = msg->height;
+    ROS_INFO("[MESSAGE] RealSense Depth Image W:%d H:%d", imgWidth, imgHeight);
 
-    ROS_INFO("[MESSAGE] RealSense Depth Image received has a width: %d and height: %d", imgWidth, imgHeight);
-
-    // Write image information to output file if output flag is true
-    if (output == true) {
-        // Set the path for the text output file
-        outputFilePath = path + "/data/sensorTestOutput.dat";
-
-        // Set the path for the video file the first time the output is true
-        if (!isVideoWriterInitialized) {
-            videoPath = path + "/data/realsenseDepthOutput.mp4";
-        }
-
-        // Open the output file and write RealSense depth camera information
+    if (output) {
+        outputFilePath = basePath + "/data/sensorTestOutput.dat";
         outputFile.open(outputFilePath.c_str(), std::ofstream::app);
-        if (!outputFile.is_open()) {
-            printf("Unable to open the output file %s\n", outputFilePath.c_str());
-            promptAndExit(1);
-        }
-
+        if (!outputFile.is_open()) { printf("Unable to open %s\n", outputFilePath.c_str()); promptAndExit(1); }
         outputFile << "[TESTING] ---- REALSENSE DEPTH CAMERA ----\n\n";
-        outputFile << "[MESSAGES] Printing RealSense depth camera data information received.\n";
         outputFile << "Image Width: " << imgWidth << "\n";
         outputFile << "Image Height: " << imgHeight << "\n";
         outputFile << "Encoding: " << msg->encoding << "\n";
         outputFile << "Step: " << msg->step << "\n";
-        outputFile << "[END MESSAGES] Finished printing.\n\n";
-
+        outputFile << "[END MESSAGES]\n\n";
         outputFile.close();
-        output = false; // Set output flag to false to avoid repeated file writing
+        output = false;
     }
 
-    // Initialize the video writer if not already done
-    if (!isVideoWriterInitialized) {
-        // Initialize video writer with the path set for video output
-        videoWriter.open(videoPath, cv::VideoWriter::fourcc('m', 'p', '4', 'v'), 10, cv::Size(imgWidth, imgHeight), true);
-        
-        if (!videoWriter.isOpened()) {
-            ROS_ERROR_STREAM("Failed to initialize video writer with path: " << videoPath);
-            promptAndExit(1);
-        }
-        
-        isVideoWriterInitialized = true;
-    }
-
-    // Convert the ROS depth image message to OpenCV format
     cv_bridge::CvImagePtr cv_ptr;
     try {
-        // Handle different depth encodings
         if (msg->encoding == sensor_msgs::image_encodings::TYPE_16UC1) {
             cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::TYPE_16UC1);
         } else if (msg->encoding == sensor_msgs::image_encodings::TYPE_32FC1) {
@@ -1597,36 +1422,30 @@ void realsenseDepthCameraMessageReceived(const sensor_msgs::ImageConstPtr& msg) 
         return;
     }
 
-    cv::Mat depth_img = cv_ptr->image;
-    cv::Mat display_img;
+    cv::Mat depth = cv_ptr->image;
+    cv::Mat viz8u, color;
 
-    // Convert depth image to displayable format based on encoding
     if (msg->encoding == sensor_msgs::image_encodings::TYPE_16UC1) {
-        // Scale 16-bit depth to 8-bit for visualization (0-5000mm range)
-        double min_val = 0;
-        double max_val = 5000;
-        depth_img.convertTo(display_img, CV_8UC1, 255.0 / max_val);
-        cv::applyColorMap(display_img, display_img, cv::COLORMAP_JET);
+        // assume 0..5000 mm range
+        depth.convertTo(viz8u, CV_8UC1, 255.0 / 5000.0);
     } else if (msg->encoding == sensor_msgs::image_encodings::TYPE_32FC1) {
-        // Scale 32-bit float depth to 8-bit for visualization (0-5.0m range)
-        double min_val = 0.0;
-        double max_val = 5.0;
-        depth_img.convertTo(display_img, CV_8UC1, 255.0 / max_val);
-        cv::applyColorMap(display_img, display_img, cv::COLORMAP_JET);
+        // assume 0..5.0 m range
+        depth.convertTo(viz8u, CV_8UC1, 255.0 / 5.0);
     } else {
-        // Use original image if already in displayable format
-        display_img = depth_img.clone();
-        if (display_img.channels() == 1) {
-            cv::cvtColor(display_img, display_img, cv::COLOR_GRAY2BGR);
+        if (depth.channels() == 1) {
+            cv::normalize(depth, viz8u, 0, 255, cv::NORM_MINMAX, CV_8UC1);
+        } else {
+            viz8u = depth.clone();
         }
     }
 
-    // Write the processed frame to the video file
-    videoWriter.write(display_img);
+    cv::applyColorMap(viz8u, color, cv::COLORMAP_JET);
 
-    // Display the RealSense depth camera image in a window
-    cv::imshow("RealSense Depth Camera", display_img);
-    cv::waitKey(30); // Wait for a short time to allow the image to be displayed
+    auto& w = getOrOpenWriter(writerKey, videoPath, imgWidth, imgHeight, 10.0, true);
+    if (w.opened) w.writer.write(color);
+
+    cv::imshow("RealSense Depth Camera", color);
+    cv::waitKey(1);
 }
 
 void laserSensorMessageReceived(const sensor_msgs::LaserScan& msg) {
@@ -2331,8 +2150,8 @@ void executeTestsInParallel(const std::vector<std::string>& testNames, ros::Node
         {"backsonar", backSonar},
         {"frontsonar", frontSonar},
         {"frontcamera", frontCamera}, 
-        {"realsenseRGBCamera", realsenseRGBCamera},
-        {"realsenseDepthCamera", realsenseDepthCamera},  
+        {"realsensergbcamera", realsenseRGBCamera},
+        {"realsensedepthcamera", realsenseDepthCamera},  
         {"bottomcamera", bottomCamera},
         {"depthcamera", depthCamera},
         {"laser", laserSensor},

@@ -114,15 +114,19 @@
 *
 * Author: Yohannes Tadesse Haile and Mihirteab Taye Hordofa, Carnegie Mellon University Africa
 * Email: yohanneh@andrew.cmu.edu
-* Date: September 25, 2025
+* Date: October 13, 2025
 * Version: v1.1
 *
 */
 
 # include "pepper_interface_tests/sensorTestInterface.h"
+#include <X11/Xlib.h>
 
 /* Main function */
 int main(int argc, char **argv){
+
+    XInitThreads(); // To avoid potential X11 multithreading issues with OpenCV
+
     // Initialize the ROS node
     ros::init(argc, argv, "sensorTest");
     ros::NodeHandle nh;
@@ -173,8 +177,6 @@ int main(int argc, char **argv){
     }
 
     finalizeOutputFile(out_of, path);
-
-    // Give timers/logs a chance to flush if tests return immediately
     ros::Duration(0.1).sleep();
 
     return 0;
