@@ -1,8 +1,8 @@
-/* actuatorTestImplementation.cpp
+/* actuatorTestImplementation.cpp Implementation code for running the actuator tests on Pepper robot
 *
 * Author: Yohannes Tadesse Haile and Mihirteab Taye Hordofa 
-* Date: March 19, 2024
-* Version: v1.0
+* Date: September 25, 2025
+* Version: v1.1
 *
 * Copyright (C) 2023 CSSR4Africa Consortium
 *
@@ -14,7 +14,6 @@
 * This program comes with ABSOLUTELY NO WARRANTY.
 */
 
-
 /*  Description:
 * This file contains the implementation of the actuator tests for the Pepper robot.  The tests are designed 
 * to test the head, arms, hands, legs and wheels of the robot. The tests are implemented using the ROS actionlib 
@@ -25,9 +24,10 @@
 * do 90 degree turns both clockwise and counter-clockwise.
 */
 
-# include "pepper_interface_tests/actuatorTest.h"
+# include "pepper_interface_tests/actuatorTestInterface.h"
 
 // Global variables for the wheels
+bool verboseMode = false; 
 bool shutdownInitiated = false;
 ros::Time startTime;
 ros::Publisher pub;
@@ -42,27 +42,63 @@ enum Robotstate{
 
 Robotstate state = MOVE_FORWARD;
 
-// Signal handler to stop the robot
+static inline std::string rstrip_slash(std::string s) {
+    while (!s.empty() && s.back() == '/') s.pop_back();
+    return s;
+}
+
+// Strip leading '/' from a ROS node name
+std::string cleanNodeName(const std::string& name) {
+    return (!name.empty() && name.front() == '/') ? name.substr(1) : name;
+}
+
+// 10-second heartbeat
+void heartbeatCb(const ros::TimerEvent&) {
+    ROS_INFO_STREAM( cleanNodeName(ros::this_node::getName()) << ": running..." );
+}
+
 void signalHandler(int signum) {
+    /*
+     * Signal handler to safely stop the robot when interrupt signal is received
+     * Publishes zero velocities multiple times to ensure the robot stops completely
+     *
+     * @param:
+     *     signum: Signal number received (typically SIGINT for Ctrl+C)
+     *
+     * @return:
+     *     None (terminates the program)
+     */
+    
     ROS_WARN("Interrupt signal (%d) received. Stopping the robot.", signum);
 
-    // Publish zero velocities
     geometry_msgs::Twist stopMsg;
     stopMsg.linear.x = 0.0;
     stopMsg.angular.z = 0.0;
     
-    // Publish the stop message multiple times
     ros::Rate rate(10);  
-    for (int i = 0; i < 30; ++i) {  // Continue for ~3 seconds
+    for (int i = 0; i < 30; ++i) {
         pub.publish(stopMsg);
         rate.sleep();
     }
 
-    // Terminate ROS node
     ros::shutdown();
 }
 
 ControlClientPtr createClient(const std::string& topicName) {
+    /*
+     * Creates and initializes an action client for joint trajectory control
+     * Waits for the action server to become available with retry mechanism
+     *
+     * @param:
+     *     topicName: Name of the ROS topic for the action server
+     *
+     * @return:
+     *     ControlClientPtr: Shared pointer to the initialized action client
+     *
+     * @throws:
+     *     std::runtime_error: If action server is not available after maximum iterations
+     */
+    
     ControlClientPtr actionClient(new ControlClient(topicName, true));
     int maxIterations = 5;
 
@@ -76,9 +112,22 @@ ControlClientPtr createClient(const std::string& topicName) {
     throw std::runtime_error("Error creating action client for " + topicName + " controller: Server not available");
 }
 
-
 void moveToPosition(ControlClientPtr& client, const std::vector<std::string>& jointNames, double duration, 
                     const std::string& positionName, std::vector<double> positions) {
+    /*
+     * Moves robot joints to specified positions using trajectory control
+     * Sends joint trajectory goal and waits for completion with status reporting
+     *
+     * @param:
+     *     client: Shared pointer to the action client for joint control
+     *     jointNames: Vector of joint names to control
+     *     duration: Time duration for the movement in seconds
+     *     positionName: Descriptive name for the target position (for logging)
+     *     positions: Target positions for each joint in radians
+     *
+     * @return:
+     *     None
+     */
     
     control_msgs::FollowJointTrajectoryGoal goal;
     trajectory_msgs::JointTrajectory& trajectory = goal.trajectory;
@@ -90,8 +139,7 @@ void moveToPosition(ControlClientPtr& client, const std::vector<std::string>& jo
 
     client->sendGoal(goal);
 
-    // Wait for the action to finish and check the result.
-    bool finishedBeforeTimeout = client->waitForResult(ros::Duration(10.0)); // Adjust the timeout as needed
+    bool finishedBeforeTimeout = client->waitForResult(ros::Duration(10.0));
 
     if (finishedBeforeTimeout) {
         actionlib::SimpleClientGoalState state = client->getState();
@@ -107,22 +155,27 @@ void moveToPosition(ControlClientPtr& client, const std::vector<std::string>& jo
     }
 }
 
-
-// generate duration by taking the velocity max, min and home position (t = (max - min) / velocity)
-std::vector<std::vector<double>> calculateDuration(std::vector<double> homePosition, std::vector<double> maxPosition, std::vector<double> minPosition, std::vector<std::vector<double>> velocity){
+std::vector<std::vector<double>> calculateDuration(std::vector<double> homePosition, std::vector<double> maxPosition, 
+                                                  std::vector<double> minPosition, std::vector<std::vector<double>> velocity) {
+    /*
+     * Calculates movement durations for joint trajectories based on position differences and velocities
+     * Computes time required for three-phase movement: home->min, min->max, max->home
+     *
+     * @param:
+     *     homePosition: Vector of home/rest positions for each joint
+     *     maxPosition: Vector of maximum positions for each joint
+     *     minPosition: Vector of minimum positions for each joint
+     *     velocity: 2D vector of velocities for each joint and movement phase
+     *
+     * @return:
+     *     std::vector<std::vector<double>>: 2D vector containing calculated durations for each joint and phase
+     */
     
-    // Initialize the duration vector similar to the velocity vector
     std::vector<std::vector<double>> duration(velocity.size(), std::vector<double>(velocity[0].size(), 0.0));
     
-    // Calculate the duration for each joint check if the velocity is 0 or not
-    for (int i = 0; i < homePosition.size(); ++i){
-        // Calculate the duration for the first part of the trajectory
+    for (int i = 0; i < homePosition.size(); ++i) {
         duration[i][0] = std::fabs(minPosition[i] - homePosition[i]) / velocity[i][0];
-        
-        // Calculate the duration for the second part of the trajectory
         duration[i][1] = std::fabs(maxPosition[i] - minPosition[i]) / velocity[i][1];
-        
-        // Calculate the duration for the third part of the trajectory
         duration[i][2] = std::fabs(homePosition[i] - maxPosition[i]) / velocity[i][2];   
     }
 
@@ -130,14 +183,23 @@ std::vector<std::vector<double>> calculateDuration(std::vector<double> homePosit
 }
 
 void head(ros::NodeHandle& nh) {
-    // find the respective topic 
+    /*
+     * Performs comprehensive head movement testing for HeadPitch and HeadYaw joints
+     * Tests full range of motion by moving each joint to min, max, and mid positions
+     *
+     * @param:
+     *     nh: ROS NodeHandle for communication with ROS system
+     *
+     * @return:
+     *     None
+     */
+    
     std::string headTopic = extractTopic("Head");
-
+    checkTopicAvailable(headTopic);
     ControlClientPtr headClient = createClient(headTopic);
     std::vector<std::string> jointNames = {"HeadPitch", "HeadYaw"};
     std::vector<double> position(2, 0.0);
     
-    // Minimum and maximum positions for each joint
     std::vector<double> minPosition = {-0.706, -2.085};
     std::vector<double> maxPosition = {0.445, 2.085};
     std::vector<double> homePosition = {-0.2, 0.012};
@@ -147,7 +209,6 @@ void head(ros::NodeHandle& nh) {
     
     ROS_INFO_STREAM("----------[START HEAD CONTROL TEST]-----------");
 
-    // For each joint, move to the minimum position, then to the maximum position, then to the mid-range position
     for (int i = 0; i < jointNames.size(); ++i) {
         ROS_INFO_STREAM("[START] " << jointNames[i] << " test.");
 
@@ -167,19 +228,27 @@ void head(ros::NodeHandle& nh) {
     double homeDuration = 2.0;
     moveToPosition(headClient, jointNames, homeDuration, "home", homePosition);
 
-    // End of test 
     ROS_INFO_STREAM("----------[END HEAD CONTROL TEST]-----------");
 }
 
-void rArm(ros::NodeHandle& nh){
-    // find the respective topic
+void rArm(ros::NodeHandle& nh) {
+    /*
+     * Performs comprehensive right arm movement testing for all shoulder, elbow, and wrist joints
+     * Tests full range of motion by moving each joint through min, max, and mid positions
+     *
+     * @param:
+     *     nh: ROS NodeHandle for communication with ROS system
+     *
+     * @return:
+     *     None
+     */
+    
     std::string rightArmTopic = extractTopic("RArm");
-
+    checkTopicAvailable(rightArmTopic);
     ControlClientPtr rightArmClient = createClient(rightArmTopic);
     std::vector<std::string> jointNames = {"RShoulderPitch", "RShoulderRoll",  "RElbowRoll", "RElbowYaw", "RWristYaw"};
     std::vector<double> position(5, 0.0);
     
-    // Minimum and maximum positions for each joint
     std::vector<double> minPosition = {-2.0857, -1.5620 , 0.0087, -2.0857, -1.5620};
     std::vector<double> maxPosition = {2.0857,  -0.0087,  1.5620,  2.0857,  1.8239};
     std::vector<double> homePosition = {1.7410, -0.09664, 0.09664, 1.6981, -0.05679};
@@ -189,7 +258,6 @@ void rArm(ros::NodeHandle& nh){
 
     ROS_INFO_STREAM("----------[START RIGHT ARM CONTROL TEST]-----------");
 
-    // For each joint, move to the minimum position, then to the maximum position, then to the mid-range position
     for (int i = 0; i < jointNames.size(); ++i) {
         ROS_INFO_STREAM("[START] " << jointNames[i] << " test.");
 
@@ -209,19 +277,27 @@ void rArm(ros::NodeHandle& nh){
     double homeDuration = 2.0;
     moveToPosition(rightArmClient, jointNames, homeDuration, "home", homePosition);
 
-    // End of test 
     ROS_INFO_STREAM("----------[END RIGHT ARM CONTROL TEST]-----------");
 }
 
-void rHand(ros::NodeHandle& nh){
-    // Find the respective topic
+void rHand(ros::NodeHandle& nh) {
+    /*
+     * Performs right hand movement testing for hand opening and closing functionality
+     * Tests the full range of hand motion from fully closed to fully open
+     *
+     * @param:
+     *     nh: ROS NodeHandle for communication with ROS system
+     *
+     * @return:
+     *     None
+     */
+    
     std::string rightHandTopic = extractTopic("RHand");
-
+    checkTopicAvailable(rightHandTopic);
     ControlClientPtr rightHandClient = createClient(rightHandTopic);
     std::vector<std::string> jointNames = {"RHand"};
     std::vector<double> position(1, 0.0);
     
-    // Maximum and minimum positions for each joint
     std::vector<double> maxPosition = {1.0};
     std::vector<double> minPosition = {0.0};
     std::vector<double> homePosition = {0.66608};
@@ -231,7 +307,6 @@ void rHand(ros::NodeHandle& nh){
 
     ROS_INFO_STREAM("----------[START RIGHT HAND CONTROL TEST]-----------");
 
-    // For each joint, move to the minimum position, then to the maximum position, then to the mid-range position
     for (int i = 0; i < jointNames.size(); ++i) {
         ROS_INFO_STREAM("[START] " << jointNames[i] << " test.");
 
@@ -247,24 +322,31 @@ void rHand(ros::NodeHandle& nh){
         ROS_INFO_STREAM("[END] " << jointNames[i] << " test.");
     }
 
-
     ROS_INFO_STREAM("[PUT DOWN RIGHT HAND] Moving to the Home position");
     moveToPosition(rightHandClient, jointNames, duration, "home", homePosition);
 
-    // End of test 
     ROS_INFO_STREAM("----------[END RIGHT HAND CONTROL TEST]-----------");
 }
 
-
-void lArm(ros::NodeHandle& nh){
-    // Find the respective topic
+void lArm(ros::NodeHandle& nh) {
+    /*
+     * Performs comprehensive left arm movement testing for all shoulder, elbow, and wrist joints
+     * Tests full range of motion by moving each joint through min, max, and mid positions
+     * Note: Left arm has inverted motion patterns compared to right arm
+     *
+     * @param:
+     *     nh: ROS NodeHandle for communication with ROS system
+     *
+     * @return:
+     *     None
+     */
+    
     std::string leftArmTopic = extractTopic("LArm");
-
+    checkTopicAvailable(leftArmTopic);
     ControlClientPtr leftArmClient = createClient(leftArmTopic);
     std::vector<std::string> jointNames = {"LShoulderPitch", "LShoulderRoll", "LElbowRoll", "LElbowYaw", "LWristYaw"};
     std::vector<double> position(5, 0.0);
     
-    // Minimum and maximum positions for each joint
     std::vector<double> minPosition = {2.0857,  0.0087,  -1.5620, -2.0857,  -1.8239};
     std::vector<double> maxPosition = {-2.0857, 1.5620 , -0.0087,  2.0857,   1.8239};
     std::vector<double> homePosition = {1.7625, 0.09970, -0.1334, -1.7150,  0.06592};
@@ -274,7 +356,6 @@ void lArm(ros::NodeHandle& nh){
 
     ROS_INFO_STREAM("----------[START LEFT ARM CONTROL TEST]-----------");
 
-    // For each joint, move to the minimum position, then to the maximum position, then to the mid-range position
     for (int i = 0; i < jointNames.size(); ++i) {
         ROS_INFO_STREAM("[START] " << jointNames[i] << " test.");
 
@@ -290,24 +371,31 @@ void lArm(ros::NodeHandle& nh){
         ROS_INFO_STREAM("[END] " << jointNames[i] << " test.");
     }
 
-
     ROS_INFO_STREAM("[PUT DOWN LEFT ARM] Moving to the Home position");
     double homeDuration = 2.0;
     moveToPosition(leftArmClient, jointNames, homeDuration, "home", homePosition);
 
-    // End of test
     ROS_INFO_STREAM("----------[END LEFT ARM CONTROL TEST]-----------");
 }
 
-void lHand(ros::NodeHandle& nh){
-    // Find the respective topic
+void lHand(ros::NodeHandle& nh) {
+    /*
+     * Performs left hand movement testing for hand opening and closing functionality
+     * Tests the full range of hand motion from fully closed to fully open
+     *
+     * @param:
+     *     nh: ROS NodeHandle for communication with ROS system
+     *
+     * @return:
+     *     None
+     */
+    
     std::string leftHandTopic = extractTopic("LHand");
-
+    checkTopicAvailable(leftHandTopic);
     ControlClientPtr leftHandClient = createClient(leftHandTopic);
     std::vector<std::string> jointNames = {"LHand"};
     std::vector<double> position(1, 0.0);
     
-    // Maximum and minimum positions for each joint
     std::vector<double> maxPosition = {1.0};
     std::vector<double> minPosition = {0.0};
     std::vector<double> homePosition = {0.6695};
@@ -317,7 +405,6 @@ void lHand(ros::NodeHandle& nh){
 
     ROS_INFO_STREAM("----------[START LEFT HAND CONTROL TEST]-----------");
 
-    // For each joint, move to the minimum position, then to the maximum position, then to the mid-range position
     for (int i = 0; i < jointNames.size(); ++i) {
         ROS_INFO_STREAM("[START] " << jointNames[i] << " test.");
 
@@ -333,24 +420,30 @@ void lHand(ros::NodeHandle& nh){
         ROS_INFO_STREAM("[END] " << jointNames[i] << " test.");
     }
 
-
     ROS_INFO_STREAM("[PUT DOWN LEFT HAND] Moving to the Home position");
     moveToPosition(leftHandClient, jointNames, duration, "home", homePosition);
 
-    // End of test
     ROS_INFO_STREAM("----------[END LEFT HAND CONTROL TEST]-----------");
 }
 
-void leg(ros::NodeHandle& nh){
-    // Find the respective topic
+void leg(ros::NodeHandle& nh) {
+    /*
+     * Performs leg movement testing for hip and knee joints
+     * Tests the range of motion for HipPitch, HipRoll, and KneePitch joints
+     *
+     * @param:
+     *     nh: ROS NodeHandle for communication with ROS system
+     *
+     * @return:
+     *     None
+     */
+    
     std::string legTopic = extractTopic("Leg");
-
+    checkTopicAvailable(legTopic);
     ControlClientPtr legClient = createClient(legTopic);
     std::vector<std::string> jointNames = {"HipPitch", "HipRoll", "KneePitch"};
     std::vector<double> position(3, 0.0);
     
-    
-    // Minimum and maximum positions for each joint
     std::vector<double> minPosition = {-1.0385, -0.5149 , -0.5149};
     std::vector<double> maxPosition = {1.0385,   0.5149,   0.5149};
     std::vector<double> homePosition = {-0.0107, -0.00766, 0.03221};
@@ -358,10 +451,8 @@ void leg(ros::NodeHandle& nh){
     std::vector<std::vector<double>> velocities = {{0.5, 0.5, 0.5},{0.5, 0.5, 0.5},{0.5, 0.5, 0.5}};
     std::vector<std::vector<double>> duration = calculateDuration(homePosition, maxPosition, minPosition, velocities);
 
-
     ROS_INFO_STREAM("----------[START LEG CONTROL TEST]-----------");
 
-    // For each joint, move to the minimum position, then to the maximum position, then to the mid-range position
     for (int i = 0; i < jointNames.size(); ++i) {
         ROS_INFO_STREAM("[START] " << jointNames[i] << " test.");
 
@@ -377,34 +468,39 @@ void leg(ros::NodeHandle& nh){
         ROS_INFO_STREAM("[END] " << jointNames[i] << " test.");
     }
 
-
     ROS_INFO_STREAM("[PUT DOWN LEG] Moving to the Home position");
     double homeDuration = 2.0;
     moveToPosition(legClient, jointNames, homeDuration, "home", homePosition);
 
-    // End of test
     ROS_INFO_STREAM("----------[END LEG CONTROL TEST]-----------");
 }
 
-// Main control function
 void wheels(ros::NodeHandle& nh) {
+    /*
+     * Performs comprehensive wheel movement testing using state machine
+     * Tests forward movement, backward movement, clockwise rotation, and counter-clockwise rotation
+     * Each movement state has a specific duration before transitioning to the next state
+     *
+     * @param:
+     *     nh: ROS NodeHandle for communication with ROS system
+     *
+     * @return:
+     *     None
+     */
+    
     std::string wheelTopic = extractTopic("Wheels");
-
+    checkTopicAvailable(wheelTopic);
     pub = nh.advertise<geometry_msgs::Twist>(wheelTopic, 1000);
     ros::Rate rate(10);
 
     signal(SIGINT, signalHandler);
-
     geometry_msgs::Twist msg;
-
-    // Initialize the start time
     startTime = ros::Time::now();
 
     ROS_INFO_STREAM("----------[START WHEEL CONTROL TEST]-----------");
 
     while (ros::ok()) {
         ros::spinOnce();
-
         ros::Duration elapsedTime = ros::Time::now() - startTime;
 
         switch (state) {
@@ -412,7 +508,7 @@ void wheels(ros::NodeHandle& nh) {
                 msg.linear.x = 0.2;
                 msg.angular.z = 0.0;
                 pub.publish(msg);
-                if (elapsedTime.toSec() >= 5.0) { // Move forward for 5 seconds
+                if (elapsedTime.toSec() >= 5.0) {
                     startTime = ros::Time::now();
                     state = MOVE_BACKWARD;
                 }
@@ -422,7 +518,7 @@ void wheels(ros::NodeHandle& nh) {
                 msg.linear.x = -0.2;
                 msg.angular.z = 0.0;
                 pub.publish(msg);
-                if (elapsedTime.toSec() >= 5.0) { // Move backward for 5 seconds
+                if (elapsedTime.toSec() >= 5.0) {
                     startTime = ros::Time::now();
                     state = ROTATE_CLOCKWISE;
                 }
@@ -432,7 +528,7 @@ void wheels(ros::NodeHandle& nh) {
                 msg.linear.x = 0.0;
                 msg.angular.z = 0.3;
                 pub.publish(msg);
-                if (elapsedTime.toSec() >= 6.0) { // Rotate clockwise for 6 seconds
+                if (elapsedTime.toSec() >= 6.0) {
                     startTime = ros::Time::now();
                     state = ROTATE_COUNTER_CLOCKWISE;
                 }
@@ -442,7 +538,7 @@ void wheels(ros::NodeHandle& nh) {
                 msg.linear.x = 0.0;
                 msg.angular.z = -0.3;
                 pub.publish(msg);
-                if (elapsedTime.toSec() >= 6.0) { // Rotate counter-clockwise for 6 seconds
+                if (elapsedTime.toSec() >= 6.0) {
                     state = STOP;
                     shutdownInitiated = true; 
                 }
@@ -463,29 +559,41 @@ void wheels(ros::NodeHandle& nh) {
         rate.sleep();
     }
 }
-/* Extract topic names for the respective simulator or physical robot */
-std::string extractTopic(std::string key){
-    bool debug = false;   // used to turn debug message on
-    
-    std::string configFileName      = "actuatorTestConfiguration.ini";  // configuration filename
-    std::string packagePath;                                            // ROS package path
-    std::string configPathFile;                                         // configuration path and filename
-    
-    std::string platformKey         = "platform";                       // platform key 
-    std::string robotTopicKey       = "robottopics";                    // robot topic key
-    std::string simulatorTopicKey   = "simulatortopics";                // simulator topic key
 
-    std::string platformValue;                                          // platform value
-    std::string robotTopicValue;                                        // robot topic value
-    std::string simulatorTopicValue;                                    // simulator topic value
-    std::string mode;                                                   // mode value
+std::string extractTopic(std::string key) {
+    /*
+     * Extracts topic names from configuration files based on platform (simulator/robot)
+     * Reads configuration file to determine platform, then reads appropriate topic file
+     *
+     * @param:
+     *     key: String key to search for in the topic configuration file
+     *
+     * @return:
+     *     std::string: Topic name corresponding to the provided key
+     *
+     * @throws:
+     *     Exits program if configuration files cannot be opened or key not found
+     */
     
-    std::string topicFileName;                                          // topic filename
-    std::string topicPathFile;                                          // topic with path and file 
+    bool debug = false;
+    
+    std::string configFileName = "actuatorTestConfiguration.ini";
+    std::string packagePath;
+    std::string configPathFile;
+    
+    std::string platformKey = "platform";
+    std::string robotTopicKey = "robottopics";
+    std::string simulatorTopicKey = "simulatortopics";
+    std::string verboseModeKey = "verboseMode";
 
-    std::string topic_value          = "";                              // topic value with empty string as default
+    std::string platformValue;
+    std::string robotTopicValue;
+    std::string simulatorTopicValue;
+    
+    std::string topicFileName;
+    std::string topicPathFile;
+    std::string topic_value = "";
 
-    // Construct the full path of the configuration file
     #ifdef ROS
         packagePath = ros::package::getPath(ROS_PACKAGE_NAME).c_str();
     #else
@@ -493,21 +601,18 @@ std::string extractTopic(std::string key){
         promptAndExit(1);
     #endif
 
-    // set configuration path
-    configPathFile  = packagePath + "/config/" + configFileName;
+    configPathFile = packagePath + "/config/" + configFileName;
 
     if (debug) printf("Config file is %s\n", configPathFile.c_str());
 
-    // Open configuration file
     std::ifstream configFile(configPathFile.c_str());
-    if (!configFile.is_open()){
+    if (!configFile.is_open()) {
         printf("Unable to open the config file %s\n", configPathFile.c_str());
         promptAndExit(1);
     }
 
-    std::string configLineRead;  // variable to read the line in the file
-    // Get key-value pairs from the configuration file
-    while(std::getline(configFile, configLineRead)){
+    std::string configLineRead;
+    while(std::getline(configFile, configLineRead)) {
         std::istringstream iss(configLineRead);
         std::string paramKey, paramValue;
         iss >> paramKey;
@@ -516,18 +621,20 @@ std::string extractTopic(std::string key){
         iss >> paramValue;
         trim(paramValue);
 
-        // To lower case
         transform(paramKey.begin(), paramKey.end(), paramKey.begin(), ::tolower);
 
-        if (paramKey == platformKey){ platformValue = paramValue;}
-        else if (paramKey == robotTopicKey){ robotTopicValue = paramValue;}
-        else if (paramKey == simulatorTopicKey){ simulatorTopicValue = paramValue;}
-
+        if (paramKey == platformKey) { platformValue = paramValue; }
+        else if (paramKey == robotTopicKey) { robotTopicValue = paramValue; }
+        else if (paramKey == simulatorTopicKey) { simulatorTopicValue = paramValue; }
+        else if (paramKey == verboseModeKey) { 
+            transform(paramValue.begin(), paramValue.end(), paramValue.begin(), ::tolower);
+            if (paramValue == "true") verboseMode = true;
+            else verboseMode = false;
+        }
     }
     configFile.close();
 
-    // set the topic file based on the config extracted above
-    if (platformValue == "simulator") { topicFileName = simulatorTopicValue;}    
+    if (platformValue == "simulator") { topicFileName = simulatorTopicValue; }    
     else if (platformValue == "robot") { topicFileName = robotTopicValue; }
     
     if (debug) printf("Topic file: %s\n", topicFileName.c_str());
@@ -536,16 +643,14 @@ std::string extractTopic(std::string key){
 
     if (debug) printf("Topic file is %s\n", topicPathFile.c_str());
 
-    // Open topic file
     std::ifstream topicFile(topicPathFile.c_str());
-    if (!topicFile.is_open()){
+    if (!topicFile.is_open()) {
         printf("Unable to open the topic file %s\n", topicPathFile.c_str());
         promptAndExit(1);
     }
 
-    std::string topicLineRead;   // variable to read the line in the file
-    // Get key-value pairs from the topic file
-    while(std::getline(topicFile, topicLineRead)){
+    std::string topicLineRead;
+    while(std::getline(topicFile, topicLineRead)) {
         std::istringstream iss(topicLineRead);
         std::string paramKey, paramValue;
         iss >> paramKey;
@@ -563,41 +668,48 @@ std::string extractTopic(std::string key){
     return topic_value;
 }
 
-// Extract the mode to run the tests
-std::string extractMode(){
-    bool debug = false;   // used to turn debug message on
+std::string extractMode() {
+    /*
+     * Extracts the operational mode from configuration file
+     * Determines whether the system should run in a specific test mode
+     *
+     * @param:
+     *     None
+     *
+     * @return:
+     *     std::string: Mode value from configuration file (converted to lowercase)
+     *
+     * @throws:
+     *     Exits program if configuration file cannot be opened or mode not found
+     */
     
-    std::string configFileName  = "actuatorTestConfiguration.ini";          // configuration filename
-    std::string packagePath;                                                // ROS package path
-    std::string configPathFile;                                             // configuration path and filename
+    bool debug = false;
     
-    std::string modeKey         = "mode";                                   // mode key 
-
-    std::string modeValue;                                                  // mode value
+    std::string configFileName = "actuatorTestConfiguration.ini";
+    std::string packagePath;
+    std::string configPathFile;
+    std::string modeKey = "mode";
+    std::string modeValue;
     
-    // Construct the full path of the configuration file
     #ifdef ROS
         packagePath = ros::package::getPath(ROS_PACKAGE_NAME).c_str();
     #else
         printf("ROS_PACKAGE_NAME is not defined. Please define the ROS_PACKAGE_NAME environment variable.\n");
     #endif
 
-    // set configuration path
-    configPathFile  = packagePath + "/config/" + configFileName;
+    configPathFile = packagePath + "/config/" + configFileName;
 
     if (debug) printf("Config file is %s\n", configPathFile.c_str());
 
-    // Open configuration file
     std::ifstream configFile(configPathFile.c_str());
-    if (!configFile.is_open()){
+    if (!configFile.is_open()) {
         printf("Unable to open the config file %s\n", configPathFile.c_str());
         promptAndExit(1);
     }
 
-    std::string configLineRead;  // variable to read the line in the file
+    std::string configLineRead;
     
-    // Get key-value pairs from the configuration file
-    while(std::getline(configFile, configLineRead)){
+    while(std::getline(configFile, configLineRead)) {
         std::istringstream iss(configLineRead);
         std::string paramKey, paramValue;
         iss >> paramKey;
@@ -606,34 +718,43 @@ std::string extractMode(){
         iss >> paramValue;
         trim(paramValue);
 
-        // To lower case
         transform(paramKey.begin(), paramKey.end(), paramKey.begin(), ::tolower);
         transform(paramValue.begin(), paramValue.end(), paramValue.begin(), ::tolower);
 
-        if (paramKey == modeKey){ modeValue = paramValue;}
+        if (paramKey == modeKey) { modeValue = paramValue; }
     }
     configFile.close();
 
-    // verify the modeValue is not empty
-    if (modeValue == ""){
+    if (modeValue == "") {
         printf("Unable to find a valid mode.\n");
         promptAndExit(1);
     }
     return modeValue;
 }
 
-/* Extract the expected tests to run for the respective actuator or sensor tests */
-std::vector<std::string> extractTests(std::string test){
-    bool debug = false;                                         // used to turn debug message on
+std::vector<std::string> extractTests() {
+    /*
+     * Extracts list of enabled tests from input configuration file
+     * Reads test configuration and returns names of tests marked as "true"
+     *
+     * @param:
+     *     test: Test category identifier (currently unused in implementation)
+     *
+     * @return:
+     *     std::vector<std::string>: Vector of test names that are enabled (set to "true")
+     *
+     * @throws:
+     *     Exits program if input configuration file cannot be opened
+     */
     
-    std::string inputFileName = "actuatorTestInput.ini";        // input filename
-    std::string packagePath;                                    // ROS package path
-    std::string inputPathFile;                                  // input path and filename
+    bool debug = false;
+    
+    std::string inputFileName = "actuatorTestInput.dat";
+    std::string packagePath;
+    std::string inputPathFile;
     
     std::vector<std::string> testName;
-    std::string flag;
 
-    // Construct the full path of the input file
     #ifdef ROS
         packagePath = ros::package::getPath(ROS_PACKAGE_NAME).c_str();
     #else
@@ -641,22 +762,20 @@ std::vector<std::string> extractTests(std::string test){
         promptAndExit(1);
     #endif
     
-    inputPathFile = packagePath + "/config/" + inputFileName;
+    inputPathFile = packagePath + "/data/" + inputFileName;
 
     if (debug) printf("Input file is %s\n", inputPathFile.c_str());
 
-    // Open input file
     std::ifstream inputFile(inputPathFile.c_str());
-    if (!inputFile.is_open()){
+    if (!inputFile.is_open()) {
         printf("Unable to open the input file %s\n", inputPathFile.c_str());
         promptAndExit(1);
     }
 
-    std::string inpLineRead;  // variable to read the line in the file
-    
+    std::string inpLineRead;
     std::string paramKey, paramValue;
-    // Get key-value pairs from the input file
-    while(std::getline(inputFile, inpLineRead)){
+    
+    while(std::getline(inputFile, inpLineRead)) {
         std::istringstream iss(inpLineRead);
     
         iss >> paramKey;
@@ -664,30 +783,129 @@ std::vector<std::string> extractTests(std::string test){
         std::getline(iss, paramValue);
         iss >> paramValue;
         
-        trim(paramValue);                                                                   // trim whitespace
-        transform(paramKey.begin(), paramKey.end(), paramKey.begin(), ::tolower);           // convert to lower case
-        transform(paramValue.begin(), paramValue.end(), paramValue.begin(), ::tolower);     // convert to lower case
+        trim(paramValue);
+        transform(paramKey.begin(), paramKey.end(), paramKey.begin(), ::tolower);
+        transform(paramValue.begin(), paramValue.end(), paramValue.begin(), ::tolower);
 
-        if (paramValue == "true"){ testName.push_back(paramKey);}
+        if (paramValue == "true") { 
+            testName.push_back(paramKey);
+        }
     }
     inputFile.close();
+
+    std::cout<<"Tests to be executed: ";
+    for (const auto& name : testName) {
+        std::cout << name << " ";
+    }
+    std::cout << std::endl;
 
     return testName;
 }
 
-/* Helper Functions */
-void promptAndExit(int status){
+void promptAndExit(int status) {
+    /*
+     * Prompts user for input before exiting the program
+     * Used for debugging and ensuring user sees error messages before program termination
+     *
+     * @param:
+     *     status: Exit status code to return to the operating system
+     *
+     * @return:
+     *     None (terminates the program)
+     */
+    
     printf("Press any key to continue ... \n");
     getchar();
     exit(status);
 }
 
-void promptAndContinue(){
+void promptAndContinue() {
+    /*
+     * Prompts user for input before continuing program execution
+     * Used for pausing execution to allow user to read output or prepare for next step
+     *
+     * @param:
+     *     None
+     *
+     * @return:
+     *     None
+     */
+    
     printf("Press any key to proceed ...\n");
     getchar();
 }
 
-void executeTestsSequentially(const std::vector<std::string>& testNames, ros::NodeHandle& nh){
+bool checkTopicAvailable(const std::string& topic_name_raw) {
+    /*
+    * @brief
+    *     Checks availability of a specified ROS topic or action base in a single shot.
+    *
+    * @param:
+    *     topic_name_raw: Raw name of the topic or action base to check.
+    *
+    * @return:
+    *     true if the topic exists or if the action base has at least one standard subtopic,
+    *     false otherwise.
+    *
+    * @note:
+    *     Prints an informational message with the current node name when a subscription
+    *     is detected. Performs no retries or waiting — call repeatedly if you need
+    *     continuous checking.
+    */
+
+    if (!ros::master::check()) return false;
+
+    const std::string resolved = rstrip_slash(ros::names::resolve(topic_name_raw));
+    ros::master::V_TopicInfo topics;
+    if (!ros::master::getTopics(topics)) return false;
+
+    // Helper to strip leading slash
+    auto cleanNodeName = [](const std::string& s) {
+        return (!s.empty() && s.front() == '/') ? s.substr(1) : s;
+    };
+
+    const std::string nodeName = cleanNodeName(ros::this_node::getName());
+
+    // Fast path: exact match
+    for (const auto& t : topics) {
+        if (t.name == resolved) {
+            ROS_INFO_STREAM(nodeName << ": subscribed to " << resolved << ".");
+            return true;
+        }
+    }
+
+    // Action-style check
+    static const char* kActionSuffixes[] = {
+        "/goal", "/status", "/feedback", "/result", "/cancel"
+    };
+    for (const auto& t : topics) {
+        for (const char* suf : kActionSuffixes) {
+            if (t.name == resolved + suf) {
+                ROS_INFO_STREAM(nodeName << ": subscribed to " << resolved << ".");
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+void executeTestsSequentially(const std::vector<std::string>& testNames, ros::NodeHandle& nh) {
+    /*
+     * Executes specified actuator tests in sequential order
+     * Runs each test one after another, ensuring complete execution before starting the next
+     *
+     * @param:
+     *     testNames: Vector of test names to execute (head, rarm, rhand, larm, lhand, leg, wheels)
+     *     nh: ROS NodeHandle for communication with ROS system
+     *
+     * @return:
+     *     None
+     *
+     * @note:
+     *     Exits program with error message if unknown test name is provided
+     */
+    
     for (const auto& testName : testNames) {
         if (testName == "head") {
             head(nh);
@@ -709,7 +927,24 @@ void executeTestsSequentially(const std::vector<std::string>& testNames, ros::No
     }
 }
 
-void executeTestsInParallel(const std::vector<std::string>& testNames, ros::NodeHandle& nh){
+void executeTestsInParallel(const std::vector<std::string>& testNames, ros::NodeHandle& nh) {
+    /*
+     * Executes specified actuator tests in parallel using multiple threads
+     * Creates separate threads for each test to run simultaneously, improving test efficiency
+     * Note: Wheels test is excluded from parallel execution due to potential conflicts
+     *
+     * @param:
+     *     testNames: Vector of test names to execute (head, rarm, rhand, larm, lhand, leg)
+     *     nh: ROS NodeHandle for communication with ROS system
+     *
+     * @return:
+     *     None
+     *
+     * @warning:
+     *     Wheels test should not be run in parallel with other tests due to safety concerns
+     *     and potential hardware conflicts
+     */
+    
     std::vector<std::thread> threads;
     for (const auto& testName : testNames) {
         if (testName == "head") {
@@ -733,4 +968,3 @@ void executeTestsInParallel(const std::vector<std::string>& testNames, ros::Node
         thread.join();
     }
 }
- 

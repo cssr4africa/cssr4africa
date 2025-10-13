@@ -1,0 +1,14 @@
+backSonar               false
+frontSonar              false
+bottomCamera            false
+frontCamera             false
+realsenseRGBCamera      true
+realsenseDepthCamera    false
+depthCamera             false
+stereoCamera            false
+laser                   false
+microphone              false
+jointState              false
+odometry                false
+imu                     false
+speech                  false

@@ -1,3 +1,20 @@
+/* sensorTestInterface.h - Header file for the sensorTest module to test the sensors of the Pepper robot using ROS interface.
+ *
+ * Author:  Yohannes Tadesse Haile and Mihirteab Taye Hordofa, Carnegie Mellon University Africa
+ * Email:   yohanneh@andrew.cmu.edu
+ * Date:    September 25, 2025
+ * Version: v1.1
+ *
+ * Copyright (C) 2023 CSSR4Africa Consortium
+ *
+ * This project is funded by the African Engineering and Technology Network (Afretec)
+ * Inclusive Digital Transformation Research Grant Programme.
+ *
+ * Website: www.cssr4africa.org
+ *
+ * This program comes with ABSOLUTELY NO WARRANTY.
+ */
+
 #ifndef SENSOR_TEST_H
 #define SENSOR_TEST_H
 
@@ -23,6 +40,12 @@
 #include <vector>
 #include <cstdlib>
 #include <filesystem>
+#include <unordered_set>
+#include <algorithm>
+#include <sstream>
+#include <mutex>
+#include <condition_variable>
+
 #ifdef PEPPER_ROBOT
 #include <naoqi_driver/AudioCustomMsg.h>
 #endif // DEBUG
@@ -32,6 +55,8 @@ using namespace std;
 using TestFunction = std::function<void(ros::NodeHandle&)>;
 extern bool output;
 extern int timeDuration;
+
+extern bool verboseMode;
 
 #define ROS
 
@@ -46,6 +71,8 @@ void jointState(ros::NodeHandle nh);
 void odom(ros::NodeHandle nh);
 void imu(ros::NodeHandle nh);
 void speech(ros::NodeHandle nh);
+void realsenseRGBCamera(ros::NodeHandle nh);
+void realsenseDepthCamera(ros::NodeHandle nh);
 
 /* Call back functions executed when a sensor data arrived */
 void backSonarMessageReceived(const sensor_msgs::Range& msg);
@@ -58,14 +85,16 @@ void laserSensorMessageReceived(const sensor_msgs::LaserScan& msg);
 void jointStateMessageReceived(const sensor_msgs::JointState& msg);
 void odomMessageReceived(const nav_msgs::Odometry& msg);
 void imuMessageReceived(const sensor_msgs::Imu& msg);
+void realsenseRGBCameraMessageReceived(const sensor_msgs::ImageConstPtr& msg);
+void realsenseDepthCameraMessageReceived(const sensor_msgs::ImageConstPtr& msg);
 
 #ifdef PEPPER_ROBOT
 void microphone(ros::NodeHandle nh);
 void microphoneMessageReceived(const naoqi_driver::AudioCustomMsg& msg);
 #endif // DEBUG
 
-std::vector<string> extractTests(string key);
-string extractTopic(string set);   
+std::vector<std::string> extractTests(const std::string& camera);
+string extractTopic(string key);   
 std::string extractMode();
 void writeWavHeader(std::ofstream &file, int sampleRate, int numSamples);
 void playAndDeleteFile();
@@ -76,6 +105,9 @@ void finalizeOutputFile(std::ofstream& out_of, const std::string& path);
 void executeTestsSequentially(const std::vector<std::string>& testNames, ros::NodeHandle& nh);
 void executeTestsInParallel(const std::vector<std::string>& testNames, ros::NodeHandle& nh);
 void switchMicrophoneChannel();
+bool checkTopicAvailable(const std::string& topic_name);
+void heartbeatCb(const ros::TimerEvent&);
+std::string cleanNodeName(const std::string& name);
 
 void promptAndExit(int err);
 void promptAndContinue();
