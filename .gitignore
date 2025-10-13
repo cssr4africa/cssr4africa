@@ -36,3 +36,6 @@
 
 # Python bytecode
 __pycache__/
+
+# IDE and editor-related files
+.vscode/
