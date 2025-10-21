@@ -39,7 +39,6 @@ SET_ENABLED_SERVICE = "/speechEvent/set_enabled"
 SET_LANGUAGE_SERVICE = "/speechEvent/set_language"
 SOUND_DETECTION_HEALTH_CHECK_PERIOD = 5  # seconds
 SOUND_DETECTION_DOWN_TEXT = "Error: soundDetection is down"
-IS_TRANSCRIPTION_ENABLED = True
 LOG_LEVELS_INV = {v: k for k, v in LOG_LEVELS.items()}
 LOG_FUNCTIONS = {
     "debug": rospy.logdebug,
@@ -55,6 +54,7 @@ LANGUAGE = "Kinyarwanda"  # Kinyarwanda or English
 MODEL_NAME = "parakeet"  # one of SUPPORTED_MODELS
 VERBOSE_MODE = True
 CUDA = False
+IS_ENABLED = True
 CONFIDENCE = 0.5  # on a scale of 0 t0 1
 INTER_UTTERANCE_LEN = 0.5  # seconds
 VAD_THRESHOLD = 0.5  # range of [0, 1]
@@ -104,6 +104,9 @@ def _publish(_, mp_pub_lock, mp_pub_transcription):
         mp_pub_lock:            [multi-processing] pub lock object
         mp_pub_transcription:   [multi-processing] pub message variable
     """
+    if not IS_ENABLED:
+        return
+
     with mp_pub_lock:
         transcription = mp_pub_transcription.value.decode("UTF-8")
 
@@ -157,6 +160,9 @@ def _sound_detection_callback(data, mp_tensor_lock, mp_samples_len):
     """
     global _mp_streamed_samples, _current_idx
 
+    if not IS_ENABLED:
+        return
+
     audio_tensor = torch.tensor(data.data, dtype=torch.float32)
     audio_len = audio_tensor.shape[0]
 
@@ -191,7 +197,7 @@ def _set_enabled_srv_handler(req):
     Parameters:
         req:            request object containing the status the transcription process is to be set to
     """
-    global IS_TRANSCRIPTION_ENABLED
+    global IS_ENABLED
 
     status = req.status.strip().lower()
 
@@ -202,10 +208,10 @@ def _set_enabled_srv_handler(req):
         )
         return set_enabledResponse(0)
 
-    IS_TRANSCRIPTION_ENABLED = True if status == "true" else False
+    IS_ENABLED = True if status == "true" else False
 
     rospy.loginfo(
-        f"speechEvent: transcription set to {'enabled' if IS_TRANSCRIPTION_ENABLED else 'disabled'}"
+        f"speechEvent: transcription set to {'enabled' if IS_ENABLED else 'disabled'}"
     ) if VERBOSE_MODE else "pass"
 
     return set_enabledResponse(1)
@@ -353,9 +359,9 @@ def initialise(config, topics, rw_model_path, en_model_path, vad_model_path):
         en_model_path:      path to English ASR model
         vad_model_path:     path to Silero voice activity detection model
     """
-    global LANGUAGE, MODEL_NAME, VERBOSE_MODE, CUDA, CONFIDENCE, INTER_UTTERANCE_LEN
-    global VAD_THRESHOLD, SAMPLE_RATE, HEARTBEAT_MSG_PERIOD, RW_MODEL_PATH
-    global EN_MODEL_PATH, VAD_MODEL_PATH, SOUND_DETECTION_TOPIC
+    global LANGUAGE, MODEL_NAME, VERBOSE_MODE, CUDA, IS_ENABLED, CONFIDENCE
+    global INTER_UTTERANCE_LEN, VAD_THRESHOLD, SAMPLE_RATE, HEARTBEAT_MSG_PERIOD
+    global RW_MODEL_PATH, EN_MODEL_PATH, VAD_MODEL_PATH, SOUND_DETECTION_TOPIC
 
     rospy.init_node(NODE_NAME, anonymous=True)
 
@@ -403,6 +409,7 @@ def initialise(config, topics, rw_model_path, en_model_path, vad_model_path):
     MODEL_NAME = config["model"].strip().lower()
     VERBOSE_MODE = True if config["verboseMode"].strip().lower() == "true" else False
     CUDA = True if config["cuda"].strip().lower() == "true" else False
+    IS_ENABLED = True if config["is_enabled"].strip().lower() == "true" else False
     CONFIDENCE = float(config["confidence"].strip())
     INTER_UTTERANCE_LEN = float(config["interUtteranceLen"].strip())
     VAD_THRESHOLD = float(config["vadThreshold"].strip())
