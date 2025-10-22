@@ -189,13 +189,15 @@ def _set_language_srv_handler(req, mp_misc_lock, mp_lang):
     )
 
 
-def _set_enabled_srv_handler(req):
+def _set_enabled_srv_handler(req, mp_misc_lock, mp_samples_len):
     """ Function that gets called every time the /speechEvent/set_enabled ROS
     service is invoked. It sets the status of the transcription process to either
     enabled or disabled.
 
     Parameters:
         req:            request object containing the status the transcription process is to be set to
+        mp_misc_lock:   [multi-processing] lock object
+        mp_samples_len: [multi-processing] audio samples length variable
     """
     global IS_ENABLED
 
@@ -209,6 +211,10 @@ def _set_enabled_srv_handler(req):
         return set_enabledResponse(0)
 
     IS_ENABLED = True if status == "true" else False
+
+    if not IS_ENABLED:
+        with mp_misc_lock:
+            mp_samples_len.value = 0
 
     rospy.loginfo(
         f"speechEvent: transcription set to {'enabled' if IS_ENABLED else 'disabled'}"
@@ -264,7 +270,11 @@ def run():
 
     mp_lang.value = LANGUAGE.encode("UTF-8")
 
-    rospy.Service(SET_ENABLED_SERVICE, set_enabled, _set_enabled_srv_handler)
+    rospy.Service(
+        SET_ENABLED_SERVICE,
+        set_enabled,
+        partial(_set_enabled_srv_handler, mp_misc_lock=mp_misc_lock, mp_samples_len=mp_samples_len)
+    )
     rospy.Service(
         SET_LANGUAGE_SERVICE,
         set_language,
