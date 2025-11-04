@@ -139,7 +139,6 @@ def _run_mic_mode_helper(stream, publisher):
     """
     start_pad_samples = queue.Queue(maxsize=buffer_size)
     stop_pad_samples_count = 0
-    rate = rospy.Rate(500)
 
     while not rospy.is_shutdown():
         incoming_samples = torch.frombuffer(bytearray(stream.read(CHUNK_SIZE)), dtype=torch.float32)
@@ -165,7 +164,6 @@ def _run_mic_mode_helper(stream, publisher):
 
         while True:
             try:
-                rate.sleep()  # Appears useless, but if deleted then the next line won't work
                 publisher.publish(Float32MultiArray(data=start_pad_samples.get(block=False)))
             except queue.Empty:
                 break

@@ -96,25 +96,23 @@ def _log(_, mp_log_lock, mp_log_level, mp_log_message):
         mp_log_level.value = LOG_LEVELS["none"]
 
 
-def _publish(_, mp_pub_lock, mp_pub_transcription):
+def _publish(_, mp_pub_pipe):
     """ Publish transcriptions to the /speechEvent/text ROS topic
 
     Parameters:
         _:                      ignored, and therefore not used
-        mp_pub_lock:            [multi-processing] pub lock object
-        mp_pub_transcription:   [multi-processing] pub message variable
+        mp_pub_pipe:            [multi-processing] pub pipe object
     """
-    if not IS_ENABLED:
+    if not mp_pub_pipe.poll():
         return
 
-    with mp_pub_lock:
-        transcription = mp_pub_transcription.value.decode("UTF-8")
+    try:
+        transcription = mp_pub_pipe.recv()
+    except EOFError:
+        return
 
-    if len(transcription.strip()) > 0:
+    if len(transcription.strip()) > 0 and IS_ENABLED:
         _publisher.publish(transcription)
-
-    with mp_pub_lock:
-        mp_pub_transcription.value = "".encode("UTF-8")
 
 
 def _set_transcription_language(language, mp_misc_lock, mp_lang):
@@ -165,10 +163,10 @@ def _sound_detection_callback(data, mp_tensor_lock, mp_samples_len):
 
     audio_tensor = torch.tensor(data.data, dtype=torch.float32)
     audio_len = audio_tensor.shape[0]
+    _mp_streamed_samples[_current_idx:_current_idx+audio_len] = audio_tensor
+    _current_idx += audio_len
 
     with mp_tensor_lock:
-        _mp_streamed_samples[_current_idx:_current_idx+audio_len] = audio_tensor
-        _current_idx += audio_len
         mp_samples_len.value += audio_len
 
     if _current_idx > AUDIO_MAX_LEN - audio_len:
@@ -261,12 +259,11 @@ def run():
     mp_tensor_lock = torch.multiprocessing.Lock()
     mp_misc_lock = torch.multiprocessing.Lock()
     mp_log_lock = torch.multiprocessing.Lock()
-    mp_pub_lock = torch.multiprocessing.Lock()
+    mp_pub_pipe_parent, mp_pub_pipe_child = torch.multiprocessing.Pipe()
     mp_samples_len = torch.multiprocessing.Value("i", 0)
     mp_lang = torch.multiprocessing.Array(ctypes.c_char, 32)
     mp_log_level = torch.multiprocessing.Value("i", 0)
     mp_log_message = torch.multiprocessing.Array(ctypes.c_char, AUDIO_MAX_LEN)
-    mp_pub_transcription = torch.multiprocessing.Array(ctypes.c_char, AUDIO_MAX_LEN)
 
     mp_lang.value = LANGUAGE.encode("UTF-8")
 
@@ -299,7 +296,7 @@ def run():
     )
     rospy.Timer(
         rospy.Duration(nsecs=int(1e3)),
-        partial(_publish, mp_pub_lock=mp_pub_lock, mp_pub_transcription=mp_pub_transcription)
+        partial(_publish, mp_pub_pipe=mp_pub_pipe_parent)
     )
 
     rospy.loginfo(
@@ -334,8 +331,8 @@ def run():
         target=run_transcriptions,
         args=(
             _mp_streamed_samples, mp_tensor_lock, mp_misc_lock, mp_samples_len, mp_lang,
-            mp_log_lock, mp_log_level, mp_log_message, mp_pub_lock, mp_pub_transcription,
-            CUDA, RW_MODEL_PATH, EN_MODEL_PATH, SAMPLE_RATE, AUDIO_MAX_LEN, CONFIDENCE,
+            mp_log_lock, mp_log_level, mp_log_message, mp_pub_pipe_child, CUDA,
+            RW_MODEL_PATH, EN_MODEL_PATH, SAMPLE_RATE, AUDIO_MAX_LEN, CONFIDENCE,
             VERBOSE_MODE, MODEL_NAME, INTER_UTTERANCE_LEN, VAD_MODEL_PATH, VAD_THRESHOLD
         )
     )

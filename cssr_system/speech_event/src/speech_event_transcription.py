@@ -41,9 +41,9 @@ def set_model(received_lang, cuda, rw_model_path, en_model_path):
 
 def run_transcriptions(
     mp_streamed_samples, mp_tensor_lock, mp_misc_lock, mp_samples_len, mp_lang,
-    mp_log_lock, mp_log_level, mp_log_message, mp_pub_lock, mp_pub_transcription,
-    cuda, rw_model_path, en_model_path, sample_rate, audio_max_len, conf, verbose,
-    model_name, inter_utterance_len, vad_model_path, vad_threshold
+    mp_log_lock, mp_log_level, mp_log_message, mp_pub_pipe, cuda, rw_model_path,
+    en_model_path, sample_rate, audio_max_len, conf, verbose, model_name,
+    inter_utterance_len, vad_model_path, vad_threshold
 ):
     global MODEL_NAME
 
@@ -57,7 +57,6 @@ def run_transcriptions(
     )
     vad = silero_vad.utils_vad.init_jit_model(vad_model_path, device)
     min_utterance_len = sample_rate
-    vad_frame_size = sample_rate
     voice_activity_detected = False
 
     def set_to_exit(_, __):
@@ -96,11 +95,10 @@ def run_transcriptions(
                 time.sleep(inter_utterance_len)
                 continue
 
-            with mp_tensor_lock:
-                if voice_activity_detected:
-                    audio = mp_streamed_samples[last_idx - vad_frame_size: last_idx].clone()
-                else:
-                    audio = mp_streamed_samples[current_idx: last_idx].clone()
+            if voice_activity_detected:
+                continue
+
+            audio = mp_streamed_samples[current_idx: last_idx].clone()
             resampled_audio = resampler(audio)
 
             if len(silero_vad.get_speech_timestamps(resampled_audio, vad, threshold=vad_threshold)) > 0:
@@ -108,8 +106,7 @@ def run_transcriptions(
                 continue
 
         start_time = time.time()
-        with mp_tensor_lock:
-            audio_tensor = mp_streamed_samples[current_idx:current_idx+num_of_samples].clone()
+        audio_tensor = mp_streamed_samples[current_idx:current_idx+num_of_samples].clone()
 
         resampled = resampler(audio_tensor)
 
@@ -124,8 +121,7 @@ def run_transcriptions(
                 mp_log_level.value = LOG_LEVELS["info"] if verbose else LOG_LEVELS["none"]
                 mp_log_message.value = f"{log_message} - {round(time.time() - start_time, 4)} seconds".encode("UTF-8")
 
-            with mp_pub_lock:
-                mp_pub_transcription.value = transcription.encode("UTF-8") if transcription != SPEECH_NOT_RECOGNISED_TEXT else "".encode("UTF-8")
+            mp_pub_pipe.send(transcription) if transcription != SPEECH_NOT_RECOGNISED_TEXT else "pass"
 
         current_idx += num_of_samples
         voice_activity_detected = False
