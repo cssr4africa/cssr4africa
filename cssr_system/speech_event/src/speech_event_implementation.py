@@ -59,6 +59,7 @@ CONFIDENCE = 0.5  # on a scale of 0 t0 1
 INTER_UTTERANCE_LEN = 0.5  # seconds
 VAD_THRESHOLD = 0.5  # range of [0, 1]
 SAMPLE_RATE = 48000  # of audio signal incoming from soundDetection
+MIN_UTTERANCE_LEN = 1  # seconds
 HEARTBEAT_MSG_PERIOD = 10  # seconds
 
 # Config options set via topics data file
@@ -73,7 +74,11 @@ AUDIO_MAX_LEN = SAMPLE_RATE * 60  # number of samples
 # Global variables
 _publisher = None
 _mp_streamed_samples = torch.zeros(AUDIO_MAX_LEN, dtype=torch.float32).share_memory_()
+_mp_streamed_samples_list = []
+_mp_streamed_samples_len = 0
+_size_of_streamed_chunks = 0
 _current_idx = 0
+_min_utterance_len = int(MIN_UTTERANCE_LEN * SAMPLE_RATE)
 
 
 def _log(_, mp_log_lock, mp_log_level, mp_log_message):
@@ -156,12 +161,22 @@ def _sound_detection_callback(data, mp_tensor_lock, mp_samples_len):
         mp_tensor_lock: [multi-processing] lock object
         mp_samples_len: [multi-processing] audio samples length variable
     """
-    global _mp_streamed_samples, _current_idx
+    global _mp_streamed_samples, _mp_streamed_samples_list, _mp_streamed_samples_len
+    global _size_of_streamed_chunks, _current_idx
 
     if not IS_ENABLED:
         return
 
-    audio_tensor = torch.tensor(data.data, dtype=torch.float32)
+    if _size_of_streamed_chunks == 0:
+        _size_of_streamed_chunks = len(data.data)
+
+    _mp_streamed_samples_list.extend(data.data)
+    _mp_streamed_samples_len += _size_of_streamed_chunks
+
+    if _mp_streamed_samples_len < _min_utterance_len * 0.5:
+        return
+
+    audio_tensor = torch.tensor(_mp_streamed_samples_list, dtype=torch.float32)
     audio_len = audio_tensor.shape[0]
     _mp_streamed_samples[_current_idx:_current_idx+audio_len] = audio_tensor
     _current_idx += audio_len
@@ -171,6 +186,9 @@ def _sound_detection_callback(data, mp_tensor_lock, mp_samples_len):
 
     if _current_idx > AUDIO_MAX_LEN - audio_len:
         _current_idx = 0
+
+    _mp_streamed_samples_list = []
+    _mp_streamed_samples_len = 0
 
 
 def _set_language_srv_handler(req, mp_misc_lock, mp_lang):
@@ -254,7 +272,7 @@ def run():
     """
     Run a speechEvent ROS node
     """
-    global _publisher
+    global _publisher, _min_utterance_len
 
     mp_tensor_lock = torch.multiprocessing.Lock()
     mp_misc_lock = torch.multiprocessing.Lock()
@@ -326,14 +344,16 @@ def run():
 
     _set_transcription_language(LANGUAGE, mp_misc_lock, mp_lang)
     _publisher = rospy.Publisher(PUB_TOPIC, String, queue_size=10)
+    _min_utterance_len = int(MIN_UTTERANCE_LEN * SAMPLE_RATE)
 
     transcription_process = torch.multiprocessing.Process(
         target=run_transcriptions,
         args=(
-            _mp_streamed_samples, mp_tensor_lock, mp_misc_lock, mp_samples_len, mp_lang,
-            mp_log_lock, mp_log_level, mp_log_message, mp_pub_pipe_child, CUDA,
-            RW_MODEL_PATH, EN_MODEL_PATH, SAMPLE_RATE, AUDIO_MAX_LEN, CONFIDENCE,
-            VERBOSE_MODE, MODEL_NAME, INTER_UTTERANCE_LEN, VAD_MODEL_PATH, VAD_THRESHOLD
+            _mp_streamed_samples, mp_tensor_lock, mp_misc_lock, mp_samples_len,
+            mp_lang, mp_log_lock, mp_log_level, mp_log_message, mp_pub_pipe_child,
+            CUDA, RW_MODEL_PATH, EN_MODEL_PATH, SAMPLE_RATE, _min_utterance_len,
+            AUDIO_MAX_LEN, CONFIDENCE, VERBOSE_MODE, MODEL_NAME, INTER_UTTERANCE_LEN,
+            VAD_MODEL_PATH, VAD_THRESHOLD
         )
     )
     transcription_process.start()
@@ -367,8 +387,9 @@ def initialise(config, topics, rw_model_path, en_model_path, vad_model_path):
         vad_model_path:     path to Silero voice activity detection model
     """
     global LANGUAGE, MODEL_NAME, VERBOSE_MODE, CUDA, IS_ENABLED, CONFIDENCE
-    global INTER_UTTERANCE_LEN, VAD_THRESHOLD, SAMPLE_RATE, HEARTBEAT_MSG_PERIOD
-    global RW_MODEL_PATH, EN_MODEL_PATH, VAD_MODEL_PATH, SOUND_DETECTION_TOPIC
+    global INTER_UTTERANCE_LEN, VAD_THRESHOLD, SAMPLE_RATE, MIN_UTTERANCE_LEN
+    global HEARTBEAT_MSG_PERIOD, RW_MODEL_PATH, EN_MODEL_PATH, VAD_MODEL_PATH
+    global SOUND_DETECTION_TOPIC
 
     rospy.init_node(NODE_NAME, anonymous=True)
 
@@ -421,6 +442,7 @@ def initialise(config, topics, rw_model_path, en_model_path, vad_model_path):
     INTER_UTTERANCE_LEN = float(config["interUtteranceLen"].strip())
     VAD_THRESHOLD = float(config["vadThreshold"].strip())
     SAMPLE_RATE = int(config["sampleRate"].strip())
+    MIN_UTTERANCE_LEN = float(config["minUtteranceLen"].strip())
     HEARTBEAT_MSG_PERIOD = int(config["heartbeatMsgPeriod"].strip())
     SOUND_DETECTION_TOPIC = topics["soundDetection"].strip()
     RW_MODEL_PATH = rw_model_path

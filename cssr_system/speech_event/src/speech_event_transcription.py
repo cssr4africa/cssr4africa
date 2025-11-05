@@ -42,8 +42,8 @@ def set_model(received_lang, cuda, rw_model_path, en_model_path):
 def run_transcriptions(
     mp_streamed_samples, mp_tensor_lock, mp_misc_lock, mp_samples_len, mp_lang,
     mp_log_lock, mp_log_level, mp_log_message, mp_pub_pipe, cuda, rw_model_path,
-    en_model_path, sample_rate, audio_max_len, conf, verbose, model_name,
-    inter_utterance_len, vad_model_path, vad_threshold
+    en_model_path, sample_rate, min_utterance_len, audio_max_len, conf, verbose,
+    model_name, inter_utterance_len, vad_model_path, vad_threshold
 ):
     global MODEL_NAME
 
@@ -56,7 +56,7 @@ def run_transcriptions(
         torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
     )
     vad = silero_vad.utils_vad.init_jit_model(vad_model_path, device)
-    min_utterance_len = sample_rate
+    vad_frame_size = sample_rate
     voice_activity_detected = False
 
     def set_to_exit(_, __):
@@ -98,7 +98,11 @@ def run_transcriptions(
             if voice_activity_detected:
                 continue
 
-            audio = mp_streamed_samples[current_idx: last_idx].clone()
+            if voice_activity_detected:
+                audio = mp_streamed_samples[last_idx - vad_frame_size: last_idx].clone()
+            else:
+                audio = mp_streamed_samples[current_idx: last_idx].clone()
+
             resampled_audio = resampler(audio)
 
             if len(silero_vad.get_speech_timestamps(resampled_audio, vad, threshold=vad_threshold)) > 0:
