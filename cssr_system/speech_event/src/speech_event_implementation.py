@@ -77,7 +77,6 @@ _mp_streamed_samples = torch.zeros(AUDIO_MAX_LEN, dtype=torch.float32).share_mem
 _mp_streamed_samples_list = []
 _mp_streamed_samples_len = 0
 _size_of_streamed_chunks = 0
-_current_idx = 0
 _min_utterance_len = int(MIN_UTTERANCE_LEN * SAMPLE_RATE)
 
 
@@ -152,17 +151,17 @@ def _set_transcription_language(language, mp_misc_lock, mp_lang):
     return 1
 
 
-def _sound_detection_callback(data, mp_tensor_lock, mp_samples_len):
+def _sound_detection_callback(data, mp_tensor_lock, mp_current_idx):
     """ Function that gets called every time a new audio signal is obtained,
     transcribing speech utterances within the received audio signal
 
     Parameters:
         data:           object containing the audio signal
         mp_tensor_lock: [multi-processing] lock object
-        mp_samples_len: [multi-processing] audio samples length variable
+        mp_current_idx: [multi-processing] current cursor location
     """
     global _mp_streamed_samples, _mp_streamed_samples_list, _mp_streamed_samples_len
-    global _size_of_streamed_chunks, _current_idx
+    global _size_of_streamed_chunks
 
     if not IS_ENABLED:
         return
@@ -178,14 +177,13 @@ def _sound_detection_callback(data, mp_tensor_lock, mp_samples_len):
 
     audio_tensor = torch.tensor(_mp_streamed_samples_list, dtype=torch.float32)
     audio_len = audio_tensor.shape[0]
-    _mp_streamed_samples[_current_idx:_current_idx+audio_len] = audio_tensor
-    _current_idx += audio_len
+    _mp_streamed_samples[mp_current_idx.value: mp_current_idx.value+audio_len] = audio_tensor
 
     with mp_tensor_lock:
-        mp_samples_len.value += audio_len
+        mp_current_idx.value += audio_len
 
-    if _current_idx > AUDIO_MAX_LEN - audio_len:
-        _current_idx = 0
+    if mp_current_idx.value > AUDIO_MAX_LEN - audio_len:
+        mp_current_idx.value = 0
 
     _mp_streamed_samples_list = []
     _mp_streamed_samples_len = 0
@@ -205,15 +203,13 @@ def _set_language_srv_handler(req, mp_misc_lock, mp_lang):
     )
 
 
-def _set_enabled_srv_handler(req, mp_misc_lock, mp_samples_len):
+def _set_enabled_srv_handler(req):
     """ Function that gets called every time the /speechEvent/set_enabled ROS
     service is invoked. It sets the status of the transcription process to either
     enabled or disabled.
 
     Parameters:
         req:            request object containing the status the transcription process is to be set to
-        mp_misc_lock:   [multi-processing] lock object
-        mp_samples_len: [multi-processing] audio samples length variable
     """
     global IS_ENABLED
 
@@ -227,10 +223,6 @@ def _set_enabled_srv_handler(req, mp_misc_lock, mp_samples_len):
         return set_enabledResponse(0)
 
     IS_ENABLED = True if status == "true" else False
-
-    if not IS_ENABLED:
-        with mp_misc_lock:
-            mp_samples_len.value = 0
 
     rospy.loginfo(
         f"speechEvent: transcription set to {'enabled' if IS_ENABLED else 'disabled'}"
@@ -278,18 +270,14 @@ def run():
     mp_misc_lock = torch.multiprocessing.Lock()
     mp_log_lock = torch.multiprocessing.Lock()
     mp_pub_pipe_parent, mp_pub_pipe_child = torch.multiprocessing.Pipe()
-    mp_samples_len = torch.multiprocessing.Value("i", 0)
+    mp_current_idx = torch.multiprocessing.Value("i", 0)
     mp_lang = torch.multiprocessing.Array(ctypes.c_char, 32)
     mp_log_level = torch.multiprocessing.Value("i", 0)
     mp_log_message = torch.multiprocessing.Array(ctypes.c_char, AUDIO_MAX_LEN)
 
     mp_lang.value = LANGUAGE.encode("UTF-8")
 
-    rospy.Service(
-        SET_ENABLED_SERVICE,
-        set_enabled,
-        partial(_set_enabled_srv_handler, mp_misc_lock=mp_misc_lock, mp_samples_len=mp_samples_len)
-    )
+    rospy.Service(SET_ENABLED_SERVICE, set_enabled, _set_enabled_srv_handler)
     rospy.Service(
         SET_LANGUAGE_SERVICE,
         set_language,
@@ -298,7 +286,7 @@ def run():
     rospy.Subscriber(
         SOUND_DETECTION_TOPIC,
         Float32MultiArray,
-        partial(_sound_detection_callback, mp_tensor_lock=mp_tensor_lock, mp_samples_len=mp_samples_len)
+        partial(_sound_detection_callback, mp_tensor_lock=mp_tensor_lock, mp_current_idx=mp_current_idx)
     )
     rospy.Timer(
         rospy.Duration(HEARTBEAT_MSG_PERIOD),
@@ -349,7 +337,7 @@ def run():
     transcription_process = torch.multiprocessing.Process(
         target=run_transcriptions,
         args=(
-            _mp_streamed_samples, mp_tensor_lock, mp_misc_lock, mp_samples_len,
+            _mp_streamed_samples, mp_tensor_lock, mp_misc_lock, mp_current_idx,
             mp_lang, mp_log_lock, mp_log_level, mp_log_message, mp_pub_pipe_child,
             CUDA, RW_MODEL_PATH, EN_MODEL_PATH, SAMPLE_RATE, _min_utterance_len,
             AUDIO_MAX_LEN, CONFIDENCE, VERBOSE_MODE, MODEL_NAME, INTER_UTTERANCE_LEN,

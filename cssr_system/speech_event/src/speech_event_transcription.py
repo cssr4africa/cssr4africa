@@ -40,7 +40,7 @@ def set_model(received_lang, cuda, rw_model_path, en_model_path):
 
 
 def run_transcriptions(
-    mp_streamed_samples, mp_tensor_lock, mp_misc_lock, mp_samples_len, mp_lang,
+    mp_streamed_samples, mp_tensor_lock, mp_misc_lock, mp_current_idx, mp_lang,
     mp_log_lock, mp_log_level, mp_log_message, mp_pub_pipe, cuda, rw_model_path,
     en_model_path, sample_rate, min_utterance_len, audio_max_len, conf, verbose,
     model_name, inter_utterance_len, vad_model_path, vad_threshold
@@ -74,7 +74,11 @@ def run_transcriptions(
             set_model(received_lang, cuda, rw_model_path, en_model_path)
 
         with mp_tensor_lock:
-            num_of_samples = mp_samples_len.value
+            num_of_samples = mp_current_idx.value - current_idx
+            if num_of_samples < 0:
+                num_of_samples = audio_max_len - current_idx + mp_current_idx.value
+
+        print(f"--- {num_of_samples} {prev_num_of_samples}")
 
         if num_of_samples == 0 or prev_num_of_samples == num_of_samples:
             prev_num_of_samples = num_of_samples
@@ -83,13 +87,14 @@ def run_transcriptions(
                 continue
             else:
                 with mp_tensor_lock:
-                    num_of_samples = mp_samples_len.value
+                    num_of_samples = mp_current_idx.value - current_idx
+                    if num_of_samples < 0:
+                        num_of_samples = audio_max_len - current_idx + mp_current_idx.value
                 if prev_num_of_samples != num_of_samples:
                     prev_num_of_samples = num_of_samples
                     continue
         else:
             prev_num_of_samples = num_of_samples
-            last_idx = current_idx + num_of_samples
 
             if num_of_samples < min_utterance_len:
                 time.sleep(inter_utterance_len)
@@ -98,10 +103,20 @@ def run_transcriptions(
             if voice_activity_detected:
                 continue
 
+            last_idx = current_idx + num_of_samples
+            if last_idx >= audio_max_len:
+                last_idx -= audio_max_len
+
             if voice_activity_detected:
-                audio = mp_streamed_samples[last_idx - vad_frame_size: last_idx].clone()
+                if last_idx >= vad_frame_size:
+                    audio = mp_streamed_samples[last_idx - vad_frame_size: last_idx].clone()
+                else:
+                    audio = mp_streamed_samples[0: last_idx].clone()
             else:
-                audio = mp_streamed_samples[current_idx: last_idx].clone()
+                if last_idx >= current_idx:
+                    audio = mp_streamed_samples[current_idx: last_idx].clone()
+                else:
+                    audio = mp_streamed_samples[0: last_idx].clone()
 
             resampled_audio = resampler(audio)
 
@@ -110,7 +125,13 @@ def run_transcriptions(
                 continue
 
         start_time = time.time()
-        audio_tensor = mp_streamed_samples[current_idx:current_idx+num_of_samples].clone()
+
+        if current_idx + num_of_samples < audio_max_len:
+            audio_tensor = mp_streamed_samples[current_idx:current_idx+num_of_samples].clone()
+        else:
+            audio_tensor = torch.cat((
+                mp_streamed_samples[current_idx:audio_max_len].clone(), mp_streamed_samples[0:audio_max_len-current_idx+num_of_samples].clone()
+            ))
 
         resampled = resampler(audio_tensor)
 
@@ -131,7 +152,4 @@ def run_transcriptions(
         voice_activity_detected = False
 
         if current_idx >= audio_max_len:
-            current_idx = 0
-
-        with mp_tensor_lock:
-            mp_samples_len.value -= num_of_samples
+            current_idx -= audio_max_len
