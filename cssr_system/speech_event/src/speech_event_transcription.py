@@ -78,8 +78,6 @@ def run_transcriptions(
             if num_of_samples < 0:
                 num_of_samples = audio_max_len - current_idx + mp_current_idx.value
 
-        print(f"--- {num_of_samples} {prev_num_of_samples}")
-
         if num_of_samples == 0 or prev_num_of_samples == num_of_samples:
             prev_num_of_samples = num_of_samples
             time.sleep(inter_utterance_len)
@@ -117,6 +115,9 @@ def run_transcriptions(
                     audio = mp_streamed_samples[current_idx: last_idx].clone()
                 else:
                     audio = mp_streamed_samples[0: last_idx].clone()
+
+            if audio.shape[0] == 0:
+                continue
 
             resampled_audio = resampler(audio)
 
