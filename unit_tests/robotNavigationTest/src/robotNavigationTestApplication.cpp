@@ -82,6 +82,7 @@
 */
 
 #include "robotNavigationTest/robotNavigationTestInterface.h"
+#include <thread>
 
 int main(int argc, char **argv) {
     // Initialize ROS and Google Test
@@ -105,6 +106,7 @@ int main(int argc, char **argv) {
 
     ROS_INFO("%s", copyrightMessage.c_str());
     ROS_INFO("%s: start-up.", nodeName.c_str());
+    
 
     // Set the contents of the robot navigation test configuration
     string environmentMapFileConfig            = "scenarioOneEnvironmentMap.dat";
@@ -210,14 +212,25 @@ int main(int argc, char **argv) {
 
     // Print the node ready message after initialization complete
     ROS_INFO("%s: ready.", nodeName.c_str());
-
-    // Start the ROS spinner and run the tests
-    ros::AsyncSpinner spinner(1);
-    spinner.start();
+    
+    // Start a separate thread for ROS spinning with heartbeat
+    std::thread spin_thread([&]() {
+        ros::Rate rate(10);  // 10 Hz
+        while(ros::ok()) {
+            ROS_INFO_THROTTLE(10, "%s: running.", nodeName.c_str());
+            ros::spinOnce();
+            rate.sleep();
+        }
+    });
 
     // Run all the tests
     int result = 0;
     result = RUN_ALL_TESTS();
+
+    // Stop the spinner thread
+    if (spin_thread.joinable()) {
+        spin_thread.join();
+    }
 
     // Write test summary to report
     std::ofstream summaryReport(testReportPathAndFile, std::ios::out | std::ios::app);
@@ -246,8 +259,11 @@ int main(int argc, char **argv) {
         shutDownHandler(0);
         return 1;
     }
-
+    
+    
     // Shutdown the ROS spinner and return the test result
     shutDownHandler(0);
     return result;
+
+    
 }
