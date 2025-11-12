@@ -139,6 +139,14 @@ add_service_files(
 
 add_service_files(
   DIRECTORY
+  conversation_management/srv
+  FILES
+  get_intent.srv
+  prompt.srv
+)
+
+add_service_files(
+  DIRECTORY
   gestureExecution/srv
   FILES
   performGesture.srv
