@@ -13,7 +13,7 @@ NODE_NAME = "conversation_management"
 GET_INTENT_SERVICE = "/conversationManagement/get_intent"
 PROMPT_SERVICE = "/conversationManagement/prompt"
 FALLBACK_RESPONSE = "I don't understand what you mean. Try rephrasing your question!"
-MIN_SIM_SCORE=0.15
+MIN_SIM_SCORE=0.5
 
 # Config options set via config file
 COLLECTION_NAME = "collection_name"
@@ -278,4 +278,4 @@ def initialise(config, system_prompt):
             "embedding_function": chromadb.utils.embedding_functions.SentenceTransformerEmbeddingFunction(model_name="all-MiniLM-L6-v2")
         }
     )
-    # _populate_collection(_collection, _load_json_data(DATA_FILE_PATH))
+    _populate_collection(_collection, _load_json_data(DATA_FILE_PATH))
