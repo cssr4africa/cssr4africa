@@ -81,6 +81,8 @@ from text_to_speech_test_implementation import (
     print_header
 )
 
+software_version = "version v1.0"
+
 class TTSTestApplication:
     """Main application class for running TTS tests"""
     
@@ -93,6 +95,20 @@ class TTSTestApplication:
         print_info("This test will verify the TTS implementation with actual service calls.")
         print_info("The test will check if the implementation correctly processes all test scenarios.")
         print_warning("Make sure the TTS service is running before proceeding.")
+        copyright_message = (
+            f"textToSpeech  {software_version}\n"
+            "\t\t\t    This project is funded by the African Engineering and Technology Network (Afretec)\n"
+            "\t\t\t    Inclusive Digital Transformation Research Grant Programme.\n"
+            "\t\t\t    Website: www.cssr4africa.org\n"
+            "\t\t\t    This program comes with ABSOLUTELY NO WARRANTY."
+         )
+        
+        # Construct the copyright message
+        print_info(copyright_message)
+        
+        print_info("textToSpeechTest: startup.")
+        print_info("textToSpeechTest: publishing to /speech.")
+        print_info("textToSpeechTest: /textToSpeech/say_text service advertised")
     
     def get_user_confirmation_to_start(self):
         """Get user confirmation to start testing"""
