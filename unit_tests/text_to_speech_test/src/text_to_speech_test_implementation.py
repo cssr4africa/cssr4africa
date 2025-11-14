@@ -22,6 +22,8 @@ import datetime
 import rospkg
 from cssr_system.srv import TTS
 
+HEARTBEAT_MSG_PERIOD = 10.0
+
 class TestOutputLogger:
     """Class to handle both terminal and file output for implementation tests"""
     
@@ -122,6 +124,14 @@ class TTSImplementationIntegrationTest:
         
         # Initialize the ROS node
         rospy.init_node('textToSpeechTest', anonymous=True)
+        
+        # ==========================================================
+        # Start the heartbeat after successful initialization
+        rospy.Timer(
+            rospy.Duration(HEARTBEAT_MSG_PERIOD),
+            # lambda _: rospy.loginfo("textToSpeechTest: running..."))
+            lambda _: print("textToSpeechTest: running..."))
+        # ==========================================================    
         
         # Connect to the TTS service
         print_info("Waiting for TTS service...")
