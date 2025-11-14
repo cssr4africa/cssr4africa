@@ -91,12 +91,8 @@ class TTSTestApplication:
     
     def display_welcome_message(self):
         """Display welcome and setup information"""
-        print_header("TTS IMPLEMENTATION INTEGRATION TESTS")
-        print_info("This test will verify the TTS implementation with actual service calls.")
-        print_info("The test will check if the implementation correctly processes all test scenarios.")
-        print_warning("Make sure the TTS service is running before proceeding.")
         copyright_message = (
-            f"textToSpeech  {software_version}\n"
+            f"textToSpeechTest  {software_version}\n"
             "\t\t\t    This project is funded by the African Engineering and Technology Network (Afretec)\n"
             "\t\t\t    Inclusive Digital Transformation Research Grant Programme.\n"
             "\t\t\t    Website: www.cssr4africa.org\n"
@@ -109,7 +105,12 @@ class TTSTestApplication:
         print_info("textToSpeechTest: startup.")
         print_info("textToSpeechTest: publishing to /speech.")
         print_info("textToSpeechTest: /textToSpeech/say_text service advertised")
-    
+        print("\n")
+        print_header("TTS IMPLEMENTATION INTEGRATION TESTS")
+        print_info("This test will verify the TTS implementation with actual service calls.")
+        print_info("The test will check if the implementation correctly processes all test scenarios.")
+        print_warning("Make sure the TTS service is running before proceeding.")
+
     def get_user_confirmation_to_start(self):
         """Get user confirmation to start testing"""
         input("Press Enter to begin implementation testing...")
