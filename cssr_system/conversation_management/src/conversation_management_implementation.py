@@ -1,8 +1,9 @@
-import json
+import os
 import sys
 
 import chromadb
 import openai
+import pymupdf
 import rospy
 
 from cssr_system.srv import get_intent, get_intentResponse, prompt, promptResponse
@@ -13,12 +14,13 @@ NODE_NAME = "conversation_management"
 GET_INTENT_SERVICE = "/conversationManagement/get_intent"
 PROMPT_SERVICE = "/conversationManagement/prompt"
 FALLBACK_RESPONSE = "I don't understand what you mean. Try rephrasing your question!"
-MIN_SIM_SCORE=0.5
+MAX_DIST_SCORE = 0.5
+DB_CHUNK_SIZE = 400
 
 # Config options set via config file
 COLLECTION_NAME = "collection_name"
 COLLECTION_DESCRIPTION = "collection description"
-DATA_FILE_PATH = "/path/to/data/file"
+DOCS_DIR = "/path/to/docs/dir/"
 OPENAI_BASE_URL = "http://localhost:8080/v1"
 OPENAI_API_KEY = "no-secret-key-needed"
 LLM = "HuggingFaceTB/SmolLM3-3B"
@@ -37,96 +39,34 @@ _chroma_client = None
 _openai_client = None
 
 
-def _load_json_data(file_path):
-    subsections = []
-
-    with open(file_path, "r", encoding="utf-8") as file:
-        json_data = json.load(file)
-
-    for i, item in enumerate(json_data):
-        item["doc_id"] = str(i + 1) if "doc_id" not in item else str(item["doc_id"])
-
-        if "section" not in item:
-            item["section"] = ""
-
-        if "subsections" not in item:
-            item["subsections"] = []
-
-        if "content" not in item:
-            item["content"] = ""
-
-        for idx, sub_section in enumerate(item.get("subsections", [])):
-            sub_section["doc_id"] = str(sub_section.get("doc_id", idx))
-            sub_section["doc_id"] = str(item["doc_id"]+"_"+sub_section["doc_id"])
-            sub_section["section"] = sub_section.get("section", "")
-            sub_section["content"] = sub_section.get("content", "")
-
-            for sidx, sub_sub_section in enumerate(sub_section.get("subsections", [])):
-                sub_sub_section["doc_id"] = str(sub_sub_section.get("doc_id", sidx))
-                sub_sub_section["doc_id"] = str(sub_section["doc_id"]+"_"+sub_sub_section["doc_id"])
-                sub_sub_section["section"] = sub_sub_section.get("section", "")
-                sub_sub_section["content"] = sub_sub_section.get("content", "")
-                subsections.append(sub_sub_section)
-
-            del sub_section["subsections"]
-            subsections.append(sub_section)
-
-        del item["subsections"]
-
-    return json_data + subsections
+def _save_text_in_db(text, description, text_idx, text_idx_prefix):
+    chunks = [text[i:i+DB_CHUNK_SIZE] for i in range(0, len(text), DB_CHUNK_SIZE)]
+    for i, chunk in enumerate(chunks):
+        _collection.add(
+            documents=[chunk],
+            metadatas=[{"description": description, "id": f"{text_idx_prefix}{text_idx}_{i}"}],
+            ids=[f"{text_idx_prefix}{text_idx}_{i}"]
+        )
 
 
-def _populate_collection(collection, data_items):
-    """ Fill a collection with data
-
-    Parameters:
-        collection: a Chroma DB collection object
-        data_items: data to fill in the passed collection
-    """
-    documents, metadatas, ids = [], [], []
-    used_ids = set()
-
-    for i, data in enumerate(data_items):
-        if data.get("content", "") == "":
-            continue
-
-        text = f"{data['section']}: {data.get('content', '')}. "
-        base_id = str(data.get("doc_id", i))
-        unique_id = base_id
-        counter = 1
-
-        while unique_id in used_ids:
-            unique_id = f"{base_id}_{counter}"
-            counter += 1
-
-        used_ids.add(unique_id)
-        documents.append(text)
-        ids.append(unique_id)
-        metadatas.append({"section": data["section"]})
-
-    collection.add(documents=documents, metadatas=metadatas, ids=ids)
+def _save_txt_text_in_db(txt_path, txt_description, txt_idx):
+    with open(txt_path, "r") as f:
+        text = f.read()
+    _save_text_in_db(text, txt_description, txt_idx, "txt")
 
 
-def _retrieve_similar_documents(collection, query, n_results=5):
-    results = collection.query(query_texts=[query], n_results=n_results)
-    formatted_results = []
+def _save_pdf_text_in_db(pdf_path, pdf_description, pdf_idx):
+    text = " ".join([i.get_text() for i in pymupdf.open(pdf_path)])
+    _save_text_in_db(text, pdf_description, pdf_idx, "pdf")
 
-    if len(results) == 0 or len(results["ids"]) == 0 or len(results["ids"][0]) == 0:
-        return []
 
-    for i in range(len(results["ids"][0])):
-        similarity_score = 1 - results["distances"][0][i]
-
-        if similarity_score >= MIN_SIM_SCORE:
-            formatted_results.append({
-                "doc_id": results["ids"][0][i],
-                "section": results["metadatas"][0][i]["section"],
-                "content": results["documents"][0][i],
-                "similarity_score": similarity_score,
-                "distance": results["distances"][0][i]
-            })
-
-    return formatted_results
+def _retrieve_documents_from_db(query):
+    documents = _collection.query(query_texts=[query], n_results=TOP_K)
+    return [
+        documents["documents"][0][idx]
+        for idx, distance in enumerate(documents["distances"][0])
+        if distance < MAX_DIST_SCORE
+    ]
 
 
 def _prompt_srv_handler(req):
@@ -139,10 +79,7 @@ def _prompt_srv_handler(req):
     global _conversation_history
 
     response = FALLBACK_RESPONSE
-    context = "\n".join([
-        f"{result['section']} - {result['content']}"
-        for result in _retrieve_similar_documents(_collection, req.query, TOP_K)
-    ])
+    context = "\n".join(_retrieve_documents_from_db(req.query))
     system_message = [{"role": "system", "content": SYSTEM_PROMPT}]
     _conversation_history += [
         {
@@ -234,7 +171,7 @@ def initialise(config, system_prompt):
     Patameters:
         config: object containing configuration arguments
     """
-    global COLLECTION_NAME, COLLECTION_DESCRIPTION, DATA_FILE_PATH, OPENAI_BASE_URL
+    global COLLECTION_NAME, COLLECTION_DESCRIPTION, DOCS_DIR, OPENAI_BASE_URL
     global OPENAI_API_KEY, LLM, VERBOSE_MODE, MAX_COVERSATION_HISTORY_LEN, TOP_K
     global HEARTBEAT_MSG_PERIOD, SYSTEM_PROMPT
     global _collection, _conversation_history, _chroma_client, _openai_client
@@ -250,7 +187,7 @@ def initialise(config, system_prompt):
 
     COLLECTION_NAME = config["collection_name"].strip()
     COLLECTION_DESCRIPTION = config["collection_description"].strip()
-    DATA_FILE_PATH = config["dataFilePath"].strip()
+    DOCS_DIR = config["docsDir"].strip()
     OPENAI_BASE_URL = config["openaiBaseUrl"].strip()
     OPENAI_API_KEY = config["openaiApiKey"].strip()
     LLM = config["llm"].strip()
@@ -275,7 +212,21 @@ def initialise(config, system_prompt):
         metadata={"description": COLLECTION_DESCRIPTION},
         configuration={
             "hnsw": {"space": "cosine"},
-            "embedding_function": chromadb.utils.embedding_functions.SentenceTransformerEmbeddingFunction(model_name="all-MiniLM-L6-v2")
+            "embedding_function": chromadb.utils.embedding_functions.SentenceTransformerEmbeddingFunction(
+                model_name="all-MiniLM-L6-v2"
+            )
         }
     )
-    _populate_collection(_collection, _load_json_data(DATA_FILE_PATH))
+    all_docs = os.listdir(DOCS_DIR)
+    pdf_paths = [os.path.join(DOCS_DIR, i) for i in all_docs if os.path.splitext(i)[1] == ".pdf"]
+    txt_paths = [os.path.join(DOCS_DIR, i) for i in all_docs if os.path.splitext(i)[1] == ".txt"]
+    pdf_descriptions = [os.path.splitext(os.path.basename(i))[0] for i in pdf_paths]
+    txt_descriptions = [os.path.splitext(os.path.basename(i))[0] for i in txt_paths]
+    [
+        _save_txt_text_in_db(txt_path, txt_description, idx)
+        for idx, (txt_path, txt_description) in enumerate(zip(txt_paths, txt_descriptions))
+    ]
+    [
+        _save_pdf_text_in_db(pdf_path, pdf_description, idx)
+        for idx, (pdf_path, pdf_description) in enumerate(zip(pdf_paths, pdf_descriptions))
+    ]
