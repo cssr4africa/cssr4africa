@@ -32,7 +32,7 @@ Unit tests for the `cssr_system` nodes are provides in the [`unit_test`](/unit_t
 
 For issues or questions:
 - Create an issue on GitHub
-- Contact: <a href="mailto:dvernon@andrew.cmu.edu">dvernon@andrew.cmu.edu</a>, <a href="mailto:david@vernon.eu">david@vernon.eu</a><br>
+- Contact: <a href="mailto:assaneg@andrew.cmu.edu">assaneg@andrew.cmu.edu</a><br>
 - Visit: <a href="http://www.cssr4africa.org">www.cssr4africa.org</a>
 
 ## License  
