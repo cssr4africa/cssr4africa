@@ -81,6 +81,16 @@ def _prompt_srv_handler(req):
     response = FALLBACK_RESPONSE
     context = "\n".join(_retrieve_documents_from_db(req.query))
     system_message = [{"role": "system", "content": SYSTEM_PROMPT}]
+    examples = [
+        {"role": "user", "content": "Who are you?"},
+        {"role": "assistant","content": "Pepper: I am Pepper, a lab assistant here in the AI and Robotics Lab at CMU-Africa. How can I help you today?"},
+
+        {"role": "user","content": "What can you do?"},
+        {"role": "assistant","content": "Pepper: I can answer questions you have about the AI and Robotics Lab at CMU-Africa."},
+
+        {"role": "user","content": "Hello Pepper"},
+        {"role": "assistant","content": "Pepper: Hello too. How can I help you today?"},
+    ]
     _conversation_history += [
         {
             "role": "user",
@@ -88,7 +98,7 @@ def _prompt_srv_handler(req):
         }
     ]
     generated_response = _openai_client.chat.completions.create(
-        model=LLM, messages=system_message + _conversation_history
+        model=LLM, messages=system_message + examples + _conversation_history
     )
 
     if len(generated_response.choices) > 0:
@@ -139,7 +149,7 @@ def _get_intent_srv_handler(req):
 
 def run():
     """
-    Run a speechEvent ROS node
+    Run a conversationManagement ROS node
     """
     rospy.Service(GET_INTENT_SERVICE, get_intent, _get_intent_srv_handler)
     rospy.Service(PROMPT_SERVICE, prompt, _prompt_srv_handler)
@@ -180,7 +190,7 @@ def initialise(config, system_prompt):
 
     if config["verboseMode"].strip().lower() not in ["true", "false"]:
         rospy.logerr(
-            "speechEvent: the verboseMode '%s' is not supported, supported "
+            "conversationManagement: the verboseMode '%s' is not supported, supported "
             "verboseModes are true and false" % config["verboseMode"].strip()
         )
         sys.exit(1)
