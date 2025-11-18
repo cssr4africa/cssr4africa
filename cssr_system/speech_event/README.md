@@ -83,6 +83,8 @@ tests. The deliverable report can be found in
       pip install --upgrade pip
 
       pip install -r $HOME/workspace/pepper_rob_ws/src/cssr4africa/cssr_system/speech_event/speech_event_requirements.txt
+
+      pip install torch==2.7.1+cu121 torchaudio==2.7.1 --index-url https://download.pytorch.org/whl/cu121
        ```
 
    - Build the ROS workspace (it's best to proceed with the next steps on a separate terminal, otherwise an error may arise when running `catkin_make`)

@@ -83,18 +83,18 @@ def _prompt_srv_handler(req):
     system_message = [{"role": "system", "content": SYSTEM_PROMPT}]
     examples = [
         {"role": "user", "content": "Who are you?"},
-        {"role": "assistant","content": "Pepper: I am Pepper, a lab assistant here in the AI and Robotics Lab at CMU-Africa. How can I help you today?"},
+        {"role": "assistant","content": "I am Pepper, a lab assistant here in the AI and Robotics Lab at CMU-Africa. How can I help you today?"},
 
         {"role": "user","content": "What can you do?"},
-        {"role": "assistant","content": "Pepper: I can answer questions you have about the AI and Robotics Lab at CMU-Africa."},
+        {"role": "assistant","content": "I can answer questions you have about the AI and Robotics Lab at CMU-Africa."},
 
         {"role": "user","content": "Hello Pepper"},
-        {"role": "assistant","content": "Pepper: Hello too. How can I help you today?"},
+        {"role": "assistant","content": "Hello too. How can I help you today?"},
     ]
     _conversation_history += [
         {
             "role": "user",
-            "content": f"{req.query} \nRelevant context that you may use: {context}"
+            "content": f"{req.query} \n{context}"
         }
     ]
     generated_response = _openai_client.chat.completions.create(

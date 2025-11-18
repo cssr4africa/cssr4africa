@@ -58,6 +58,8 @@ def run_transcriptions(
     vad = silero_vad.utils_vad.init_jit_model(vad_model_path, device)
     vad_frame_size = sample_rate
     voice_activity_detected = False
+    no_voice_count = 0
+    max_no_voice_count = (inter_utterance_len // vad_frame_size) + 1
 
     def set_to_exit(_, __):
         nonlocal to_exit
@@ -123,8 +125,14 @@ def run_transcriptions(
 
             if len(silero_vad.get_speech_timestamps(resampled_audio, vad, threshold=vad_threshold)) > 0:
                 voice_activity_detected = True
+                no_voice_count = 0
+            else:
+                no_voice_count += 1
+
+            if no_voice_count < max_no_voice_count:
                 continue
 
+        no_voice_count = 0
         start_time = time.time()
 
         if current_idx + num_of_samples < audio_max_len:
