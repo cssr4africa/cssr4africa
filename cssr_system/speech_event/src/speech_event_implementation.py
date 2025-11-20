@@ -56,10 +56,11 @@ VERBOSE_MODE = True
 CUDA = False
 IS_ENABLED = True
 CONFIDENCE = 0.5  # on a scale of 0 t0 1
-INTER_UTTERANCE_LEN = 0.5  # seconds
 VAD_THRESHOLD = 0.5  # range of [0, 1]
 SAMPLE_RATE = 48000  # of audio signal incoming from soundDetection
-MIN_UTTERANCE_LEN = 1  # seconds
+INTER_UTTERANCE_LEN = 1.0  # seconds
+MIN_UTTERANCE_LEN = 1.0  # seconds
+MAX_UTTERANCE_LEN = 5.0  # seconds
 HEARTBEAT_MSG_PERIOD = 10  # seconds
 
 # Config options set via topics data file
@@ -177,13 +178,15 @@ def _sound_detection_callback(data, mp_tensor_lock, mp_current_idx):
 
     audio_tensor = torch.tensor(_mp_streamed_samples_list, dtype=torch.float32)
     audio_len = audio_tensor.shape[0]
+
+    if mp_current_idx.value + audio_len >= AUDIO_MAX_LEN:
+        with mp_tensor_lock:
+            mp_current_idx.value = 0
+
     _mp_streamed_samples[mp_current_idx.value: mp_current_idx.value+audio_len] = audio_tensor
 
     with mp_tensor_lock:
         mp_current_idx.value += audio_len
-
-    if mp_current_idx.value > AUDIO_MAX_LEN - audio_len:
-        mp_current_idx.value = 0
 
     _mp_streamed_samples_list = []
     _mp_streamed_samples_len = 0
@@ -333,6 +336,7 @@ def run():
     _set_transcription_language(LANGUAGE, mp_misc_lock, mp_lang)
     _publisher = rospy.Publisher(PUB_TOPIC, String, queue_size=10)
     _min_utterance_len = int(MIN_UTTERANCE_LEN * SAMPLE_RATE)
+    _max_utterance_len = int(MAX_UTTERANCE_LEN * SAMPLE_RATE)
 
     transcription_process = torch.multiprocessing.Process(
         target=run_transcriptions,
@@ -340,8 +344,8 @@ def run():
             _mp_streamed_samples, mp_tensor_lock, mp_misc_lock, mp_current_idx,
             mp_lang, mp_log_lock, mp_log_level, mp_log_message, mp_pub_pipe_child,
             CUDA, RW_MODEL_PATH, EN_MODEL_PATH, SAMPLE_RATE, _min_utterance_len,
-            AUDIO_MAX_LEN, CONFIDENCE, VERBOSE_MODE, MODEL_NAME, INTER_UTTERANCE_LEN,
-            VAD_MODEL_PATH, VAD_THRESHOLD
+            _max_utterance_len, AUDIO_MAX_LEN, CONFIDENCE, VERBOSE_MODE, MODEL_NAME,
+            INTER_UTTERANCE_LEN, VAD_MODEL_PATH, VAD_THRESHOLD
         )
     )
     transcription_process.start()
@@ -375,9 +379,9 @@ def initialise(config, topics, rw_model_path, en_model_path, vad_model_path):
         vad_model_path:     path to Silero voice activity detection model
     """
     global LANGUAGE, MODEL_NAME, VERBOSE_MODE, CUDA, IS_ENABLED, CONFIDENCE
-    global INTER_UTTERANCE_LEN, VAD_THRESHOLD, SAMPLE_RATE, MIN_UTTERANCE_LEN
-    global HEARTBEAT_MSG_PERIOD, RW_MODEL_PATH, EN_MODEL_PATH, VAD_MODEL_PATH
-    global SOUND_DETECTION_TOPIC
+    global VAD_THRESHOLD, SAMPLE_RATE, INTER_UTTERANCE_LEN, MIN_UTTERANCE_LEN
+    global MAX_UTTERANCE_LEN, HEARTBEAT_MSG_PERIOD, RW_MODEL_PATH, EN_MODEL_PATH
+    global VAD_MODEL_PATH, SOUND_DETECTION_TOPIC
 
     rospy.init_node(NODE_NAME, anonymous=True)
 
@@ -425,12 +429,13 @@ def initialise(config, topics, rw_model_path, en_model_path, vad_model_path):
     MODEL_NAME = config["model"].strip().lower()
     VERBOSE_MODE = True if config["verboseMode"].strip().lower() == "true" else False
     CUDA = True if config["cuda"].strip().lower() == "true" else False
-    IS_ENABLED = True if config["is_enabled"].strip().lower() == "true" else False
+    IS_ENABLED = True if config["isEnabled"].strip().lower() == "true" else False
     CONFIDENCE = float(config["confidence"].strip())
-    INTER_UTTERANCE_LEN = float(config["interUtteranceLen"].strip())
     VAD_THRESHOLD = float(config["vadThreshold"].strip())
     SAMPLE_RATE = int(config["sampleRate"].strip())
+    INTER_UTTERANCE_LEN = float(config["interUtteranceLen"].strip())
     MIN_UTTERANCE_LEN = float(config["minUtteranceLen"].strip())
+    MAX_UTTERANCE_LEN = float(config["maxUtteranceLen"].strip())
     HEARTBEAT_MSG_PERIOD = int(config["heartbeatMsgPeriod"].strip())
     SOUND_DETECTION_TOPIC = topics["soundDetection"].strip()
     RW_MODEL_PATH = rw_model_path

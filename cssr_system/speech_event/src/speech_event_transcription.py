@@ -42,8 +42,8 @@ def set_model(received_lang, cuda, rw_model_path, en_model_path):
 def run_transcriptions(
     mp_streamed_samples, mp_tensor_lock, mp_misc_lock, mp_current_idx, mp_lang,
     mp_log_lock, mp_log_level, mp_log_message, mp_pub_pipe, cuda, rw_model_path,
-    en_model_path, sample_rate, min_utterance_len, audio_max_len, conf, verbose,
-    model_name, inter_utterance_len, vad_model_path, vad_threshold
+    en_model_path, sample_rate, min_utterance_len, max_utterance_len, audio_max_len,
+    conf, verbose, model_name, inter_utterance_len, vad_model_path, vad_threshold
 ):
     global MODEL_NAME
 
@@ -59,7 +59,8 @@ def run_transcriptions(
     vad_frame_size = sample_rate
     voice_activity_detected = False
     no_voice_count = 0
-    max_no_voice_count = (inter_utterance_len // vad_frame_size) + 1
+    max_no_voice_count = ((inter_utterance_len * sample_rate) // vad_frame_size) + 1
+    audio_cut = False
 
     def set_to_exit(_, __):
         nonlocal to_exit
@@ -76,20 +77,22 @@ def run_transcriptions(
             set_model(received_lang, cuda, rw_model_path, en_model_path)
 
         with mp_tensor_lock:
+            if mp_current_idx.value < current_idx:
+                current_idx = 0
             num_of_samples = mp_current_idx.value - current_idx
-            if num_of_samples < 0:
-                num_of_samples = audio_max_len - current_idx + mp_current_idx.value
 
-        if num_of_samples == 0 or prev_num_of_samples == num_of_samples:
+        if num_of_samples >= max_utterance_len:
+            audio_cut = True
+        elif num_of_samples == 0 or prev_num_of_samples == num_of_samples:
             prev_num_of_samples = num_of_samples
             time.sleep(inter_utterance_len)
             if not voice_activity_detected:
                 continue
             else:
                 with mp_tensor_lock:
+                    if mp_current_idx.value < current_idx:
+                        current_idx = 0
                     num_of_samples = mp_current_idx.value - current_idx
-                    if num_of_samples < 0:
-                        num_of_samples = audio_max_len - current_idx + mp_current_idx.value
                 if prev_num_of_samples != num_of_samples:
                     prev_num_of_samples = num_of_samples
                     continue
@@ -104,8 +107,6 @@ def run_transcriptions(
                 continue
 
             last_idx = current_idx + num_of_samples
-            if last_idx >= audio_max_len:
-                last_idx -= audio_max_len
 
             if voice_activity_detected:
                 if last_idx >= vad_frame_size:
@@ -127,21 +128,17 @@ def run_transcriptions(
                 voice_activity_detected = True
                 no_voice_count = 0
             else:
+                if not voice_activity_detected and num_of_samples > sample_rate:
+                    current_idx += num_of_samples - sample_rate
                 no_voice_count += 1
 
-            if no_voice_count < max_no_voice_count:
+            if no_voice_count < max_no_voice_count or not voice_activity_detected:
                 continue
 
         no_voice_count = 0
         start_time = time.time()
-
-        if current_idx + num_of_samples < audio_max_len:
-            audio_tensor = mp_streamed_samples[current_idx:current_idx+num_of_samples].clone()
-        else:
-            audio_tensor = torch.cat((
-                mp_streamed_samples[current_idx:audio_max_len].clone(), mp_streamed_samples[0:audio_max_len-current_idx+num_of_samples].clone()
-            ))
-
+        audio_tensor = mp_streamed_samples[current_idx:current_idx+num_of_samples].clone()
+        print("---------------------------------- audio cut") if audio_cut else "pass"
         resampled = resampler(audio_tensor)
 
         if voice_activity_detected:
@@ -158,7 +155,8 @@ def run_transcriptions(
             mp_pub_pipe.send(transcription) if transcription != SPEECH_NOT_RECOGNISED_TEXT else "pass"
 
         current_idx += num_of_samples
-        voice_activity_detected = False
 
-        if current_idx >= audio_max_len:
-            current_idx -= audio_max_len
+        if audio_cut:
+            audio_cut = False
+        else:
+            voice_activity_detected = False
