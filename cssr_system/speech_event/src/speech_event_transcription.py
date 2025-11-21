@@ -138,7 +138,6 @@ def run_transcriptions(
         no_voice_count = 0
         start_time = time.time()
         audio_tensor = mp_streamed_samples[current_idx:current_idx+num_of_samples].clone()
-        print("---------------------------------- audio cut") if audio_cut else "pass"
         resampled = resampler(audio_tensor)
 
         if voice_activity_detected:

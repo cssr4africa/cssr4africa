@@ -70,7 +70,9 @@ SOUND_DETECTION_TOPIC = "/soundDetection/signal"
 RW_MODEL_PATH = "/rw.model"
 EN_MODEL_PATH = "/en.model"
 VAD_MODEL_PATH = "/vad.model"
-AUDIO_MAX_LEN = SAMPLE_RATE * 60  # number of samples
+AUDIO_MAX_LEN = SAMPLE_RATE * 360  # number of samples
+# For a sampling rate of 48000 where each sample is a float32, 6 minutes (360
+# seconds) of audio equates to ~65.9180MB
 
 # Global variables
 _publisher = None
