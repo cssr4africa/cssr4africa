@@ -21,10 +21,13 @@ import signal
 import sys
 from functools import partial
 
+import actionlib
 import rospy
 import torch
 from std_msgs.msg import String, Float32MultiArray
 
+from cssr_system.msg import set_enabledAction, set_enabledResult, set_enabledFeedback
+from cssr_system.msg import set_languageAction, set_languageResult, set_languageFeedback
 from cssr_system.srv import set_enabled, set_enabledResponse
 from cssr_system.srv import set_language, set_languageResponse
 
@@ -35,6 +38,8 @@ from speech_event_transcription import LOG_LEVELS, run_transcriptions
 # Static config options (not set via config file)
 NODE_NAME = "speech_event"
 PUB_TOPIC = "/speechEvent/text"
+SET_ENABLED_ACTION = "/speechEvent/set_enabled_action"
+SET_LANGUAGE_ACTION = "/speechEvent/set_language_action"
 SET_ENABLED_SERVICE = "/speechEvent/set_enabled"
 SET_LANGUAGE_SERVICE = "/speechEvent/set_language"
 SOUND_DETECTION_HEALTH_CHECK_PERIOD = 5  # seconds
@@ -76,6 +81,8 @@ AUDIO_MAX_LEN = SAMPLE_RATE * 360  # number of samples
 
 # Global variables
 _publisher = None
+_set_enabled_action_server = None
+_set_language_action_server = None
 _mp_streamed_samples = torch.zeros(AUDIO_MAX_LEN, dtype=torch.float32).share_memory_()
 _mp_streamed_samples_list = []
 _mp_streamed_samples_len = 0
@@ -238,6 +245,44 @@ def _set_enabled_srv_handler(req):
     return set_enabledResponse(1)
 
 
+def _set_language_action_handler(goal, mp_misc_lock, mp_lang):
+    feedback = set_languageFeedback()
+    result = set_languageResult()
+
+    feedback.progress = 100
+    result.response = _set_transcription_language(goal.language, mp_misc_lock, mp_lang)
+
+    _set_language_action_server.publish_feedback(feedback)
+    _set_language_action_server.set_succeeded(result)
+
+
+def _set_enabled_action_handler(goal):
+    global IS_ENABLED
+
+    status = goal.status.strip().lower()
+    feedback = set_languageFeedback()
+    result = set_languageResult()
+
+    if status not in ["true", "false"]:
+        error_msg = "speechEvent: the status '%s' is not supported, supported " \
+            "status settings are true and false" % goal.status.strip()
+        rospy.logwarn(error_msg)
+        _set_enabled_action_server.set_aborted(text=error_msg)
+        return
+
+    IS_ENABLED = True if status == "true" else False
+
+    rospy.loginfo(
+        f"speechEvent: transcription set to {'enabled' if IS_ENABLED else 'disabled'}"
+    ) if VERBOSE_MODE else "pass"
+
+    feedback.progress = 100
+    result.response = 1
+
+    _set_enabled_action_server.publish_feedback(feedback)
+    _set_enabled_action_server.set_succeeded(result)
+
+
 def _is_sound_detection_running(sound_detection_topic):
     """ Check if the /soundDection/signal ROS topic is published
 
@@ -271,7 +316,7 @@ def run():
     """
     Run a speechEvent ROS node
     """
-    global _publisher, _min_utterance_len
+    global _publisher, _set_enabled_action_server, _set_language_action_server, _min_utterance_len
 
     mp_tensor_lock = torch.multiprocessing.Lock()
     mp_misc_lock = torch.multiprocessing.Lock()
@@ -310,6 +355,16 @@ def run():
     rospy.Timer(
         rospy.Duration(nsecs=int(1e3)),
         partial(_publish, mp_pub_pipe=mp_pub_pipe_parent)
+    )
+    _set_language_action_server = actionlib.SimpleActionServer(
+        SET_LANGUAGE_ACTION,
+        set_languageAction,
+        partial(_set_language_action_handler, mp_misc_lock=mp_misc_lock, mp_lang=mp_lang)
+    )
+    _set_enabled_action_server = actionlib.SimpleActionServer(
+        SET_ENABLED_ACTION,
+        set_enabledAction,
+        _set_enabled_action_handler
     )
 
     rospy.loginfo(
