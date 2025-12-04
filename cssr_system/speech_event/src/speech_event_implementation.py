@@ -403,7 +403,7 @@ def run():
             _mp_streamed_samples, mp_tensor_lock, mp_misc_lock, mp_current_idx,
             mp_lang, mp_log_lock, mp_log_level, mp_log_message, mp_pub_pipe_child,
             CUDA, RW_MODEL_PATH, EN_MODEL_PATH, SAMPLE_RATE, _min_utterance_len,
-            _max_utterance_len, AUDIO_MAX_LEN, CONFIDENCE, VERBOSE_MODE, MODEL_NAME,
+            _max_utterance_len, CONFIDENCE, VERBOSE_MODE, MODEL_NAME,
             INTER_UTTERANCE_LEN, VAD_MODEL_PATH, VAD_THRESHOLD
         )
     )

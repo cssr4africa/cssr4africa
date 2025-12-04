@@ -1,7 +1,10 @@
+--extra-index-url https://download.pytorch.org/whl/cu130
+
 nemo-toolkit[asr]==2.3.1
+openai-whisper==20250625
 pyaudio==0.2.14
 rospkg
 rospy
-torch==2.7.1
-torchaudio==2.7.1
-silero-vad==6.0.0
+torch==2.9.1+cu130
+torchaudio==2.9.1+cu130
+silero-vad==6.2.0

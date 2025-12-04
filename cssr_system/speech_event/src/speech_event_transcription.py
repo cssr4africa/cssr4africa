@@ -42,8 +42,8 @@ def set_model(received_lang, cuda, rw_model_path, en_model_path):
 def run_transcriptions(
     mp_streamed_samples, mp_tensor_lock, mp_misc_lock, mp_current_idx, mp_lang,
     mp_log_lock, mp_log_level, mp_log_message, mp_pub_pipe, cuda, rw_model_path,
-    en_model_path, sample_rate, min_utterance_len, max_utterance_len, audio_max_len,
-    conf, verbose, model_name, inter_utterance_len, vad_model_path, vad_threshold
+    en_model_path, sample_rate, min_utterance_len, max_utterance_len, conf,
+    verbose, model_name, inter_utterance_len, vad_model_path, vad_threshold
 ):
     global MODEL_NAME
 
@@ -123,6 +123,7 @@ def run_transcriptions(
                 continue
 
             resampled_audio = resampler(audio)
+            resampled_audio = resampled_audio.to(device)
 
             if len(silero_vad.get_speech_timestamps(resampled_audio, vad, threshold=vad_threshold)) > 0:
                 voice_activity_detected = True
@@ -143,6 +144,7 @@ def run_transcriptions(
                 continue
 
         resampled = resampler(audio_tensor)
+        resampled = resampled.to(device)
 
         if voice_activity_detected:
             normalised = resampled / resampled.abs().max()
