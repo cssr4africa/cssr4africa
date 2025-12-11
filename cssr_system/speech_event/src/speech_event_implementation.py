@@ -167,6 +167,8 @@ def _sound_detection_callback(data, mp_tensor_lock, mp_current_idx):
     global _size_of_streamed_chunks
 
     if not IS_ENABLED:
+        with mp_tensor_lock:
+            mp_current_idx.value = 0
         return
 
     if _size_of_streamed_chunks == 0:
