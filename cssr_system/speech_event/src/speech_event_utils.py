@@ -17,6 +17,7 @@ This program comes with ABSOLUTELY NO WARRANTY.
 
 import nemo.collections.asr as nemo_asr
 import nemo.utils.nemo_logging as nemo_logging
+import rospy
 import torch
 import whisper
 
@@ -45,6 +46,22 @@ def parse_config_file(config_file_path):
             config[a_list[0]] = a_list[-1]
     
     return config
+
+
+def log(log_level, log_message):
+    """ Log messages to the terminal
+
+    Parameters:
+        log_level:   log level variable (debug | info | warning | error | critical)
+        log_message: log message variable
+    """
+    {
+        "debug": rospy.logdebug,
+        "info": rospy.loginfo,
+        "warning": rospy.logwarn,
+        "error": rospy.logerr,
+        "critical": rospy.logfatal
+    }[log_level](log_message)
 
 
 def get_model(model_name, rw_model_path, en_model_path, lang, device):

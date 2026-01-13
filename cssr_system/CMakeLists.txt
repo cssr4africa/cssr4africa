@@ -180,7 +180,6 @@ add_service_files(
   speech_event/srv
   FILES
   set_language.srv
-  set_enabled.srv
 )
   
 add_service_files(
@@ -195,8 +194,7 @@ add_action_files(
   DIRECTORY
   speech_event/action
   FILES
-  set_language.action
-  set_enabled.action
+  recognise_speech.action
 )
 
 ## Generate added messages and services with any dependencies listed here
