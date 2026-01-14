@@ -1,5 +1,5 @@
-string ignore
+float32 wait
 ---
-string text
+string transcription
 ---
 int8 progress

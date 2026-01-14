@@ -55,7 +55,7 @@ class GUI:
         return frame
 
     def _listen_on_topic(pub_topic, q):
-        """ A forever running loop that listens on the /speechEvent/text ROS topic
+        """ A forever running loop that listens on some ROS topic
 
         Parameters:
             pub_topic (str): topic to listen on
@@ -79,7 +79,12 @@ class GUI:
 
         while not process.poll():
             stdout = process.stdout.readline().decode("UTF-8")
-            incoming = stdout[7:-2] if "data" in stdout else f" {stdout[4:-2]}" if stdout[:-2].strip() != "--" else "\n\n"
+            try:
+                incoming = stdout[18:-2] if "transcription" in stdout else \
+                    f" {stdout[3:-2]}" if stdout.strip()[0] == "\\" else \
+                        "\n\n" if stdout.strip() == "---" else ""
+            except IndexError:
+                incoming = ""
             q.put(incoming) if len(incoming) > 0 else "pass"
 
     def _write_text(text, q, stop_event):
@@ -87,7 +92,7 @@ class GUI:
 
         Parameters:
             text (tk.Text):                 the Tkinter widget to be updated with
-                text transcriptions published on /speechEvent/text
+                text transcriptions published on some ROS topic
             q (queue.Queue):                a queue to write incoming transcriptions into
             stop_event (threading.Event):   an event for flagging the termination
                 of this thread
@@ -109,8 +114,7 @@ class GUI:
 
     def run(pub_topic):
         """
-        Run GUI application to display text transcriptions being published on the
-        /speechEvent/text ROS topic
+        Run GUI application to display text transcriptions being published on some ROS topic
         """
         q = multiprocessing.Queue()
         stop_event = threading.Event()

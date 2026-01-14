@@ -35,17 +35,16 @@ import speech_event_utils as se_utils
 
 
 # Static config options (not set via config file)
+ASR_SAMPLE_RATE = 16000  # of audio required by ASR
 NODE_NAME = "speech_event"
-PUB_TOPIC = "/speechEvent/text"
+PUB_TOPIC = "/speechEvent/recognise_speech_action/result"
 RECOGNISE_SPEECH_ACTION = "/speechEvent/recognise_speech_action"
 SET_LANGUAGE_SERVICE = "/speechEvent/set_language"
-SOUND_DETECTION_HEALTH_CHECK_PERIOD = 5  # seconds
 SOUND_DETECTION_DOWN_TEXT = "Error: soundDetection is down"
-ASR_SAMPLE_RATE = 16000  # of audio required by ASR
+SOUND_DETECTION_HEALTH_CHECK_PERIOD = 5  # seconds
 SPEECH_NOT_RECOGNISED_TEXT = "Error: speech not recognized"
-SUPPORTED_MODELS = ["conformer-transducer", "parakeet", "whisper"]
 SUPPORTED_LANGUAGES = ["kinyarwanda", "english"]
-MAX_WAITING_TIME = 5.0  # seconds
+SUPPORTED_MODELS = ["conformer-transducer", "parakeet", "whisper"]
 
 # Config options set via config file
 LANGUAGE = "Kinyarwanda"  # Kinyarwanda or English
@@ -72,7 +71,6 @@ VAD_MODEL_PATH = "/vad.model"
 
 # Global variables
 _model = None
-_publisher = None
 _recognise_speech_action_server = None
 _streamed_samples = torch.tensor([], dtype=torch.float32)
 _streamed_samples_len = 0
@@ -80,6 +78,19 @@ _size_of_streamed_chunks = 0
 _min_utterance_len = int(MIN_UTTERANCE_LEN * SAMPLE_RATE)
 _max_utterance_len = int(MAX_UTTERANCE_LEN * SAMPLE_RATE)
 _aggregate_signal = False
+_max_waiting_time = 5.0  # seconds
+
+
+def _is_sound_detection_running():
+    """
+    Check if /soundDetection/signal is published
+
+    Returns:
+        bool:   True if it's published, False otherwise
+    """
+    if len([i for i, _ in rospy.get_published_topics() if i.strip() == SOUND_DETECTION_TOPIC]) == 0:
+        return False
+    return True
 
 
 def _wait_for_signal_aggregation(feedback):
@@ -94,8 +105,11 @@ def _wait_for_signal_aggregation(feedback):
         elapsed_time = i * INTER_UTTERANCE_LEN
         time.sleep(INTER_UTTERANCE_LEN)
 
+        feedback.progress = int(elapsed_time * 100 / MAX_UTTERANCE_LEN)
+        _recognise_speech_action_server.publish_feedback(feedback)
+
         if _streamed_samples_len == 0:
-            if elapsed_time < MAX_WAITING_TIME:
+            if elapsed_time < _max_waiting_time:
                 continue
             break
 
@@ -103,8 +117,6 @@ def _wait_for_signal_aggregation(feedback):
             break
 
         prev = _streamed_samples_len
-        feedback.progress = int(elapsed_time * 100 / MAX_UTTERANCE_LEN)
-        _recognise_speech_action_server.publish_feedback(feedback)
 
     feedback.progress = 100
     _recognise_speech_action_server.publish_feedback(feedback)
@@ -178,12 +190,24 @@ def _set_language_srv_handler(req):
 
 
 def _recognise_speech_action_handler(goal):
-    global _streamed_samples, _streamed_samples_len, _size_of_streamed_chunks, _aggregate_signal
+    global _streamed_samples, _streamed_samples_len, _size_of_streamed_chunks, \
+        _aggregate_signal, _max_waiting_time
 
-    _ = goal.ignore.strip().lower()
+    _max_waiting_time = goal.wait
     feedback = recognise_speechFeedback()
     result = recognise_speechResult()
     start_time = time.time()
+
+    if not _is_sound_detection_running():
+        se_utils.log("warning", f"speechEvent: can't connect to {SOUND_DETECTION_TOPIC}")
+
+        feedback.progress = 100
+        _recognise_speech_action_server.publish_feedback(feedback)
+
+        result.transcription = SOUND_DETECTION_DOWN_TEXT
+        _recognise_speech_action_server.set_aborted(result)
+
+        return
 
     _streamed_samples = torch.tensor([], dtype=torch.float32)
     _streamed_samples_len = 0
@@ -214,46 +238,15 @@ def _recognise_speech_action_handler(goal):
     if VERBOSE_MODE:
         se_utils.log("info", f"{log_message} - {round(time.time() - start_time, 4)} seconds")
 
-    _publisher.publish(transcription) if transcription != SPEECH_NOT_RECOGNISED_TEXT else "pass"
-
-    result.text = transcription if transcription != SPEECH_NOT_RECOGNISED_TEXT else ""
+    result.transcription = transcription if transcription != SPEECH_NOT_RECOGNISED_TEXT else ""
     _recognise_speech_action_server.set_succeeded(result)
-
-
-def _is_sound_detection_running(sound_detection_topic):
-    """ Check if the /soundDection/signal ROS topic is published
-
-    Parameters:
-        sound_detection_topic (str):    the ROS topic
-
-    Returns:
-        bool:   True if it's published, False otherwise
-    """
-    is_running = False
-    for (topic, _) in rospy.get_published_topics():
-        if topic.strip() == sound_detection_topic.strip():
-            is_running = True
-            break
-    return is_running
-
-
-def _publish_sound_detection_is_down(_):
-    """
-    Publish on /speechEvent/text that /soundDetection/signal is not published
-
-    Parameter:
-        _:  ignored, and therefore not used
-    """
-    if len([i for i, __ in rospy.get_published_topics() if i == SOUND_DETECTION_TOPIC]) == 0:
-        _publisher.publish(SOUND_DETECTION_DOWN_TEXT)
-        se_utils.log("warning", f"speechEvent: can't connect to {SOUND_DETECTION_TOPIC}")
 
 
 def run():
     """
     Run a speechEvent ROS node
     """
-    global _publisher, _recognise_speech_action_server, _min_utterance_len, _max_utterance_len
+    global _recognise_speech_action_server, _min_utterance_len, _max_utterance_len
 
     rospy.Service(SET_LANGUAGE_SERVICE, set_language,_set_language_srv_handler)
     rospy.Subscriber(SOUND_DETECTION_TOPIC, Float32MultiArray, _sound_detection_callback)
@@ -261,12 +254,9 @@ def run():
         rospy.Duration(HEARTBEAT_MSG_PERIOD),
         lambda _: se_utils.log("info", "speechEvent: running")
     )
-    rospy.Timer(
-        rospy.Duration(SOUND_DETECTION_HEALTH_CHECK_PERIOD),
-        _publish_sound_detection_is_down
-    )
     _recognise_speech_action_server = actionlib.SimpleActionServer(
-        RECOGNISE_SPEECH_ACTION, recognise_speechAction, _recognise_speech_action_handler
+        RECOGNISE_SPEECH_ACTION, recognise_speechAction, _recognise_speech_action_handler,
+        auto_start=False
     )
 
     se_utils.log(
@@ -283,22 +273,21 @@ def run():
     )
     se_utils.log("info", "speechEvent: start-up")
 
-    if _is_sound_detection_running(SOUND_DETECTION_TOPIC):
+    if _is_sound_detection_running():
         se_utils.log("info", f"speechEvent: subscribed to {SOUND_DETECTION_TOPIC}")
     else:
         se_utils.log(
-            "warning",
-            f"speechEvent: can't connect to {SOUND_DETECTION_TOPIC}, "
-            f"will keep checking every {SOUND_DETECTION_HEALTH_CHECK_PERIOD} seconds"
+            "warning", f"speechEvent: can't connect to {SOUND_DETECTION_TOPIC}"
         )
 
     se_utils.log("info", f"speechEvent: transcription language set to {LANGUAGE}")
     se_utils.log("info", f"speechEvent: {SET_LANGUAGE_SERVICE} service advertised")
 
     _set_transcription_language(LANGUAGE)
-    _publisher = rospy.Publisher(PUB_TOPIC, String, queue_size=10)
     _min_utterance_len = int(MIN_UTTERANCE_LEN * SAMPLE_RATE)
     _max_utterance_len = int(MAX_UTTERANCE_LEN * SAMPLE_RATE)
+
+    _recognise_speech_action_server.start()
 
     if VERBOSE_MODE:
         display_process = torch.multiprocessing.Process(target=se_gui.GUI.run, args=(PUB_TOPIC,))
@@ -308,7 +297,7 @@ def run():
         if VERBOSE_MODE:
             display_process.terminate()
             display_process.join()
-        sys.exit(0)
+        raise rospy.ROSInterruptException()
 
     signal.signal(signal.SIGINT, stop_processes)
     signal.signal(signal.SIGTERM, stop_processes)
