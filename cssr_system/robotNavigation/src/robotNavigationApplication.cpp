@@ -1,8 +1,8 @@
-/* robotNavigationApplication.cpp - robot navigation ROS Node definition
+/* robotNavigationApplication.cpp - Robot navigation ROS Node definition (Action-based)
  *
  * Author:  Birhanu Shimelis Girma, Carnegie Mellon University Africa
  * Email:   bgirmash@andrew.cmu.edu
- * Date:    June 05, 2025
+ * Date:    February 05, 2026
  * Version: v1.0
  *
  * Copyright (C) 2023 CSSR4Africa Consortium
@@ -15,13 +15,18 @@
  * This program comes with ABSOLUTELY NO WARRANTY.
  */
 
-/* robotNavigationApplication.cpp - Application code to run the robot Navigation.
-
+/* robotNavigationApplication.cpp - Application code to run the robot Navigation (Action-based).
+ *
  * This node is responsible for navigating the robot to a goal location in the
  * environment map using a path planning algorithm. The node reads the robot
- * pose input and the goal location from the service request and navigates the
+ * pose input and the goal location from the action goal and navigates the
  * robot to the goal location. The node uses the path planning algorithm to find
  * the shortest path to the goal location.
+ *
+ * This is an action-based implementation that provides:
+ *   - Non-blocking goal execution
+ *   - Progress feedback during navigation
+ *   - Goal preemption (cancel) capability
  *
  * Libraries
  *      Standard libraries
@@ -29,15 +34,16 @@
  *          std::endl, std::cin, std::pow, std::sqrt, std::abs
  *      ROS libraries
  *          ros/ros.h, ros/package.h, actionlib/client/simple_action_client.h,
+ *          actionlib/server/simple_action_server.h,
  *          control_msgs/FollowJointTrajectoryAction.h, geometry_msgs/Twist.h
  *      OpenCV libraries
  *          opencv2/opencv.hpp
- * 
+ *
  * Parameters
  *      Command-line Parameters
  *          None
  *      Configuration File Parameters
- *          Key                   |     Value 
+ *          Key                   |     Value
  *          --------------------- |     -------------------
  *          environmentMap        |     environmentMap.png
  *          configurationMap      |     configurationSpaceMap.png
@@ -54,11 +60,9 @@
  *      /pepper_dcm/cmd_vel                     geometry_msgs/Twist
  *      /joint_angles                           naoqi_bridge_msgs/JointAnglesWithSpeed
  *
- * Services Invoked
- *      None
- *
- * Services Advertised and Message Types
- *      /robotNavigation/set_goal               cssr_system/setGoal
+ * Actions Advertised and Message Types
+ *      /robotNavigation/set_goal               cssr_system/setGoalAction
+ *      /robotNavigation/set_pose               cssr_system/setPoseAction
  *
  * Input Data Files
  *      pepperTopics.dat - Contains topic names for robot actuators
@@ -82,14 +86,15 @@
  * Email:   aakinade@andrew.cmu.edu
  * Date:    January 7, 2025
  * Version: v1.0
- * 
+ *
  * Author:  Birhanu Shimelis Girma, Carnegie Mellon University Africa
  * Email:   bgirmash@andrew.cmu.edu
- * Date:    June 05, 2025
- * Version: v1.0
+ * Date:    February 05, 2026
+ * Version: v1.0 (Action-based implementation)
  */
 
 #include "robotNavigation/robotNavigationInterface.h"
+
 
 int main(int argc, char** argv) {
     // Initialize ROS
@@ -97,36 +102,52 @@ int main(int argc, char** argv) {
     ros::NodeHandle nh;
     nodeName = ros::this_node::getName();
     if (nodeName[0] == '/') {
-        nodeName = nodeName.substr(1);}
-    std::string copyright_message = nodeName + ": " + std::string(SOFTWARE_VERSION) + 
+        nodeName = nodeName.substr(1);
+    }
+    std::string copyright_message = nodeName + ": " + std::string(SOFTWARE_VERSION) +
                                     "\n\t\t\t\tThis project is funded by the African Engineering and Technology Network (Afretec)"
                                     "\n\t\t\t\tInclusive Digital Transformation Research Grant Programme. "
                                     "\n\t\t\t\tWebsite: www.cssr4africa.org "
                                     "\n\t\t\t\tThis program comes with ABSOLUTELY NO WARRANTY.";
 
-    ROS_INFO("%s", copyright_message.c_str());                                                      
+    ROS_INFO("%s", copyright_message.c_str());
 
-    ROS_INFO("%s: startup.", nodeName.c_str()); 
+    ROS_INFO("%s: startup.", nodeName.c_str());
 
-    ros::ServiceServer set_goal_service = nh.advertiseService("/robotNavigation/set_goal", setGoal);
-    ROS_INFO("%s: Goal Server Ready to receive requests.", nodeName.c_str());
+    // Create action servers for setGoal and setPose
+    actionlib::SimpleActionServer<cssr_system::setGoalAction> set_goal_action_server(
+        nh, "/robotNavigation/set_goal",
+        boost::bind(&setGoalActionCallback, _1, &set_goal_action_server),
+        false);
+
+    actionlib::SimpleActionServer<cssr_system::setPoseAction> set_pose_action_server(
+        nh, "/robotNavigation/set_pose",
+        boost::bind(&setPoseActionCallback, _1, &set_pose_action_server),
+        false);
+
+    // Start the action servers
+    set_goal_action_server.start();
+    ROS_INFO("%s: Goal Action Server Ready to receive requests.", nodeName.c_str());
+
+    set_pose_action_server.start();
+    ROS_INFO("%s: Pose Action Server Ready to receive requests.", nodeName.c_str());
 
     // Read the configuration file
     int config_file_read = 0;
     topics_filename = robot_topics;
-    config_file_read = readConfigurationFile(&environmentMapFile, &configurationMapFile, &pathPlanningAlgorithm, &socialDistanceMode, &robot_topics, &topics_filename, &verbose_mode, &robot_type);
-    printConfiguration(environmentMapFile, configurationMapFile, pathPlanningAlgorithm, socialDistanceMode, robot_topics, topics_filename, verbose_mode, robot_type);
-    
+    config_file_read = readConfigurationFile(&environmentMapFile, &configurationMapFile, &pathPlanningAlgorithm, &socialDistanceMode, &robot_topics, &topics_filename, &verbose_mode, &robot_type, &navigation_mode);
+    printConfiguration(environmentMapFile, configurationMapFile, pathPlanningAlgorithm, socialDistanceMode, robot_topics, topics_filename, verbose_mode, robot_type, navigation_mode);
+
     // Check if the configuration file was read successfully
     if(config_file_read == 1){
         ROS_ERROR("Error reading the configuration file\n");
         return 0;
-    }   
+    }
 
     /* Create a publisher object for velocity commands */
     /* ----------------------------------------------- */
 
-    std::string wheels_topic;     // stores the wheels topic
+    std::string wheels_topic;
     // Extract the topic for the wheels
     if(extractTopic("Wheels", topics_filename, &wheels_topic)){
         ROS_ERROR("Error extracting the wheels topic\n");
@@ -135,27 +156,53 @@ int main(int argc, char** argv) {
     ROS_INFO("%s: Wheels topic: %s", nodeName.c_str(), wheels_topic.c_str());
     navigation_velocity_publisher = nh.advertise<geometry_msgs::Twist>(wheels_topic, 10);
 
-    // navigation_pelvis_publisher = nh.advertise<trajectory_msgs::JointTrajectory>("/pepper_dcm/Pelvis_controller/command", 1000, true);
     navigation_pelvis_publisher = nh.advertise<naoqi_bridge_msgs::JointAnglesWithSpeed>("/joint_angles", 1000, true);
 
-    
+    // #####################################################
+    // SLAM mode publishers setup
+    if (navigation_mode == "SLAM") {
+        ROS_INFO("%s: Setting up SLAM mode", nodeName.c_str());
+
+        // Publishers for manual goal/pose setting (optional, can keep for compatibility)
+        slam_goal_publisher = nh.advertise<geometry_msgs::PoseStamped>("move_base_simple/goal", 1);
+        slam_initialpose_publisher = nh.advertise<geometry_msgs::PoseWithCovarianceStamped>("initialpose", 1);
+
+        // Initialize move_base action client
+        ROS_INFO("%s: Connecting to move_base action server...", nodeName.c_str());
+        move_base_client = new MoveBaseClient("move_base", true);
+
+        // Wait for the action server to come up with timeout
+        ROS_INFO("%s: Waiting for move_base action server (timeout: 30 seconds)...", nodeName.c_str());
+        if (!move_base_client->waitForServer(ros::Duration(30.0))) {
+            ROS_ERROR("%s: move_base action server not available after 30 seconds!", nodeName.c_str());
+            ROS_ERROR("%s: SLAM navigation will not work. Please ensure move_base is running.", nodeName.c_str());
+            delete move_base_client;
+            move_base_client = nullptr;
+        } else {
+            ROS_INFO("%s: Successfully connected to move_base action server", nodeName.c_str());
+        }
+
+        ROS_INFO("%s: SLAM mode initialization complete", nodeName.c_str());
+    }
+
+    // #######################################################
 
     bool                 debug = true;
-   
-    FILE                 *fp_in;                    
+
+    FILE                 *fp_in;
     char                 path[MAX_FILENAME_LENGTH];
     // This code helps to get the robot_ip from ROS parameter server
     std::string robot_ip;
     bool use_ip_based_params = false;
-    std::string ip_based_param_file = "parameters230.dat"; // Default
-    
+    std::string ip_based_param_file = "parameters230.dat";
+
     if (nh.getParam("robot_ip", robot_ip)) {
         // Check if the IP matches one of our known robots
         if (robot_ip == "172.29.111.240") {
             use_ip_based_params = true;
             ip_based_param_file = "parameters240.dat";
             ROS_INFO("Detected robot with IP 172.29.111.240, will use parameters240.dat");
-        } 
+        }
         else if (robot_ip == "172.29.111.230") {
             use_ip_based_params = true;
             ip_based_param_file = "parameters230.dat";
@@ -165,7 +212,7 @@ int main(int argc, char** argv) {
             ROS_WARN("Unknown robot IP: %s, will use configuration file setting", robot_ip.c_str());
         }
     }
-    
+
     // Determine parameter file to use, IP-based selection takes precedence
     char locomotion_parameter_filename[MAX_FILENAME_LENGTH];
     if (use_ip_based_params) {
@@ -185,11 +232,11 @@ int main(int argc, char** argv) {
     int                  end_of_file;
     bool                 success = true;
 
-    double                publish_rate                = 10;   // rate at which cmd_vel commands are published
+    double                publish_rate                = 10;
 
     /* Create a subscriber object for the odom topic -- */
     /* --------------------------------------------- */
- 
+
     // Wait for /robotLocalization/pose topic to become available (MANDATORY)
     ROS_INFO("%s: Waiting for /robotLocalization/pose topic to become available...", nodeName.c_str());
     ros::Subscriber sub;
@@ -198,25 +245,25 @@ int main(int argc, char** argv) {
     while (!pose_topic_available && ros::ok()) {
         ros::master::V_TopicInfo master_topics;
         ros::master::getTopics(master_topics);
-        
+
         for (const auto& topic : master_topics) {
             if (topic.name == "/robotLocalization/pose") {
                 pose_topic_available = true;
                 break;
             }
         }
-        
+
         if (!pose_topic_available) {
             ROS_WARN_THROTTLE(5, "%s: /robotLocalization/pose topic not available yet. Waiting...", nodeName.c_str());
-            ros::Duration(1.0).sleep();  
-            ros::spinOnce();  
+            ros::Duration(1.0).sleep();
+            ros::spinOnce();
         }
     }
 
     if (pose_topic_available) {
         ROS_INFO("%s: /robotLocalization/pose topic found, Subscribing...", nodeName.c_str());
         sub = nh.subscribe("/robotLocalization/pose", 1, &poseMessageReceived);
-        
+
         // Verify subscription worked
         if (sub) {
             ROS_INFO("%s: Successfully subscribed to /robotLocalization/pose", nodeName.c_str());
@@ -231,14 +278,14 @@ int main(int argc, char** argv) {
 
     // /* construct the full path and filename */
     // /* ------------------------------------ */
-    
+
     packagedir = ros::package::getPath(ROS_PACKAGE_NAME);
 
     /* get the dimensions of the environment map in centimeters */
     /* -------------------------------------------- */
 
-    strcpy(path_and_input_filename, packagedir.c_str());  
-    strcat(path_and_input_filename, "/robotNavigation/data/"); 
+    strcpy(path_and_input_filename, packagedir.c_str());
+    strcat(path_and_input_filename, "/robotNavigation/data/");
     strcat(path_and_input_filename, environmentMapFile.c_str());
 
     mapImage = imread(path_and_input_filename, IMREAD_GRAYSCALE);
@@ -247,8 +294,8 @@ int main(int argc, char** argv) {
     /* get the dimensions of the navigation map in centimeters */
     /* -------------------------------------------- */
 
-    strcpy(path_and_input_filename, packagedir.c_str());  
-    strcat(path_and_input_filename, "/robotNavigation/data/"); 
+    strcpy(path_and_input_filename, packagedir.c_str());
+    strcat(path_and_input_filename, "/robotNavigation/data/");
     strcat(path_and_input_filename, configurationMapFile.c_str());
 
     configurationSpaceImage = imread(path_and_input_filename, IMREAD_GRAYSCALE);
@@ -259,19 +306,17 @@ int main(int argc, char** argv) {
     // Get image dimensions (room dimensions based on image size)
     image_width = configurationSpaceImage.cols;
     image_height = configurationSpaceImage.rows;
-    // printf("Image width: %d, Image height: %d\n", image_width, image_height);
 
-    room_width = (double) image_width / 100;  // Width of the room in meters
-    room_height = (double) image_height / 100;  // Height of the room in meters
-    // printf("Room width: %.2f, Room height: %.2f\n", room_width, room_height);
+    room_width = (double) image_width / 100;
+    room_height = (double) image_height / 100;
 
     /* get the locomotion parameter data */
     /* --------------------------------- */
 
-    strcpy(path_and_input_filename, packagedir.c_str());  
-    strcat(path_and_input_filename, "/robotNavigation/data/"); 
+    strcpy(path_and_input_filename, packagedir.c_str());
+    strcat(path_and_input_filename, "/robotNavigation/data/");
     strcat(path_and_input_filename, locomotion_parameter_filename);
-    
+
     readLocomotionParameterData(path_and_input_filename, &locomotionParameterData);
 
     /* convert map image to a graph  */
@@ -283,10 +328,16 @@ int main(int argc, char** argv) {
         moveRobotActuatorsToDefault();
     }
 
-    while(ros::ok()){       
+    while(ros::ok()){
         ROS_INFO_THROTTLE(10, "%s: running.", nodeName.c_str());
-        ros::spinOnce(); 
+        ros::spinOnce();
 
+    }
+
+    // Cleanup
+    if (move_base_client != nullptr) {
+        delete move_base_client;
+        move_base_client = nullptr;
     }
 
     return 0;

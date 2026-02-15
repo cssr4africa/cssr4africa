@@ -10,7 +10,7 @@ The `robotNavigation` ROS node enables autonomous navigation capabilities for th
 
 The package implements various path planning algorithms including A*, Dijkstra,BFS, and DFS and can be configured to respect social distancing norms during navigation. The system leverages environmental maps and configuration maps to plan optimal paths and executes smooth motion commands for the robot.
 
-To accommodate diverse navigation scenarios, parameters such as path planning algorithm, social distance mode, and verbose output are configurable. This package is designed for use with physical Pepper robots, allowing seamless integration into larger robotics applications through ROS topic and service interfaces.
+To accommodate diverse navigation scenarios, parameters such as path planning algorithm, social distance mode, and verbose output are configurable. This package is designed for use with physical Pepper robots, allowing seamless integration into larger robotics applications through ROS topic and action interfaces.
 
 # Documentation
 Accompanying this code is the deliverable report that provides a detailed explanation of the code and how to run the tests. The deliverable report can be found in [D5.5.4 Robot Navigation](https://cssr4africa.github.io/deliverables/CSSR4Africa_Deliverable_D5.5.4.pdf).
@@ -20,27 +20,27 @@ Accompanying this code is the deliverable report that provides a detailed explan
 
 ### Steps
 1. **Install the required software components:**
-   
-   Set up the development environment for controlling the Pepper robot. Use the [CSSR4Africa Software Installation Manual](https://cssr4africa.github.io/deliverables/CSSR4Africa_Deliverable_D3.3.pdf). 
+
+   Set up the development environment for controlling the Pepper robot. Use the [CSSR4Africa Software Installation Manual](https://cssr4africa.github.io/deliverables/CSSR4Africa_Deliverable_D3.3.pdf).
 
 2. **Clone and build the project (if not already cloned)**:
    - Move to the source directory of the workspace
-      ```bash 
+      ```bash
       cd $HOME/workspace/pepper_rob_ws/src
       ```
    - Clone the `CSSR4Africa` software from the GitHub repository
-      ```bash 
+      ```bash
       git clone https://github.com/cssr4africa/cssr4africa.git
       ```
    - Build the source files
       ```bash
       cd ..
       catkin_make
-      source devel/setup.bash 
+      source devel/setup.bash
       ```
 
 3. **Update Configuration File:**
-   
+
    Navigate to the configuration file located at `$HOME/workspace/pepper_rob_ws/src/cssr4africa/cssr_system/robotNavigation/config/robotNavigationConfiguration.ini` and update the configuration according to your needs:
 
    | Parameter | Description | Values | Default |
@@ -55,7 +55,7 @@ Accompanying this code is the deliverable report that provides a detailed explan
 
 
 4. **Run the `robotNavigation` from the `cssr_system` package:**
-   
+
    Follow these steps, running in different terminals:
     -  Source the workspace in first terminal:
         ```bash
@@ -70,7 +70,7 @@ Accompanying this code is the deliverable report that provides a detailed explan
          </div>
 
          ```bash
-         roslaunch unit_tests robotNavigationTestLaunchRobot.launch 
+         roslaunch unit_tests robotNavigationTestLaunchRobot.launch
         ```
 
         You can select the robot to be used by using the `robot_ip` parameter when running the above command. Other optional parameters that can be used are: `robot_port`, `roscore_ip`, and `network_interface`. An example is shown below.
@@ -82,13 +82,13 @@ Accompanying this code is the deliverable report that provides a detailed explan
          If the complete softwares are integrated and we have a system wide launch filem, you can us the following command to connect to the robot.
 
          ```bash
-         roslaunch cssr_system cssrSystemLaunchRobot.launch robot_ip:=<robot_ip> roscore_ip:=<roscore_ip> network_interface:=<network_interface> launch_sensors:=true launch_actuators:=true 
+         roslaunch cssr_system cssrSystemLaunchRobot.launch robot_ip:=<robot_ip> roscore_ip:=<roscore_ip> network_interface:=<network_interface> launch_sensors:=true launch_actuators:=true
          ```
 
     - Open a new terminal to launch the `robotNavigation` node:
         ```bash
-        cd $HOME/workspace/pepper_rob_ws 
-        source devel/setup.bash 
+        cd $HOME/workspace/pepper_rob_ws
+        source devel/setup.bash
         ```
     - To run the `robotNavigation` node, use the following command:
         ```bash
@@ -100,11 +100,11 @@ Accompanying this code is the deliverable report that provides a detailed explan
           <span style="color: #cccccc;">Running the <code>robotNavigation</code> node requires the <code>/robotLocalization/pose</code> topic to be available, which can be hosted by running the <code>robotLocalization (Recommended)</code> node in the <code>cssr_system</code> package or running the <code>robotNavigationDriver</code> in the <code>unit_tests</code> package to get the current position and orientation of the robot for <code>robotNavigation</code> node functionality. </span>
          </div>
 
-5. **Using the `robotNavigation` Services:**
-  Upon launching the node, the hosted service (`/robotNavigation/set_goal`) is available and ready to be invoked. This can be verified by running the following command in a new terminal:
+5. **Using the `robotNavigation` Actions:**
+  Upon launching the node, the hosted action (`/robotNavigation/set_goal`) is available and ready to be invoked. This can be verified by running the following command in a new terminal:
 
      ```bash
-      rosservice list | grep /robotNavigation/set_goal
+      rostopic list | grep /robotNavigation/set_goal
       ```
    **Echo the Pose Topic**
    View the pose data assuming robot localization is running and publishing the current pose:
@@ -121,25 +121,120 @@ Accompanying this code is the deliverable report that provides a detailed explan
     - Goal Location (<code>goal_x</code>, <code>goal_y</code>)
         - <code>goal_x</code>: X-coordinate of the goal location in meters
         - <code>goal_y</code>: Y-coordinate of the goal location in meters
-    - Goal Orientation (<code>goal_theta</code>)    
+    - Goal Orientation (<code>goal_theta</code>)
         - <code>goal_theta</code>: Final orientation of the robot at the goal location in degrees
-    
+
     - Sample Invocations (Navigate to position (2.0, 6.6) with 0-degree orientation:
     ```bash
-    rosservice call /robotNavigation/set_goal 2.0 6.6 0.0
+    rostopic pub -1 /robotNavigation/set_goal/goal cssr_system/setGoalActionGoal "goal: {goal_x: 2.0, goal_y: 6.6, goal_theta: 0.0}"
     ```
-   - If **negative** value of theta needs to be passed as a goal, you have to use the following format. It is because of how the rosservice call command parses command-line arguments. This is standard behavior in Unix/Linux command-line tools, where <code> - </code> at the beginning of an argument is normally interpreted as a flag. 
+   - If **negative** value of theta needs to be passed as a goal, you have to use the following format. It is because of how the rostopic pub command parses command-line arguments. This is standard behavior in Unix/Linux command-line tools, where <code> - </code> at the beginning of an argument is normally interpreted as a flag.
    ```bash
-   rosservice call /robotNavigation/set_goal -- 2.0 7.8 -45.0
+   rostopic pub -1 /robotNavigation/set_goal/goal cssr_system/setGoalActionGoal -- "goal: {goal_x: 2.0, goal_y: 7.8, goal_theta: -45.0}"
    ```
    ```bash
-   rosservice call /robotNavigation/set_goal "{goal_x: 2.0, goal_y: 7.8, goal_theta: -45.0}"
+   rostopic pub -1 /robotNavigation/set_goal/goal cssr_system/setGoalActionGoal "goal: {goal_x: 2.0, goal_y: 7.8, goal_theta: -45.0}"
    ```
-    **Setting Robot Pose**
-    If you need to set the robot's pose (usually for initialization or testing), use the following service::
+    **Monitor Navigation Feedback**
+    View real-time feedback during navigation (distance remaining, current position):
     ```bash
-    rosservice call /robotLocalization/set_pose <x> <y> <theta>
+    rostopic echo /robotNavigation/set_goal/feedback
     ```
+    **Monitor Navigation Result**
+    View the final result when navigation completes:
+    ```bash
+    rostopic echo /robotNavigation/set_goal/result
+    ```
+    **Cancel Navigation**
+    To cancel an ongoing navigation goal:
+    ```bash
+    rostopic pub -1 /robotNavigation/set_goal/cancel actionlib_msgs/GoalID "{}"
+    ```
+    **Setting Robot Pose**
+    If you need to set the robot's pose (usually for initialization or testing), use the following action:
+    ```bash
+    rostopic pub -1 /robotNavigation/set_pose/goal cssr_system/setPoseActionGoal "goal: {pose_x: 2.0, pose_y: 6.6, pose_theta: 0.0}"
+    ```
+
+## Integrating robotNavigation in Your Node
+
+If you want to send a navigation goal from your node and wait for the result before proceeding to the next task, use the following examples.
+
+### Action Interface
+
+| Topic | Type | Description |
+|-------|------|-------------|
+| `/robotNavigation/set_goal/goal` | `cssr_system/setGoalActionGoal` | Send navigation goal |
+| `/robotNavigation/set_goal/result` | `cssr_system/setGoalActionResult` | Navigation result |
+| `/robotNavigation/set_goal/feedback` | `cssr_system/setGoalActionFeedback` | Navigation progress |
+| `/robotNavigation/set_goal/cancel` | `actionlib_msgs/GoalID` | Cancel navigation |
+| `/robotNavigation/set_goal/status` | `actionlib_msgs/GoalStatusArray` | Goal status |
+
+### Result Message
+
+The result message contains:
+```
+navigation_goal_success: 1    # 1 = success, 0 = failure
+final_x: 1.99                 # Final X position in meters
+final_y: 5.02                 # Final Y position in meters
+final_theta: 271.5            # Final orientation in degrees
+```
+
+### C++ Integration Example
+
+```cpp
+#include <actionlib/client/simple_action_client.h>
+#include <cssr_system/setGoalAction.h>
+
+typedef actionlib::SimpleActionClient<cssr_system::setGoalAction> NavigationClient;
+
+// Create action client
+NavigationClient navigationClient("/robotNavigation/set_goal", true);
+
+// Wait for action server to start
+ROS_INFO("Waiting for robotNavigation action server...");
+navigationClient.waitForServer();
+
+// Create and send goal
+cssr_system::setGoalGoal goal;
+goal.goal_x = 2.0;
+goal.goal_y = 5.0;
+goal.goal_theta = 270.0;
+
+navigationClient.sendGoal(goal);
+
+// Wait for result
+navigationClient.waitForResult();
+
+// Check result and proceed
+cssr_system::setGoalResultConstPtr result = navigationClient.getResult();
+if (result->navigation_goal_success == 1) {
+    ROS_INFO("Navigation succeeded! Proceeding to next task...");
+    // Your next task here
+} else {
+    ROS_WARN("Navigation failed!");
+}
+```
+
+
+### Required Dependencies
+
+Add these to your External  `CMakeLists.txt`:
+```cmake
+find_package(catkin REQUIRED COMPONENTS
+  actionlib
+  actionlib_msgs
+  cssr_system
+)
+```
+
+Add these to your `package.xml`:
+```xml
+<depend>actionlib</depend>
+<depend>actionlib_msgs</depend>
+<depend>cssr_system</depend>
+```
+
 ## Support
 
 For issues or questions:
@@ -147,8 +242,8 @@ For issues or questions:
 - Contact: <a href="mailto:dvernon@andrew.cmu.edu">dvernon@andrew.cmu.edu</a>, <a href="mailto:bgirmash@andrew.cmu.edu">bgirmash@andrew.cmu.edu</a><br>
 - Visit: <a href="http://www.cssr4africa.org">www.cssr4africa.org</a>
 
-## License  
-Funded by African Engineering and Technology Network (Afretec)  
+## License
+Funded by African Engineering and Technology Network (Afretec)
 Inclusive Digital Transformation Research Grant Programme
 
 Date:   2025-06-05

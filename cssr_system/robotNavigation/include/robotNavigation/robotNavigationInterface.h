@@ -1,8 +1,8 @@
-/* robotNavigationInterface.h - robot navigation interfacing and imported libraries
+/* robotNavigationInterface.h - Robot navigation interface and imported libraries (Action-based)
  *
  * Author:  Birhanu Shimelis Girma, Carnegie Mellon University Africa
  * Email:   bgirmash@andrew.cmu.edu
- * Date:    June 05, 2025
+ * Date:    February 05, 2026
  * Version: v1.0
  *
  * Copyright (C) 2023 CSSR4Africa Consortium
@@ -20,7 +20,7 @@
 
 
 #define ROS
- 
+
 #ifndef ROS
    #include <conio.h>
 #else
@@ -29,6 +29,7 @@
    #include <sys/select.h>
    #include <termios.h>
    #include <sys/ioctl.h>
+   #include <fcntl.h>
 #endif
 
 
@@ -36,29 +37,29 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#include <cmath>  
+#include <cmath>
 #include <ctype.h>
 #include <iostream>
 #include <ros/ros.h>
 #include <ros/package.h>
 #include <turtlesim/Pose.h>
-#include <turtlesim/TeleportAbsolute.h> // for turtle1/teleport_absolute service
-#include <turtlesim/SetPen.h>           // for turtle1/set_pen service
-#include <std_srvs/Empty.h>             // for reset and clear services
-#include <geometry_msgs/Twist.h>        // For geometry_msgs::Twist
-#include <nav_msgs/Odometry.h>          // For nav_msgs::Odometry
-#include <iomanip>                      // for std::setprecision and std::fixed
+#include <turtlesim/TeleportAbsolute.h>
+#include <turtlesim/SetPen.h>
+#include <std_srvs/Empty.h>
+#include <geometry_msgs/Twist.h>
+#include <nav_msgs/Odometry.h>
+#include <iomanip>
 
-#include "cssr_system/setGoal.h"  // Include for the setGoal service
-#include "geometry_msgs/Pose2D.h"       // For geometry_msgs::Pose2D
+#include "geometry_msgs/Pose2D.h"
 #include <boost/algorithm/string.hpp>
-#include <std_msgs/Float64.h>  // Include for publishing Float64 messages
+#include <std_msgs/Float64.h>
 #include <fstream>
 #include <sstream>
 
 #include <trajectory_msgs/JointTrajectory.h>
 #include <trajectory_msgs/JointTrajectoryPoint.h>
 #include <actionlib/client/simple_action_client.h>
+#include <actionlib/server/simple_action_server.h>
 #include <control_msgs/FollowJointTrajectoryAction.h>
 #include <naoqi_bridge_msgs/JointAnglesWithSpeed.h>
 
@@ -80,6 +81,17 @@
 #include <opencv2/opencv.hpp>
 #include <stack>
 
+#include <geometry_msgs/PoseStamped.h>
+#include <geometry_msgs/PoseWithCovarianceStamped.h>
+
+
+#include <actionlib/client/simple_action_client.h>
+#include <move_base_msgs/MoveBaseAction.h>
+
+// Include action headers for setGoal and setPose actions
+#include <cssr_system/setGoalAction.h>
+#include <cssr_system/setPoseAction.h>
+
 using namespace std;
 using namespace cv;
 using namespace boost::algorithm;
@@ -89,13 +101,13 @@ using namespace boost::algorithm;
    ROS package name
 
 ****************************************************************************************************************************/
-#define ROS_PACKAGE_NAME    "cssr_system"              // Changed to cssr_system for integration
+#define ROS_PACKAGE_NAME    "cssr_system"
 
 // Software version
 #define SOFTWARE_VERSION                    "v1.0"
 /***************************************************************************************************************************
 
-   General purpose definitions 
+   General purpose definitions
 
 ****************************************************************************************************************************/
 #define PI       3.14159
@@ -103,9 +115,9 @@ using namespace boost::algorithm;
 #define TRUE     1
 #define FALSE    0
 
-#define BFS_ALGORITHM               0         // Breadth First Search Algorithm
-#define DIJKSTRA_ALGORITHM          1        // Dijkstra's Algorithm
-#define ASTAR_ALGORITHM             2       // A* Algorithm
+#define BFS_ALGORITHM               0
+#define DIJKSTRA_ALGORITHM          1
+#define ASTAR_ALGORITHM             2
 #define DFS_ALGORITHM               3
 
 #define BFS      0
@@ -113,8 +125,11 @@ using namespace boost::algorithm;
 #define ASTAR    2
 #define DFS      3
 
+// Feedback publishing rate (Hz)
+#define FEEDBACK_RATE 1.0
 
-extern std::string nodeName;   
+
+extern std::string nodeName;
 // Directory where the package is located
 extern std::string packagedir;
 
@@ -132,12 +147,26 @@ extern string topics_filename;
 extern bool verbose_mode;
 extern std::string robot_type;
 
+//#######################################################
+// To add navigation mode related variables
+extern std::string navigation_mode;
+
+// SLAM mode publishers
+extern ros::Publisher slam_goal_publisher;
+extern ros::Publisher slam_initialpose_publisher;
+
+// SLAM mode action client
+typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
+extern MoveBaseClient* move_base_client;
+
+//#####################################################
+
 
 // Publisher for the velocity commands
 extern ros::Publisher navigation_velocity_publisher;
 extern ros::Publisher navigation_pelvis_publisher;
 
-extern std::atomic<bool> is_moving;  // Flag to indicate if the robot is moving
+extern std::atomic<bool> is_moving;
 
 
 #define PUBLISH_RATE 10
@@ -149,19 +178,14 @@ extern int y_map_size;
 extern int image_width;
 extern int image_height;
 
-extern double room_width;  // Width of the room in meters
-extern double room_height;  // Height of the room in meters
+extern double room_width;
+extern double room_height;
 
 // Window names to display the maps
-extern string mapWindowName; 
+extern string mapWindowName;
 
-extern std::vector<double> leg_home_position;  // Hip pitch, hip roll, knee pitch
-extern std::vector<double> head_home_position;   // Head pitch and yaw
-// Mat images to display the maps
-// extern Mat mapImage;
-// extern Mat mapImageColor;
-// extern Mat mapImageLarge;
-// extern Mat configurationSpaceImage;
+extern std::vector<double> leg_home_position;
+extern std::vector<double> head_home_position;
 
 typedef actionlib::SimpleActionClient<control_msgs::FollowJointTrajectoryAction> ControlClient;
 typedef boost::shared_ptr<ControlClient> ControlClientPtr;
@@ -179,7 +203,7 @@ extern Mat configurationSpaceImage;
 
 /***************************************************************************************************************************
 
-   Definitions for reading locomotion parameter data 
+   Definitions for reading locomotion parameter data
 
 ****************************************************************************************************************************/
 
@@ -187,7 +211,7 @@ extern Mat configurationSpaceImage;
 #define STRING_LENGTH       200
 #define KEY_LENGTH           40
 #define NUMBER_OF_KEYS       15
-#define GOING                 0  // used to switch between angle_tolerance_going and angle_tolerance_orienting
+#define GOING                 0
 #define ORIENTING             1
 
 typedef char keyword[KEY_LENGTH];
@@ -197,22 +221,22 @@ typedef struct {
    double position_tolerance_goal;
    double angle_tolerance_orienting;
    double angle_tolerance_going;
-   double position_gain_dq; 
-   double angle_gain_dq; 
-   double position_gain_mimo; 
+   double position_gain_dq;
+   double angle_gain_dq;
+   double position_gain_mimo;
    double angle_gain_mimo;
-   double min_linear_velocity;                           // m/s       ... from calibration; less than this and the motors are not actuated
-   double max_linear_velocity;                           // m/s       ... see "Commanding your Create" on  https://github.com/AutonomyLab/create_robot
-   double min_angular_velocity;                          // radians/s ... from calibration; less than this and the motors are not actuated
-   double max_angular_velocity;                          // radians/s ... see "Commanding your Create" on  https://github.com/AutonomyLab/create_robot
-   double clearance;                                     // m         ... required clearance between the robot and an obstacle
-   int   shortest_path_algorithm;                       // BFS, Dijkstra, ASTAR
-   bool  robot_available;                               // true/false... determine if a physical robot is available
+   double min_linear_velocity;
+   double max_linear_velocity;
+   double min_angular_velocity;
+   double max_angular_velocity;
+   double clearance;
+   int   shortest_path_algorithm;
+   bool  robot_available;
 } locomotionParameterDataType;
 
 /***************************************************************************************************************************
 
-   Definitions for paths and waypoints 
+   Definitions for paths and waypoints
 
 ****************************************************************************************************************************/
 
@@ -232,7 +256,7 @@ typedef struct  {
    double theta;
 } waypointType;
 
-extern std::vector<int> robot_path; // Path to store the path
+extern std::vector<int> robot_path;
 extern std::vector<pointType> valid_path;
 extern std::vector<waypointType> valid_waypoints;
 
@@ -251,8 +275,7 @@ extern int directions_4_way[4][2];
 // 8-way movement (Dijkstra, A*)
 extern int directions_8_way[8][2];
 
-extern std::vector<std::vector<int>> graph;  // Graph to store the map
-
+extern std::vector<std::vector<int>> graph;
 
 
 
@@ -263,7 +286,7 @@ extern geometry_msgs::Twist msg;
 
 /***************************************************************************************************************************
 
-   Function declarations for the graph data structure 
+   Function declarations for the graph data structure
 
 ****************************************************************************************************************************/
 
@@ -287,13 +310,18 @@ double calculateOptimalApproachAngle(const std::vector<pointType>& path, int cur
 std::vector<waypointType> optimizeWaypointSequence(const std::vector<waypointType>& candidates, double min_turning_radius);
 
 // New smooth navigation function
-int executeSmoothWaypointNavigation(double start_x, double start_y, double start_theta, 
+int executeSmoothWaypointNavigation(double start_x, double start_y, double start_theta,
                                    double goal_x, double goal_y, double goal_theta,
                                    ros::Publisher velocity_publisher, ros::Rate rate, bool debug);
 
 
+// Action-based smooth navigation function with preemption and feedback support
+int executeSmoothWaypointNavigationWithFeedback(double start_x, double start_y, double start_theta,
+                                                double goal_x, double goal_y, double goal_theta,
+                                                ros::Publisher velocity_publisher, ros::Rate rate, bool debug,
+                                                actionlib::SimpleActionServer<cssr_system::setGoalAction>* action_server);
 
-                                   
+
 /***************************************************************************************************************************
 
    Function declarations for mapping between the world and map coordinates
@@ -306,11 +334,11 @@ void convertPixelToWorld(int pixel_x, int pixel_y, double& world_x, double& worl
 
 /***************************************************************************************************************************
 
-   Function declarations for mobile robot control 
+   Function declarations for mobile robot control
 
 ****************************************************************************************************************************/
 
-void odomMessageReceived(const nav_msgs::Odometry& msg); // callback: executed each time a new message arrives on the odom topic
+void odomMessageReceived(const nav_msgs::Odometry& msg);
 void poseMessageReceived(const geometry_msgs::Pose2D &msg);
 void readLocomotionParameterData(char filename[], locomotionParameterDataType *locomotionParameterData);
 void readObstacleData(char filename[], Mat &map);
@@ -322,21 +350,54 @@ void goToPoseMIMO   (double x, double y, double theta, locomotionParameterDataTy
 
 /***************************************************************************************************************************
 
-   Service callback function declaration
+   Action server callback function declarations
 
 ****************************************************************************************************************************/
 
-bool setGoal(cssr_system::setGoal::Request  &service_request, cssr_system::setGoal::Response &service_response);
+/*
+ * Callback function for the setGoal action server
+ * This function is called when a new goal is received on the /robotNavigation/set_goal action
+ *
+ * @param goal: The goal message containing the target position (goal_x, goal_y, goal_theta)
+ * @param action_server: Pointer to the action server
+ */
+void setGoalActionCallback(const cssr_system::setGoalGoalConstPtr &goal,
+                           actionlib::SimpleActionServer<cssr_system::setGoalAction>* action_server);
+
+/*
+ * Callback function for the setPose action server
+ * This function is called when a new pose is received on the /robotNavigation/set_pose action
+ *
+ * @param goal: The goal message containing the pose (pose_x, pose_y, pose_theta)
+ * @param action_server: Pointer to the action server
+ */
+void setPoseActionCallback(const cssr_system::setPoseGoalConstPtr &goal,
+                           actionlib::SimpleActionServer<cssr_system::setPoseAction>* action_server);
+
+/***************************************************************************************************************************
+// SLAM mode utility functions
+
+****************************************************************************************************************************/
+
+void publishSlamGoal(double goal_x, double goal_y, double goal_theta);
+
+void publishSlamInitialPose(double pose_x, double pose_y, double pose_theta);
+
+int executeSlamNavigation(double goal_x, double goal_y, double goal_theta);
+
+// SLAM navigation with action feedback support
+int executeSlamNavigationWithFeedback(double goal_x, double goal_y, double goal_theta,
+                                      actionlib::SimpleActionServer<cssr_system::setGoalAction>* action_server);
 
 /***************************************************************************************************************************
 
-   General purpose function declarations 
+   General purpose function declarations
 
 ****************************************************************************************************************************/
 
 void displayErrorAndExit(char error_message[]);
 void printMessageToFile(FILE *fp, char message[]);
-int  signnum(double x); // return the sign of a number
+int  signnum(double x);
 
 #ifdef ROS
    int kbhit();
@@ -348,7 +409,7 @@ int  signnum(double x); // return the sign of a number
  */
 bool isPoseTopicAvailable();
 
-/* 
+/*
  *   Function to read the the robot pose from an input file
  * @param:
  *   robot_pose_input: vector to store the robot pose
@@ -360,7 +421,7 @@ void readRobotPoseInput(std::vector<double>& robot_pose_input);
 
 void writeRobotPoseInput(std::vector<double>& robot_pose_input);
 
-/*  
+/*
  *   Function to extract the topic from the topics file
  *   The function reads the topics file and extracts the topic for the specified key.
  *
@@ -374,12 +435,12 @@ void writeRobotPoseInput(std::vector<double>& robot_pose_input);
  */
 int extractTopic(string key, string topic_file_name, string *topic_name);
 
-void moveToPosition(ControlClientPtr& client, const std::vector<std::string>& joint_names, double duration, 
-                        bool open_hand, string hand, string hand_topic, 
+void moveToPosition(ControlClientPtr& client, const std::vector<std::string>& joint_names, double duration,
+                        bool open_hand, string hand, string hand_topic,
                         const std::string& position_name, std::vector<double> positions);
-int readConfigurationFile(string* environmentMapFile, string* configurationMapFile, int* pathPlanningAlgorithm, bool* socialDistanceMode, string* robot_topics, string* topics_filename, bool* debug_mode, string* robot_type);
+int readConfigurationFile(string* environmentMapFile, string* configurationMapFile, int* pathPlanningAlgorithm, bool* socialDistanceMode, string* robot_topics, string* topics_filename, bool* debug_mode, string* robot_type, string* navigation_mode);
 
-void printConfiguration(string environmentMapFile, string configurationMapFile, int pathPlanningAlgorithm, bool socialDistanceMode, string robot_topics, string topics_filename, bool debug_mode, string robot_type);
+void printConfiguration(string environmentMapFile, string configurationMapFile, int pathPlanningAlgorithm, bool socialDistanceMode, string robot_topics, string topics_filename, bool debug_mode, string robot_type, string navigation_mode);
 
 void saveWaypointMap(vector<int> compressionParams, Mat mapImageLarge, string fileName);
 
@@ -397,25 +458,35 @@ void stabilizeWaistContinuously();
 
 int navigateToGoal(double start_x, double start_y, double start_theta, double goal_x, double goal_y, double goal_theta, int pathPlanningAlgorithm, Mat mapImage, Mat configurationSpaceImage, ros::Publisher velocity_publisher, bool debug);
 
+// Action-based navigation function with feedback support
+int navigateToGoalWithFeedback(double start_x, double start_y, double start_theta, double goal_x, double goal_y, double goal_theta,
+                               int pathPlanningAlgorithm, Mat mapImage, Mat configurationSpaceImage, ros::Publisher velocity_publisher, bool debug,
+                               actionlib::SimpleActionServer<cssr_system::setGoalAction>* action_server);
+
 ControlClientPtr createClient(const std::string& topic_name);
 
 int goToHome(std::string actuator, std::string topics_filename, bool debug);
 
 int moveRobot(double start_x, double start_y, double start_theta, double goal_x, double goal_y, double goal_theta, ros::Publisher velocity_publisher, ros::Rate rate, bool debug);
 
+// Action-based move robot function with feedback support
+int moveRobotWithFeedback(double start_x, double start_y, double start_theta, double goal_x, double goal_y, double goal_theta,
+                          ros::Publisher velocity_publisher, ros::Rate rate, bool debug,
+                          actionlib::SimpleActionServer<cssr_system::setGoalAction>* action_server);
+
 /*
- *   Function to round a doubleing point number to a specified number of decimal places
+ *   Function to round a floating point number to a specified number of decimal places
  *
  *  @param:
  *     value: the value to be rounded
  *     decimal_places: the number of decimal places
  *  @return:
  *     the rounded value
- * 
+ *
  */
 double roundFloatingPoint(double value, int decimal_places);
 
-/* 
+/*
  *   Function to convert radians to degrees
  *   This function converts the angle in radians to degrees
  *
@@ -427,7 +498,7 @@ double roundFloatingPoint(double value, int decimal_places);
  */
 double degrees(double radians);
 
-/* 
+/*
  *   Function to convert degrees to radians
  *   This function converts the angle in degrees to radians
  *
@@ -440,7 +511,7 @@ double degrees(double radians);
 double radians(double degrees);
 
 
-/*  
+/*
  *   Function to prompt the user to press any key to exit the program
  *
  *   @param:
@@ -451,7 +522,7 @@ double radians(double degrees);
  */
 void promptAndExit(int status);
 
-/*  
+/*
  *   Function to prompt the user to press any key to continue or press X to exit the program
  *
  *   @param:
@@ -462,13 +533,13 @@ void promptAndExit(int status);
  */
 void promptAndContinue();
 
-void moveToPosition(ControlClientPtr& head_client, const std::vector<std::string>& head_joint_names, std::vector<double> head_positions, 
-                        ControlClientPtr& left_arm_client, const std::vector<std::string>& left_arm_joint_names, std::vector<double> left_arm_positions, 
-                        ControlClientPtr& right_arm_client, const std::vector<std::string>& right_arm_joint_names, std::vector<double> right_arm_positions, 
-                        ControlClientPtr& leg_client, const std::vector<std::string>& leg_joint_names, std::vector<double> leg_positions, 
+void moveToPosition(ControlClientPtr& head_client, const std::vector<std::string>& head_joint_names, std::vector<double> head_positions,
+                        ControlClientPtr& left_arm_client, const std::vector<std::string>& left_arm_joint_names, std::vector<double> left_arm_positions,
+                        ControlClientPtr& right_arm_client, const std::vector<std::string>& right_arm_joint_names, std::vector<double> right_arm_positions,
+                        ControlClientPtr& leg_client, const std::vector<std::string>& leg_joint_names, std::vector<double> leg_positions,
                         double duration);
 
-void moveOneActuatorToPosition(ControlClientPtr& client, const std::vector<std::string>& joint_names, double duration, 
+void moveOneActuatorToPosition(ControlClientPtr& client, const std::vector<std::string>& joint_names, double duration,
                         std::vector<double> positions);
 
 
