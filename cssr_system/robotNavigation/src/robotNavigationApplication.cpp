@@ -91,6 +91,7 @@
 
 #include "robotNavigation/robotNavigationInterface.h"
 
+
 int main(int argc, char** argv) {
     // Initialize ROS
     ros::init(argc, argv, "robotNavigation");
@@ -110,12 +111,17 @@ int main(int argc, char** argv) {
 
     ros::ServiceServer set_goal_service = nh.advertiseService("/robotNavigation/set_goal", setGoal);
     ROS_INFO("%s: Goal Server Ready to receive requests.", nodeName.c_str());
-
+    // #######################################################
+    // setPose service for SLAM mode (ADD THESE LINES HERE)
+    ros::ServiceServer set_pose_service = nh.advertiseService("/robotNavigation/set_pose", setPose);
+    ROS_INFO("%s: Pose Server Ready to receive requests.", nodeName.c_str());    
+    // #######################################################
+    
     // Read the configuration file
     int config_file_read = 0;
     topics_filename = robot_topics;
-    config_file_read = readConfigurationFile(&environmentMapFile, &configurationMapFile, &pathPlanningAlgorithm, &socialDistanceMode, &robot_topics, &topics_filename, &verbose_mode, &robot_type);
-    printConfiguration(environmentMapFile, configurationMapFile, pathPlanningAlgorithm, socialDistanceMode, robot_topics, topics_filename, verbose_mode, robot_type);
+    config_file_read = readConfigurationFile(&environmentMapFile, &configurationMapFile, &pathPlanningAlgorithm, &socialDistanceMode, &robot_topics, &topics_filename, &verbose_mode, &robot_type, &navigation_mode);
+    printConfiguration(environmentMapFile, configurationMapFile, pathPlanningAlgorithm, socialDistanceMode, robot_topics, topics_filename, verbose_mode, robot_type, navigation_mode);
     
     // Check if the configuration file was read successfully
     if(config_file_read == 1){
@@ -138,7 +144,34 @@ int main(int argc, char** argv) {
     // navigation_pelvis_publisher = nh.advertise<trajectory_msgs::JointTrajectory>("/pepper_dcm/Pelvis_controller/command", 1000, true);
     navigation_pelvis_publisher = nh.advertise<naoqi_bridge_msgs::JointAnglesWithSpeed>("/joint_angles", 1000, true);
 
-    
+    // #####################################################
+    // SLAM mode publishers setup
+    if (navigation_mode == "SLAM") {
+        ROS_INFO("%s: Setting up SLAM mode", nodeName.c_str());
+        
+        // Publishers for manual goal/pose setting (optional, can keep for compatibility)
+        slam_goal_publisher = nh.advertise<geometry_msgs::PoseStamped>("move_base_simple/goal", 1);
+        slam_initialpose_publisher = nh.advertise<geometry_msgs::PoseWithCovarianceStamped>("initialpose", 1);
+        
+        // Initialize move_base action client
+        ROS_INFO("%s: Connecting to move_base action server...", nodeName.c_str());
+        move_base_client = new MoveBaseClient("move_base", true);
+        
+        // Wait for the action server to come up with timeout
+        ROS_INFO("%s: Waiting for move_base action server (timeout: 30 seconds)...", nodeName.c_str());
+        if (!move_base_client->waitForServer(ros::Duration(30.0))) {
+            ROS_ERROR("%s: move_base action server not available after 30 seconds!", nodeName.c_str());
+            ROS_ERROR("%s: SLAM navigation will not work. Please ensure move_base is running.", nodeName.c_str());
+            delete move_base_client;
+            move_base_client = nullptr;
+        } else {
+            ROS_INFO("%s: Successfully connected to move_base action server", nodeName.c_str());
+        }
+        
+        ROS_INFO("%s: SLAM mode initialization complete", nodeName.c_str());
+    }
+
+    // #######################################################
 
     bool                 debug = true;
    
@@ -287,6 +320,12 @@ int main(int argc, char** argv) {
         ROS_INFO_THROTTLE(10, "%s: running.", nodeName.c_str());
         ros::spinOnce(); 
 
+    }
+
+    // Cleanup
+    if (move_base_client != nullptr) {
+        delete move_base_client;
+        move_base_client = nullptr;
     }
 
     return 0;

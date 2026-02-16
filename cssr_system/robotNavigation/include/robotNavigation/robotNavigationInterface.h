@@ -80,6 +80,13 @@
 #include <opencv2/opencv.hpp>
 #include <stack>
 
+#include <geometry_msgs/PoseStamped.h>
+#include <geometry_msgs/PoseWithCovarianceStamped.h>
+
+
+#include <actionlib/client/simple_action_client.h>
+#include <move_base_msgs/MoveBaseAction.h>
+
 using namespace std;
 using namespace cv;
 using namespace boost::algorithm;
@@ -131,6 +138,20 @@ extern std::string robot_topics;
 extern string topics_filename;
 extern bool verbose_mode;
 extern std::string robot_type;
+
+//#######################################################
+// To add navigation mode related variables
+extern std::string navigation_mode;
+
+// SLAM mode publishers 
+extern ros::Publisher slam_goal_publisher;
+extern ros::Publisher slam_initialpose_publisher;
+
+// SLAM mode action client
+typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
+extern MoveBaseClient* move_base_client;
+
+//#####################################################
 
 
 // Publisher for the velocity commands
@@ -329,6 +350,14 @@ void goToPoseMIMO   (double x, double y, double theta, locomotionParameterDataTy
 bool setGoal(cssr_system::setGoal::Request  &service_request, cssr_system::setGoal::Response &service_response);
 
 /***************************************************************************************************************************
+// SLAM mode service callback function declaration
+
+****************************************************************************************************************************/
+
+bool setPose(cssr_system::setGoal::Request  &service_request, cssr_system::setGoal::Response &service_response);
+
+
+/***************************************************************************************************************************
 
    General purpose function declarations 
 
@@ -377,9 +406,18 @@ int extractTopic(string key, string topic_file_name, string *topic_name);
 void moveToPosition(ControlClientPtr& client, const std::vector<std::string>& joint_names, double duration, 
                         bool open_hand, string hand, string hand_topic, 
                         const std::string& position_name, std::vector<double> positions);
-int readConfigurationFile(string* environmentMapFile, string* configurationMapFile, int* pathPlanningAlgorithm, bool* socialDistanceMode, string* robot_topics, string* topics_filename, bool* debug_mode, string* robot_type);
+int readConfigurationFile(string* environmentMapFile, string* configurationMapFile, int* pathPlanningAlgorithm, bool* socialDistanceMode, string* robot_topics, string* topics_filename, bool* debug_mode, string* robot_type, string* navigation_mode);
 
-void printConfiguration(string environmentMapFile, string configurationMapFile, int pathPlanningAlgorithm, bool socialDistanceMode, string robot_topics, string topics_filename, bool debug_mode, string robot_type);
+void printConfiguration(string environmentMapFile, string configurationMapFile, int pathPlanningAlgorithm, bool socialDistanceMode, string robot_topics, string topics_filename, bool debug_mode, string robot_type, string navigation_mode);
+
+// #######################################################
+// SLAM mode utility functions
+void publishSlamGoal(double goal_x, double goal_y, double goal_theta);
+
+void publishSlamInitialPose(double pose_x, double pose_y, double pose_theta);
+
+int executeSlamNavigation(double goal_x, double goal_y, double goal_theta);
+// #######################################################
 
 void saveWaypointMap(vector<int> compressionParams, Mat mapImageLarge, string fileName);
 

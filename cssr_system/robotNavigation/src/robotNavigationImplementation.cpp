@@ -60,6 +60,18 @@ std::string nodeName = "robotNavigation";
 Mat mapImage;
 Mat configurationSpaceImage;
 
+// ########################################################
+// Navigation mode variables
+std::string navigation_mode;
+
+// SLAM mode publishers
+ros::Publisher slam_goal_publisher;
+ros::Publisher slam_initialpose_publisher;
+
+// SLAM mode action client
+MoveBaseClient* move_base_client = nullptr;
+// ########################################################
+
 // Publisher for the velocity commands
 ros::Publisher navigation_velocity_publisher;
 ros::Publisher navigation_pelvis_publisher;
@@ -128,6 +140,67 @@ bool setGoal(cssr_system::setGoal::Request  &service_request, cssr_system::setGo
 
     x_goal = roundFloatingPoint(x_goal, 1);
     y_goal = roundFloatingPoint(y_goal, 1);
+
+    //####################################################
+    ROS_INFO("Navigation mode: %s", navigation_mode.c_str());
+    
+    // SLAM mode - use move_base action client to wait for goal completion
+    if (navigation_mode == "SLAM") {
+        ROS_INFO("Using SLAM navigation mode");
+        
+        // Check if action client is available
+        if (move_base_client == nullptr || !move_base_client->isServerConnected()) {
+            ROS_ERROR("move_base action server is not available. Cannot navigate.");
+            service_response.navigation_goal_success = 0;
+            return true;
+        }
+        
+        // Create the goal
+        move_base_msgs::MoveBaseGoal goal;
+        goal.target_pose.header.frame_id = "map";
+        goal.target_pose.header.stamp = ros::Time::now();
+        
+        goal.target_pose.pose.position.x = x_goal;
+        goal.target_pose.pose.position.y = y_goal;
+        goal.target_pose.pose.position.z = 0.0;
+        
+        // Convert angle to quaternion (theta_goal is already in radians from conversion above)
+        double yaw = theta_goal;
+        goal.target_pose.pose.orientation.x = 0.0;
+        goal.target_pose.pose.orientation.y = 0.0;
+        goal.target_pose.pose.orientation.z = sin(yaw / 2.0);
+        goal.target_pose.pose.orientation.w = cos(yaw / 2.0);
+        
+        ROS_INFO("Sending goal to move_base: (%.2f, %.2f, %.2f degrees)", x_goal, y_goal, degrees(theta_goal));
+        
+        // Send the goal
+        move_base_client->sendGoal(goal);
+        
+        // Wait for the result (300 seconds = 5 minutes timeout)
+        bool finished_before_timeout = move_base_client->waitForResult(ros::Duration(300.0));
+        
+        if (finished_before_timeout) {
+            actionlib::SimpleClientGoalState state = move_base_client->getState();
+            
+            if (state == actionlib::SimpleClientGoalState::SUCCEEDED) {
+                ROS_INFO("Goal reached successfully in SLAM mode!");
+                service_response.navigation_goal_success = 1;
+            } else {
+                ROS_WARN("Goal failed with state: %s", state.toString().c_str());
+                service_response.navigation_goal_success = 0;
+            }
+        } else {
+            ROS_WARN("Goal did not finish before timeout (300 seconds)");
+            move_base_client->cancelGoal();
+            service_response.navigation_goal_success = 0;
+        }
+        
+        return true;
+    }
+    
+    // CAD mode - use existing logic (EXISTING CODE CONTINUES HERE)
+    ROS_INFO("Using CAD navigation mode");
+    //####################################################
 
     // Check if goal is same as current position (within tolerance)
     double distance_to_goal = sqrt(pow(x_goal - current_x, 2) + pow(y_goal - current_y, 2));
@@ -465,7 +538,7 @@ void moveToPosition(ControlClientPtr& client, const std::vector<std::string>& jo
 }
 
 
-int readConfigurationFile(string* environmentMapFile, string* configurationMapFile, int* path_planning_algorithm, bool* socialDistanceMode, string* robot_topics, string* topics_filename, bool* debug_mode, string* robot_type) {
+int readConfigurationFile(string* environmentMapFile, string* configurationMapFile, int* path_planning_algorithm, bool* socialDistanceMode, string* robot_topics, string* topics_filename, bool* debug_mode, string* robot_type, string* navigationMode) {
     std::string config_file = "robotNavigationConfiguration.ini";       // data filename
     std::string config_path;                                            // data path
     std::string config_path_and_file;                                   // data path and filename
@@ -476,7 +549,8 @@ int readConfigurationFile(string* environmentMapFile, string* configurationMapFi
     std::string social_distance_mode_key = "socialDistance";            // x offset to head yaw key
     std::string robot_topics_key = "robotTopics";                       // robot topics key
     std::string verbose_mode_key = "verboseMode";                       // verbose mode key
-    std::string robot_type_key = "robotType";         
+    std::string robot_type_key = "robotType";     
+    std::string navigation_mode_key = "navigationMode";        
 
     std::string environment_map_file_value;                             // camera value
     std::string configuration_map_file_value;                           // realignment threshold value
@@ -484,7 +558,8 @@ int readConfigurationFile(string* environmentMapFile, string* configurationMapFi
     std::string social_distance_mode_value;                             // x offset to head yaw value
     std::string robot_topics_value;                                     // robot topics value
     std::string verbose_mode_value;                                     // verbose mode value
-    std::string robot_type_value;                     
+    std::string robot_type_value;  
+    std::string navigation_mode_value;                    
 
     // Construct the full path of the configuration file
     #ifdef ROS
@@ -586,6 +661,20 @@ int readConfigurationFile(string* environmentMapFile, string* configurationMapFi
             robot_type_value = param_value;
             *robot_type = param_value;
         }
+        else if (param_key == navigation_mode_key) {        
+            navigation_mode_value = param_value;
+            boost::algorithm::to_lower(param_value);
+            if(param_value == "cad") {
+                *navigationMode = "CAD";
+            }
+            else if(param_value == "slam") {
+                *navigationMode = "SLAM";
+            }
+            else {
+                printf("Navigation mode value not supported. Supported values are: CAD and SLAM. Using default CAD.\n");
+                *navigationMode = "CAD";
+            }
+        }
     }
     data_if.close();
 
@@ -607,7 +696,7 @@ int readConfigurationFile(string* environmentMapFile, string* configurationMapFi
 }
 
 /* Print the overt attention configuration */
-void printConfiguration(string environmentMapFile, string configurationMapFile, int pathPlanningAlgorithm, bool socialDistanceMode, string robot_topics, string topics_filename, bool debug_mode, string robot_type){
+void printConfiguration(string environmentMapFile, string configurationMapFile, int pathPlanningAlgorithm, bool socialDistanceMode, string robot_topics, string topics_filename, bool debug_mode, string robot_type, string navigation_mode){
     extern std::string nodeName;    
     ROS_INFO("%s: Environment Map File: %s", nodeName.c_str(), environmentMapFile.c_str());
     ROS_INFO("%s: Configuration Map File: %s", nodeName.c_str(), configurationMapFile.c_str());
@@ -621,6 +710,7 @@ void printConfiguration(string environmentMapFile, string configurationMapFile, 
     ROS_INFO("%s: Topics Filename: %s", nodeName.c_str(), topics_filename.c_str());
     ROS_INFO("%s: Verbose Mode: %s", nodeName.c_str(), debug_mode ? "true" : "false");
     ROS_INFO("%s: Robot Type: %s", nodeName.c_str(), robot_type.c_str());
+    ROS_INFO("%s: Navigation Mode: %s", nodeName.c_str(), navigation_mode.c_str());
 }
 
 /******************************************************************************
@@ -3308,7 +3398,7 @@ void moveRobotActuatorsToDefault(){
       
       // Create a control client for the leg
       std::string leg_topic;
-      leg_topic = "//pepper_dcm/Pelvis_controller/follow_joint_trajectory";
+      leg_topic = "/pepper_dcm/Pelvis_controller/follow_joint_trajectory";
       ControlClientPtr leg_client = createClient(leg_topic);
 
       if(leg_client == nullptr){
@@ -3402,4 +3492,77 @@ void moveOneActuatorToPosition(ControlClientPtr& client, const std::vector<std::
     // Send the goal to move the actuator to the specified position
     client->sendGoal(goal);
     client->waitForResult(ros::Duration(duration));                     // Wait for the actuator to reach the specified position
+}
+
+
+
+
+// NEW SLAM MODE FUNCTIONS - ADD THIS ENTIRE SECTION AT THE END OF THE FILE
+
+/* New setPose service callback for SLAM mode */
+bool setPose(cssr_system::setGoal::Request  &service_request, cssr_system::setGoal::Response &service_response){
+    double pose_x = service_request.goal_x;
+    double pose_y = service_request.goal_y; 
+    double pose_theta = service_request.goal_theta;
+
+    // ROS_INFO("Setting robot pose to: x=%.2f, y=%.2f, theta=%.2f", pose_x, pose_y, pose_theta);
+
+    if (navigation_mode == "SLAM") {
+        publishSlamInitialPose(pose_x, pose_y, pose_theta);
+        ROS_INFO("Pose forwarded to ROS navigation stack initialpose topic");
+    } else {
+        ROS_INFO("CAD mode - pose setting handled by robotLocalization");
+    }
+
+    service_response.navigation_goal_success = 1;
+    return true;
+}
+
+/* Publish goal to move_base_simple/goal topic */
+void publishSlamGoal(double goal_x, double goal_y, double goal_theta) {
+    geometry_msgs::PoseStamped goal_msg;
+    
+    goal_msg.header.stamp = ros::Time::now();
+    goal_msg.header.frame_id = "map";
+    
+    goal_msg.pose.position.x = goal_x;
+    goal_msg.pose.position.y = goal_y;
+    goal_msg.pose.position.z = 0.0;
+    
+    // Convert angle to quaternion
+    double yaw = radians(goal_theta);
+    goal_msg.pose.orientation.x = 0.0;
+    goal_msg.pose.orientation.y = 0.0;
+    goal_msg.pose.orientation.z = sin(yaw / 2.0);
+    goal_msg.pose.orientation.w = cos(yaw / 2.0);
+    
+    slam_goal_publisher.publish(goal_msg);
+    ROS_INFO("Published goal to move_base_simple/goal: (%.2f, %.2f, %.2f)", goal_x, goal_y, goal_theta);
+}
+
+/* Publish initial pose to initialpose topic */
+void publishSlamInitialPose(double pose_x, double pose_y, double pose_theta) {
+    geometry_msgs::PoseWithCovarianceStamped pose_msg;
+    
+    pose_msg.header.stamp = ros::Time::now();
+    pose_msg.header.frame_id = "map";
+    
+    pose_msg.pose.pose.position.x = pose_x;
+    pose_msg.pose.pose.position.y = pose_y;
+    pose_msg.pose.pose.position.z = 0.0;
+    
+    // Convert angle to quaternion
+    double yaw = radians(pose_theta);
+    pose_msg.pose.pose.orientation.x = 0.0;
+    pose_msg.pose.pose.orientation.y = 0.0;
+    pose_msg.pose.pose.orientation.z = sin(yaw / 2.0);
+    pose_msg.pose.pose.orientation.w = cos(yaw / 2.0);
+    
+    // Set covariance (you can adjust these values)
+    pose_msg.pose.covariance[0] = 0.25;   // x
+    pose_msg.pose.covariance[7] = 0.25;   // y  
+    pose_msg.pose.covariance[35] = 0.068; // yaw
+    
+    slam_initialpose_publisher.publish(pose_msg);
+    ROS_INFO("Published initial pose to initialpose: (%.2f, %.2f, %.2f)", pose_x, pose_y, pose_theta);
 }
