@@ -143,185 +143,6 @@ void robot_pose_message_received(const geometry_msgs::Pose2D& msg) {
     robot_pose[2] = msg.theta;
 }
 
-/* 
- *   Callback function for the /gestureExecution/perform_gesture service
- *   The function receives a request to execute a gesture on the robot
- *   and executes the gesture based on the request parameters.
- */
-bool execute_gesture(cssr_system::performGesture::Request  &service_request, cssr_system::performGesture::Response &service_response){
-    int execution_status = 0;                                                       //Stores the status of the gesture execution
-    bool debug = true;                                                              //Debug mode flag
-
-    service_response.gesture_success = execution_status;                            // Set the default response to the service
-
-    if(first_service_call){                                                        // Check if this is the first call to the service
-        // Initialize the node: Read configuration file and set the implementation platform, interpolation type, and topics file name
-        int node_initialization_status = 0;
-        node_initialization_status = initialize_node(&implementation_platform, &interpolation_type, &interpolation_mode, &gesture_descriptors_config_filename, &simulator_topics_filename, &robot_topics_filename, &topics_file_name, &verbose_mode_input, &verbose_mode);
-        if(node_initialization_status != 0){
-            ROS_ERROR("%s: initialization failed due to incorrect configuration. Terminating...", node_name.c_str());
-            return 0;
-        }
-        first_service_call = false;
-    }
-
-    // Print the request parameters if verbose mode is enabled
-    if (verbose_mode){
-        ROS_INFO("%s: request to /gestureExecution/perform_gesture service: \
-                \n\t\t\t\t\t\t\tgesture_type\t\t: %s, \n\t\t\t\t\t\t\tgesture_id\t\t: %d, \n\t\t\t\t\t\t\tgesture_duration\t: %ld ms, \
-                \n\t\t\t\t\t\t\tbow_nod_angle\t\t: %d degrees, \
-                \n\t\t\t\t\t\t\tlocation_x\t\t: %.2f, \n\t\t\t\t\t\t\tlocation_y\t\t: %.2f, \n\t\t\t\t\t\t\tlocation_z\t\t: %.2f.",\
-                node_name.c_str(), service_request.gesture_type.c_str(), service_request.gesture_id, service_request.gesture_duration, \
-                service_request.bow_nod_angle, service_request.location_x, service_request.location_y, service_request.location_z);
-    }
-
-    // Extract the request parameters
-    string gesture_type = service_request.gesture_type;
-    uint8_t gesture_id = service_request.gesture_id;
-    int gesture_duration = service_request.gesture_duration;
-    int bow_nod_angle = service_request.bow_nod_angle;
-    float point_location_x = service_request.location_x;
-    float point_location_y = service_request.location_y;
-    float point_location_z = service_request.location_z;
-
-    // Ensure the request gesture duration is not less than 1000 ms or greater than 10000 ms -- Values defined in gestureExecutionINterface.h
-    if (gesture_duration < MIN_GESTURE_DURATION){
-        ROS_WARN("%s: gesture duration cannot be less than %d ms. Requested gesture duration: %d ms", node_name.c_str(), MIN_GESTURE_DURATION, gesture_duration);
-        gesture_duration = MIN_GESTURE_DURATION;
-    }
-    else if (gesture_duration > MAX_GESTURE_DURATION){
-        ROS_WARN("%s: gesture duration cannot be greater than %d ms. Requested gesture duration: %d ms", node_name.c_str(), MAX_GESTURE_DURATION, gesture_duration);
-        gesture_duration = MAX_GESTURE_DURATION;
-    }
-
-    /* -----Main gesture execution logic------ */
- 
-    /* Deictic Gestures Execution */
-    if((gesture_type == DEICTIC_GESTURES) || (gesture_type == DIECTIC_GESTURES)){
-        // Execute the deictic gesture
-        execution_status = deictic_gesture(point_location_x, point_location_y, point_location_z, gesture_duration, topics_file_name, interpolation_mode, gesture_velocity_publisher, verbose_mode);
-    }
-
-    /* Iconic Gestures Execution */
-    else if(gesture_type == ICONIC_GESTURES){
-        string iconic_gesture_type;                                                 //Stores the iconic gesture type
-        string iconic_gesture_id;                                                   //Stores the iconic gesture ID
-        string gesture_arm = "RArm";                                                //Stores the gesture arm
-        int number_of_waypoints;                                                    //Stores the number of waypoints in the gesture
-        string joint_angles;                                                        //Stores the joint angles of the gesture
-
-        // Vectors to store the waypoints of the gesture
-        std::vector<std::vector<double>> gesture_waypoints;
-        std::vector<std::vector<double>> gesture_waypoints_arm_1;
-        std::vector<std::vector<double>> gesture_waypoints_arm_2;
-
-        // Read gesture descriptors configuration file
-        std::vector<std::vector<string>> gesture_descriptors_config;
-        int gesture_descriptors_config_read_status = 0;
-        gesture_descriptors_config_read_status = read_gesture_descriptors_config(gesture_descriptors_config_filename, gesture_descriptors_config);
-        if(gesture_descriptors_config_read_status != 0){
-            ROS_ERROR("%s: error reading gesture descriptors configuration file.", node_name.c_str());
-            return true;
-        }
-
-        // Analyse the requested ID to determine if it is one or two-armed gesture from the descriptor table
-        bool ID_found = false;                                                      //Stores the status of the ID found
-        string second_arm_ID = "";                                                  //Stores the ID of the second arm
-        for (int i = 0; i < gesture_descriptors_table.size(); i++){                 //Iterate through the gesture descriptors table
-            if (gesture_id == std::stoi(gesture_descriptors_table[i][0])){          //Check if the gesture ID is in the table
-                second_arm_ID = gesture_descriptors_table[i][1];                    //Get the second arm ID
-                ID_found = true;                                                    //Set the ID found flag
-                break;                                                              //Exit the loop
-            }
-        }
-
-        if (!ID_found){                                                             //If the ID is not found in the table
-            ROS_WARN("%s: gesture ID not found in the gesture descriptors table.", node_name.c_str());
-            ROS_ERROR("%s: executing service request failed.", node_name.c_str());
-            service_response.gesture_success = 0;                                  // Set the response to the service
-            return true;
-        }
-
-        string gesture_arm_1 = "";                                                  //Stores the gesture arm 1
-        string gesture_arm_2 = "";                                                  //Stores the gesture arm 2
-        string gesture_descriptors_filename = "";                                   //Stores the gesture descriptors filename
-        int number_of_waypoints_arm_1 = 0;                                          //Stores the number of waypoints for arm 1
-        int number_of_waypoints_arm_2 = 0;                                          //Stores the number of waypoints for arm 2                                       
-        string joint_angles_arm_1 = "";                                             //Stores the joint angles for arm 1
-        string joint_angles_arm_2 = "";                                             //Stores the joint angles for arm 2
-
-        int angles_extracted_arm_1 = 1;                                             //Stores the status of the joint angles extraction for arm 1
-        int angles_extracted_arm_2 = 1;                                             //Stores the status of the joint angles extraction for arm 2
-
-        bool open_right_hand = true;                                                //Stores the status of the right hand opening
-        bool open_left_hand = false;                                                //Stores the status of the left hand opening
-
-        // Extract the gesture descriptors from the gesture ID
-        extract_info_from_ID(gesture_id, gesture_descriptors_config, &gesture_descriptors_filename, &gesture_arm_1);
-
-        // Read the gesture descriptors file. If an error occurs, return true
-        if(read_gesture_descriptors(gesture_descriptors_filename, &iconic_gesture_type, &iconic_gesture_id, &number_of_waypoints_arm_1, &joint_angles_arm_1)){
-            ROS_ERROR("%s: error reading gesture descriptors file.", node_name.c_str());
-            return true;
-        }
-
-        // Extract joint angles from the gesture descriptors for arm 1
-        angles_extracted_arm_1 = extract_joint_angles(gesture_descriptors_filename, joint_angles_arm_1, number_of_waypoints_arm_1, gesture_waypoints_arm_1, verbose_mode);
-
-        // If the gesture is a two-armed gesture, extract the joint angles for the second arm
-        if (second_arm_ID != ""){
-            extract_info_from_ID(std::stoi(second_arm_ID), gesture_descriptors_config, &gesture_descriptors_filename, &gesture_arm_2);
-            if(read_gesture_descriptors(gesture_descriptors_filename, &iconic_gesture_type, &iconic_gesture_id, &number_of_waypoints_arm_2, &joint_angles_arm_2)){
-                ROS_ERROR("%s: error reading gesture descriptors file.", node_name.c_str());
-                return true;
-            }
-            // Extract joint angles from the gesture descriptors
-            angles_extracted_arm_2 = extract_joint_angles(gesture_descriptors_filename, joint_angles_arm_2, number_of_waypoints_arm_2, gesture_waypoints_arm_2, verbose_mode);
-        
-        }
-
-        // Execute the iconic gesture
-        if(angles_extracted_arm_1 && angles_extracted_arm_2){
-            execution_status = iconic_gestures(gesture_arm_1, gesture_waypoints_arm_1, gesture_arm_2, gesture_waypoints_arm_2, open_right_hand, open_left_hand, gesture_duration, topics_file_name, interpolation_mode, verbose_mode);
-        }
-    }
-
-    /* Symbolic Gestures Execution */
-    else if((gesture_type == SYMBOLIC_GESTURES)){
-        ROS_WARN("%s: symbolic gesture execution not implemented yet.", node_name.c_str());
-        service_response.gesture_success = 0;                                      // Set the response to the service
-        return true;
-    }
-    
-    /* Bowing Gesture Execution */
-    else if(gesture_type == BOWING_GESTURE){
-        execution_status = bowing_gesture(bow_nod_angle, gesture_duration, topics_file_name, interpolation_mode, verbose_mode);
-    }
-
-    /* Nodding Gesture Execution */
-    else if(gesture_type == NODDING_GESTURE){
-        execution_status = nodding_gesture(bow_nod_angle, gesture_duration, topics_file_name, interpolation_mode, verbose_mode);
-    }
-
-    /* Gesture type not supported */
-    else{
-        ROS_WARN("%s: gesture type not supported. Supported gesture types are: deictic, iconic, symbolic, bow, and nod.", node_name.c_str());
-    }
-
-    service_response.gesture_success = execution_status;                            // Set the response to the service
-
-    if (service_response.gesture_success == 1){                                     // Print the response to the service
-        if(verbose_mode){ 
-            ROS_INFO("%s: executing service request successful.", node_name.c_str());
-        }
-    }
-    else{
-        ROS_ERROR("%s: executing service request failed.", node_name.c_str());
-    }
-    return true;
-}
-
-
 
 
 /*  --------------------------------------------------
@@ -2424,7 +2245,9 @@ int move_to_position_biological_motion_iconic(ControlClientPtr& arm_1_client, Co
  *   @return:
  *       1 if successful, 0 otherwise
  */
-int deictic_gesture(float point_x, float point_y, float point_z, int gesture_duration, string topics_file, int interpolation, ros::Publisher velocity_publisher, bool debug){
+int deictic_gesture(string arm,float point_x, float point_y, float point_z, int gesture_duration, string topics_file, int interpolation, ros::Publisher velocity_publisher, bool debug){
+
+    ROS_INFO_STREAM("POINTING AT: "<<point_x<<" "<<point_y<<" "<<point_z<<" "<<arm);
     bool debug_mode = false;   // used to turn debug message on
     // Robot pose coordinates
     double robot_x      = robot_pose[0] * 1000;                                     // Convert the robot's x coordinate from meters to millimeters
@@ -2469,6 +2292,7 @@ int deictic_gesture(float point_x, float point_y, float point_z, int gesture_dur
     // Gesture duration in milliseconds
     double duration     = gesture_duration/1000.0;
 
+    ROS_INFO_STREAM("The selected arm is "<<arm);
 
     /* Compute the pointing coordinates with respect to the robot pose in the environment */
     double relative_pointing_x = (point_x * 1000) - robot_x;                        // Convert the pointing coordinates from meters to millimeters
@@ -2478,47 +2302,16 @@ int deictic_gesture(float point_x, float point_y, float point_z, int gesture_dur
     pointing_z = point_z * 1000;                                                    // The pointing z coordinate is the same as the robot's z coordinate (converted to millimeters)
     
     ROS_INFO("%s: Pointing coordinates: (%f, %f, %f)", node_name.c_str(), pointing_x, pointing_y, pointing_z);
-    /* Account for unreachable points in the cartesian space 
-    (e.g. outside the robot's forward reach)
-    Rotate the robot appropriately (by 90 degrees) if necessary */
-
-    // Case 1: Pointing coordinates directly in front of the robot (+x direction): No rotation is needed, just choose arm
-    if(pointing_x >= 0.0){
-        pose_achievable = true;                                                     // The pointing coordinates are reachable without rotating the robot
-        // Use right arm if the pointing coordinates are to the right of the robot (-y direction)
-        if(pointing_y <= 0.0){
-            pointing_arm = RIGHT_ARM;
-            y_s = -y_s;
-        }
-        // Use left arm if the pointing coordinates are to the left of the robot (+y direction)
-        else if(pointing_y > 0.0){
-            pointing_arm = LEFT_ARM;
-        }
+    
+    if(arm=="left"){
+        pointing_arm = LEFT_ARM;
     }
-    // Case 2: Pointing coordinates directly behind the robot (-x direction): 
-    // Rotate the robot by 90 degrees left or right depending on the y coordinate of the pointing coordinates
-    else if(pointing_x < 0.0){
-        pose_achievable = false;
-        double temp_var = 0.0;
-        // Rotate 90 degrees clockwise and use right arm if the pointing coordinates are to the right of the robot (-y direction)
-        if(pointing_y <= 0.0){
-            pointing_arm = RIGHT_ARM;
-            rotation_angle = -90.0;
-            y_s = -y_s;
-            // Realign the pointing coordinates considering the rotation
-            temp_var = pointing_x;
-            pointing_x = -pointing_y;
-            pointing_y = temp_var;
-        }
-        // Rotate 90 degrees anticlockwise and use left arm if the pointing coordinates are to the left of the robot (+y direction)
-        else if(pointing_y > 0.0){
-            pointing_arm = LEFT_ARM;
-            rotation_angle = 90.0;
-            // Realign the pointing coordinates considering the rotation
-            temp_var = pointing_x;
-            pointing_x = pointing_y;
-            pointing_y = -temp_var;
-        }
+    else if(arm=="right"){
+        pointing_arm = RIGHT_ARM;
+        y_s = -y_s;
+    }
+    else{
+        ROS_INFO_STREAM("SHOULDN'T HAPPEN");
     }
 
     // Calculate the elbow coordinates
@@ -2976,4 +2769,158 @@ void shut_down_handler(int sig) {
 
     ROS_ERROR("%s: terminated.", node_name.c_str());
     ros::shutdown();
+}
+
+
+void executeCB(const actionlib::SimpleActionServer<cssr_system::gestureAction>::GoalConstPtr &goal, actionlib::SimpleActionServer<cssr_system::gestureAction>* as) {
+    int execution_status = 0;
+    bool debug = true;
+
+    cssr_system::gestureFeedback feedback;
+    cssr_system::gestureResult result;
+
+    result.gesture_success = execution_status;
+
+    
+    // Extract the request parameters
+    string gesture_type = goal->gesture_type;
+    uint8_t gesture_id = goal->gesture_id;
+    int gesture_duration = goal->gesture_duration;
+    int bow_nod_angle = goal->bow_nod_angle;
+    float point_location_x = goal->location_x;
+    float point_location_y = goal->location_y;
+    float point_location_z = goal->location_z;
+    string arm = goal->arm;
+
+    // Ensure the request gesture duration is not less than 1000 ms or greater than 10000 ms -- Values defined in gestureExecutionINterface.h
+    if (gesture_duration < MIN_GESTURE_DURATION){
+        ROS_WARN("%s: gesture duration cannot be less than %d ms. Requested gesture duration: %d ms", node_name.c_str(), MIN_GESTURE_DURATION, gesture_duration);
+        gesture_duration = MIN_GESTURE_DURATION;
+    }
+    else if (gesture_duration > MAX_GESTURE_DURATION){
+        ROS_WARN("%s: gesture duration cannot be greater than %d ms. Requested gesture duration: %d ms", node_name.c_str(), MAX_GESTURE_DURATION, gesture_duration);
+        gesture_duration = MAX_GESTURE_DURATION;
+    }
+
+    /* -----Main gesture execution logic------ */
+ 
+    /* Deictic Gestures Execution */
+    if((gesture_type == DEICTIC_GESTURES) || (gesture_type == DIECTIC_GESTURES)){
+        // Execute the deictic gesture
+        execution_status = deictic_gesture(arm,point_location_x, point_location_y, point_location_z, gesture_duration, topics_file_name, interpolation_mode, gesture_velocity_publisher, verbose_mode);
+    }
+
+    /* Iconic Gestures Execution */
+    else if(gesture_type == ICONIC_GESTURES){
+        string iconic_gesture_type;                                                 //Stores the iconic gesture type
+        string iconic_gesture_id;                                                   //Stores the iconic gesture ID
+        string gesture_arm = "RArm";                                                //Stores the gesture arm
+        int number_of_waypoints;                                                    //Stores the number of waypoints in the gesture
+        string joint_angles;                                                        //Stores the joint angles of the gesture
+
+        // Vectors to store the waypoints of the gesture
+        std::vector<std::vector<double>> gesture_waypoints;
+        std::vector<std::vector<double>> gesture_waypoints_arm_1;
+        std::vector<std::vector<double>> gesture_waypoints_arm_2;
+
+        // Read gesture descriptors configuration file
+        std::vector<std::vector<string>> gesture_descriptors_config;
+        int gesture_descriptors_config_read_status = 0;
+        gesture_descriptors_config_read_status = read_gesture_descriptors_config(gesture_descriptors_config_filename, gesture_descriptors_config);
+        if(gesture_descriptors_config_read_status != 0){
+            ROS_ERROR("%s: error reading gesture descriptors configuration file.", node_name.c_str());
+            result.gesture_success = 0;
+            as->setAborted(result);
+            return;
+        }
+
+        // Analyse the requested ID to determine if it is one or two-armed gesture from the descriptor table
+        bool ID_found = false;                                                      //Stores the status of the ID found
+        string second_arm_ID = "";                                                  //Stores the ID of the second arm
+        for (int i = 0; i < gesture_descriptors_table.size(); i++){                 //Iterate through the gesture descriptors table
+            if (gesture_id == std::stoi(gesture_descriptors_table[i][0])){          //Check if the gesture ID is in the table
+                second_arm_ID = gesture_descriptors_table[i][1];                    //Get the second arm ID
+                ID_found = true;                                                    //Set the ID found flag
+                break;                                                              //Exit the loop
+            }
+        }
+
+        if (!ID_found){                                                             //If the ID is not found in the table
+            ROS_WARN("%s: gesture ID not found in the gesture descriptors table.", node_name.c_str());
+            result.gesture_success = 0;
+            as->setAborted(result);
+            return;
+        }
+
+        string gesture_arm_1 = "";                                                  //Stores the gesture arm 1
+        string gesture_arm_2 = "";                                                  //Stores the gesture arm 2
+        string gesture_descriptors_filename = "";                                   //Stores the gesture descriptors filename
+        int number_of_waypoints_arm_1 = 0;                                          //Stores the number of waypoints for arm 1
+        int number_of_waypoints_arm_2 = 0;                                          //Stores the number of waypoints for arm 2                                       
+        string joint_angles_arm_1 = "";                                             //Stores the joint angles for arm 1
+        string joint_angles_arm_2 = "";                                             //Stores the joint angles for arm 2
+
+        int angles_extracted_arm_1 = 1;                                             //Stores the status of the joint angles extraction for arm 1
+        int angles_extracted_arm_2 = 1;                                             //Stores the status of the joint angles extraction for arm 2
+
+        bool open_right_hand = true;                                                //Stores the status of the right hand opening
+        bool open_left_hand = false;                                                //Stores the status of the left hand opening
+
+        // Extract the gesture descriptors from the gesture ID
+        extract_info_from_ID(gesture_id, gesture_descriptors_config, &gesture_descriptors_filename, &gesture_arm_1);
+
+        // Read the gesture descriptors file. If an error occurs, return true
+        if(read_gesture_descriptors(gesture_descriptors_filename, &iconic_gesture_type, &iconic_gesture_id, &number_of_waypoints_arm_1, &joint_angles_arm_1)){
+            ROS_ERROR("%s: error reading gesture descriptors file.", node_name.c_str());
+            result.gesture_success = 0;
+            as->setAborted(result);
+            return;
+        }
+
+        // Extract joint angles from the gesture descriptors for arm 1
+        angles_extracted_arm_1 = extract_joint_angles(gesture_descriptors_filename, joint_angles_arm_1, number_of_waypoints_arm_1, gesture_waypoints_arm_1, verbose_mode);
+
+        // If the gesture is a two-armed gesture, extract the joint angles for the second arm
+        if (second_arm_ID != ""){
+            extract_info_from_ID(std::stoi(second_arm_ID), gesture_descriptors_config, &gesture_descriptors_filename, &gesture_arm_2);
+            if(read_gesture_descriptors(gesture_descriptors_filename, &iconic_gesture_type, &iconic_gesture_id, &number_of_waypoints_arm_2, &joint_angles_arm_2)){
+                ROS_ERROR("%s: error reading gesture descriptors file.", node_name.c_str());
+                result.gesture_success = 0;
+                as->setAborted(result);
+                return;
+            }
+            // Extract joint angles from the gesture descriptors
+            angles_extracted_arm_2 = extract_joint_angles(gesture_descriptors_filename, joint_angles_arm_2, number_of_waypoints_arm_2, gesture_waypoints_arm_2, verbose_mode);
+        
+        }
+
+        // Execute the iconic gesture
+        if(angles_extracted_arm_1 && angles_extracted_arm_2){
+            execution_status = iconic_gestures(gesture_arm_1, gesture_waypoints_arm_1, gesture_arm_2, gesture_waypoints_arm_2, open_right_hand, open_left_hand, gesture_duration, topics_file_name, interpolation_mode, verbose_mode);
+        }
+    }
+
+    
+
+    /* Gesture type not supported */
+    else{
+        ROS_WARN("%s: gesture type not supported. Supported gesture types are: deictic and iconic", node_name.c_str());
+        result.gesture_success = 0;
+        as->setAborted(result);
+        return;
+    }
+
+    result.gesture_success = execution_status;
+
+    if (result.gesture_success == 1){ 
+        ROS_INFO("%s: gesture executed successfully.", node_name.c_str());
+        as->setSucceeded(result);
+        return;
+    }
+    else{
+        ROS_ERROR("%s: gesture execution failed.", node_name.c_str());
+        as->setAborted(result);
+        return;
+        
+    }
 }

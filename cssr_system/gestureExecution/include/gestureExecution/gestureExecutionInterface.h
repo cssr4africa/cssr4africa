@@ -42,7 +42,12 @@
 #include <gestureExecution/pepperKinematicsUtilitiesInterface.h>
 #include <geometry_msgs/Pose2D.h>                       // Include for the Pose2D message of the /robotLocalization/pose topic
 #include <cssr_system/setMode.h>                       // Include for /overtAttention/set_mode service
+#include <actionlib/server/simple_action_server.h>
+#include <cssr_system/gestureAction.h>
 
+#include <iostream> //why is this needed? check
+
+void executeCB(const actionlib::SimpleActionServer<cssr_system::gestureAction>::GoalConstPtr &goal, actionlib::SimpleActionServer<cssr_system::gestureAction>* as);
 
 using namespace boost::algorithm;
 using namespace std;
@@ -128,7 +133,7 @@ using namespace std;
 
 // Periods for printing ROS_INFO/ROS_ERROR messages during initialization and operation
 #define INITIALIZATION_INFO_PERIOD          5.0
-#define OPERATION_INFO_PERIOD               10.0
+#define OPERATION_INFO_PERIOD               50.0
 #define ROS
 
 // Define the config and data paths
@@ -746,7 +751,7 @@ int move_to_position_biological_motion_iconic(ControlClientPtr& arm_1_client, Co
  *   @return:
  *       1 if successful, 0 otherwise
  */
-int deictic_gesture(float point_x, float point_y, float point_z, int gesture_duration, string topics_file, int interpolation, ros::Publisher velocity_publisher, bool debug);
+int deictic_gesture(string arm,float point_x, float point_y, float point_z, int gesture_duration, string topics_file, int interpolation, ros::Publisher velocity_publisher, bool debug);
 
 /*  
  *   Function to execute iconic gestures. The iconic gestures are executed by moving the robot's arms to the waypoints specified in the gesture descriptors file.
