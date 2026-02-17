@@ -108,7 +108,7 @@
  *
  */
 
-#include <behaviorController/cultureKnowledgeBaseInterface.h>
+#include <utilities/cultureKnowledgeBaseInterface.h>
 namespace Culture {
 
 /*
@@ -709,7 +709,7 @@ void CultureKnowledgeBase::readConfigurationData() {
    /* ------------------------------------ */
    
    packagedir = ros::package::getPath(ROS_PACKAGE_NAME); // get the package directory
-   packagedir = packagedir + "/behaviorController";
+   packagedir = packagedir + "/behaviorController/include/utilities";
    
    if (debug) cout << "Package directory: " << packagedir << endl;
 
@@ -1106,54 +1106,6 @@ char *valueType2Alphanumeric(int valueType) {
       printf("valueType2Alphanumeric: invalid value type\n");
       return(NULL);
    }
-}
-
-/*
- * Utility functions 
- * ================
- */
-
-
-/*
- * int error(char *s)
- * ------------------
- *
- * Print an error message to the terminal 
- */
-
-int error(char *s) {
-
-   printf("Error: %s\n",s);
-
-   exit(0);
-}
-
-
-/*
- * void print_message_to_file(FILE *fp, char message[]) 
- * ----------------------------------------------------
- *
- * Print a message in a file 
- */
-
-void print_message_to_file(FILE *fp, char message[]) {
- 
-   fprintf(fp,"The message is: %s\n", message);
-} 
-
-
-
-/*
- * void prompt_and_exit(int status)
- * --------------------------------
- *
- * Prompt the user and exit when they press a key
- */
-
-void prompt_and_exit(int status) {
-   printf("Press any key to continue\n");
-   getchar();
-   exit(status);
 }
    
 }

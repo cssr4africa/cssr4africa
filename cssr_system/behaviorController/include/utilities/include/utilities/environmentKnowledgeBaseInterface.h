@@ -19,6 +19,7 @@
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
+#include <utilities/behaviorControllerUtilities.h>
 
 using namespace std;
 
@@ -27,9 +28,9 @@ using namespace std;
    ROS package name
 
 ****************************************************************************************************************************/
-// #ifndef ROS_PACKAGE_NAME
-//   #define ROS_PACKAGE_NAME "utilities"
-// #endif
+#ifndef ROS_PACKAGE_NAME
+  #define ROS_PACKAGE_NAME "utilities"
+#endif
 
 
 /***************************************************************************************************************************
@@ -39,12 +40,11 @@ using namespace std;
 ****************************************************************************************************************************/
 #define TRUE                           1
 #define FALSE                          0
-#define MAX_STRING_LENGTH            200
+#define MAX_STRING_LENGTH            300
 #define MAX_FILENAME_LENGTH          200
-#define STRING_LENGTH                200
+#define STRING_LENGTH                300
 #define KEY_LENGTH                   100
 #define MAX_CULTURE_KEYS               2
-#define NUMBER_OF_CONFIGURATION_KEYS   3
 
 
 /***************************************************************************************************************************
@@ -56,7 +56,6 @@ using namespace std;
 ****************************************************************************************************************************/
 #define NUMBER_OF_VALUE_KEYS          13
 #define MAX_NUMBER_OF_TOUR_LOCATIONS  20
-
 
 #ifndef ENVIRONMENT_KNOWLEDGE_BASE_INTERFACE_H
 #define ENVIRONMENT_KNOWLEDGE_BASE_INTERFACE_H
@@ -149,24 +148,20 @@ private:
 };
 
 
+
+}
 /***************************************************************************************************************************
  
    Utility function prototypes 
    
 ****************************************************************************************************************************/
 
-/* print message passed as argument and take appropriate action */
+// /* convert integer valueType to alphnumeric */
 
-int error(char *s);
+// char *valueType2Alphanumeric(int valueType);
 
-/* prompt the user to exit */
+// /* convert Boolean operational to alphnumeric */
 
-void prompt_and_exit(int status);
+// char *initialized2Alphanumeric(bool initialized);
 
-/* print a message to a specified file */
-
-void print_message_to_file(FILE *fp, char message[]);
-
-
-}
 #endif

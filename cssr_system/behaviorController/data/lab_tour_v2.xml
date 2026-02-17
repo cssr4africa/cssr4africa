@@ -15,10 +15,7 @@
         <SetRobotPose/>
         <HandleFallBack/>
       </Fallback>
-      <Fallback>
-        <SetAnimateBehavior name="enabled"/>
-        <HandleFallBack/>
-      </Fallback>
+      
       <Fallback>
         <SetOvertAttentionMode name="scanning"/>
         <HandleFallBack/>
@@ -47,10 +44,7 @@
         <SetOvertAttentionMode name="social"/>
         <HandleFallBack/>
       </Fallback>
-      <Fallback>
-        <SetAnimateBehavior name="disabled"/>
-        <HandleFallBack/>
-      </Fallback>
+      
       <Fallback>
         <SayText name="4"
                  _description="Welcome speech"/>
@@ -60,11 +54,6 @@
         <PerformIconicGesture name="welcome"/>
         <HandleFallBack/>
       </Fallback>
-      <Fallback>
-        <SetOvertAttentionMode name="seeking"/>
-        <HandleFallBack/>
-      </Fallback>
-      <IsMutualGazeDiscovered/>
     </Sequence>
   </BehaviorTree>
 
@@ -153,7 +142,6 @@
       <StartOfTree _description="Used for debugging and initializing values"/>
       <SubTree ID="DetectVisitor"/>
       <SubTree ID="EngageVisitor"/>
-      <SubTree ID="QueryVisitorResponse"/>
       <SubTree ID="VisitExhibit"/>
       <SubTree ID="EndTour"/>
     </Sequence>
@@ -161,11 +149,11 @@
 
   <BehaviorTree ID="VisitExhibit">
     <Sequence>
-    <Fallback>
+      <Fallback>
         <RetrieveListOfExhibits/>
         <HandleFallBack/>
       </Fallback>
-      <Fallback>
+<Fallback>
         <SayText name="2"
                  _description="Follow me speech"/>
         <HandleFallBack/>
@@ -183,12 +171,6 @@
               <Fallback>
                 <SetOvertAttentionMode name="social"/>
                 <HandleFallBack/>
-              </Fallback>
-              <Fallback>
-                <IsVisitorPresent/>
-                <ForceFailure>
-                  <SubTree ID="GoHome"/>
-                </ForceFailure>
               </Fallback>
               <Fallback>
                 <DescribeExhibitSpeech name="1"/>
@@ -227,11 +209,7 @@
                editable="true"/>
     <Condition ID="IsListWithExhibit"
                editable="true"/>
-    <Condition ID="IsMutualGazeDiscovered"
-               editable="true"/>
     <Condition ID="IsVisitorDiscovered"
-               editable="true"/>
-    <Condition ID="IsVisitorPresent"
                editable="true"/>
     <Condition ID="IsVisitorResponseYes"
                editable="true"/>

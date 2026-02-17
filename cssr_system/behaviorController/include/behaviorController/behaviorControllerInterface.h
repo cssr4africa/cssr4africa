@@ -23,7 +23,7 @@
 #include <std_msgs/String.h>
 #include <cstdio>
 
-#include <behaviortree_cpp/bt_factory.h>
+#include "behaviortree_cpp/bt_factory.h"
 #include <behaviortree_cpp/loggers/groot2_publisher.h>
 
 #include <fstream>
@@ -32,8 +32,8 @@
 #include <stdio.h>
 #include <stdexcept>
 
-#include "behaviorController/cultureKnowledgeBaseInterface.h"
-#include "behaviorController/environmentKnowledgeBaseInterface.h"
+#include "utilities/cultureKnowledgeBaseInterface.h"
+#include "utilities/environmentKnowledgeBaseInterface.h"
 
 
 #include "cssr_system/overtAttentionMode.h"
@@ -55,32 +55,6 @@ extern std::string missionLanguage;
 extern bool audioDebugMode;
 
 extern std::string nodeName;
-
-
-/*
-Logs the string (args) to the terminal based on the (type).
-Wrapper around the default ROS logging functions
-*/
-void printMsg(int type, std::string args);
-
-/*
-Vocalizes a string using the system's speakers
-*/
-static void speak(std::string text);
-
-/*
-    Returns the number for words in a string
-*/
-int countWords(const std::string input);
-
-/* Fetches the utility phrase from the culture knowledge base using the id and language */
-std::string getUtilityPhrase(std::string phraseId, std::string language);
-
-/*
-    Stores the result of a nodes execution in the paramteter server.
-    To be used by the test node.
-*/
-static void storeResult(std::string key, int value);
 
 
 //Node Handler

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root BTCPP_format="4" main_tree_to_execute="TourGuide">
+
+  <BehaviorTree ID="TourGuide">
+    <Sequence>
+        <RetrieveListOfExhibits/>
+      <SetRobotPose/>
+    </Sequence>
+  </BehaviorTree>
+
+  <!-- Description of Node Models (used by Groot) -->
+  <TreeNodesModel>
+    <Action ID="DescribeExhibitSpeech"
+            editable="true"/>
+    <Action ID="GetVisitorResponse"
+            editable="true"/>
+    <Action ID="HandleFallBack"
+            editable="true"/>
+    <Condition ID="HasVisitorResponded"
+               editable="true"/>
+    <Condition ID="IsASREnabled"
+               editable="true"/>
+    <Condition ID="IsListWithExhibit"
+               editable="true"/>
+    <Condition ID="IsMutualGazeDiscovered"
+               editable="true"/>
+    <Condition ID="IsVisitorDiscovered"
+               editable="true"/>
+    <Condition ID="IsVisitorPresent"
+               editable="true"/>
+    <Condition ID="IsVisitorResponseYes"
+               editable="true"/>
+    <Action ID="Navigate"
+            editable="true"/>
+    <Action ID="PerformDeicticGesture"
+            editable="true"/>
+    <Action ID="PerformIconicGesture"
+            editable="true"/>
+    <Action ID="PressYesNoDialogue"
+            editable="true"/>
+    <Action ID="RetrieveInitialLocation"
+            editable="true"/>
+    <Action ID="RetrieveListOfExhibits"
+            editable="true"/>
+    <Action ID="SayText"
+            editable="true"/>
+    <Action ID="SelectExhibit"
+            editable="true"/>
+    <Action ID="SetAnimateBehavior"
+            editable="true"/>
+    <Action ID="SetOvertAttentionMode"
+            editable="true"/>
+    <Action ID="SetRobotPose"
+            editable="true"/>
+    <Action ID="SetSpeechEvent"
+            editable="true"/>
+    <Action ID="StartOfTree"
+            editable="true"/>
+  </TreeNodesModel>
+
+</root>

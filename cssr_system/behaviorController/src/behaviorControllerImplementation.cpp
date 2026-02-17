@@ -22,6 +22,31 @@
 #define WARNING_MSG 1
 #define ERROR_MSG 2
 
+/*
+Logs the string (args) to the terminal based on the (type).
+Wrapper around the default ROS logging functions
+*/
+void printMsg(int type, std::string args);
+
+/*
+Vocalizes a string using the system's speakers
+*/
+static void speak(std::string text);
+
+/*
+    Returns the number for words in a string
+*/
+int countWords(const std::string input);
+
+/* Fetches the utility phrase from the culture knowledge base using the id and language */
+std::string getUtilityPhrase(std::string phraseId, std::string language);
+
+/*
+    Stores the result of a nodes execution in the paramteter server.
+    To be used by the test node.
+*/
+static void storeResult(std::string key, int value);
+
 /***** Global Variables ****/
 // Environment Knowledge Base
 Environment::EnvironmentKnowledgeBase environmentKnowledgeBase;
@@ -900,7 +925,7 @@ class Navigate : public BT::SyncActionNode
         : BT::SyncActionNode(name, config)
     {
         /* Define a service client */
-        client = nh->serviceClient<cssr_system::robotNavigationSetGoal>("/robotNavigation/set_goal");
+        client = nh->serviceClient<cssr_system::robotNavigationSetGoal>("/robotNavigation/setGoal");
     }
 
     static BT::PortsList providedPorts()
@@ -1230,7 +1255,7 @@ class StartOfTree : public BT::SyncActionNode
 {
    public:
     StartOfTree(const std::string &name, const BT::NodeConfiguration &config)
-        : BT::SyncActionNode(name, config), missionStarted(false), firstRun(true)
+        : BT::SyncActionNode(name, config), missionStarted(false)
     {
         /* Define a service client */
         client = nh->serviceClient<cssr_system::speechEventSetLanguage>("/speechEvent/set_language");
@@ -1254,16 +1279,11 @@ class StartOfTree : public BT::SyncActionNode
             missionStarted=false;
             storeResult("MissionEnded", 1);
         }
-        if(firstRun){
-            ROS_INFO_STREAM(nodeName<<": Press 'Enter' to start the mission");
-            std::getline(std::cin, userInput);
-            firstRun = false;
-        }else{
-            ROS_INFO_STREAM(nodeName<<": Do you want to run the mission again(y/n)?");
-            std::getline(std::cin, userInput);
-            if (userInput!="y"){
-                ros::shutdown();
-            }
+        ROS_INFO_STREAM("Start Robot Mission(y/n)?");
+        std::getline(std::cin, userInput);
+
+        if (userInput!="y"){
+            ros::shutdown();
         }
         
         missionStarted=true;
@@ -1272,32 +1292,31 @@ class StartOfTree : public BT::SyncActionNode
         // variables with mission execution lifetime are set
 
         // Setting the language for speechEvent if ASR is enabled
-        if (asrEnabled) {
-            cssr_system::speechEventSetLanguage srv;
-            srv.request.language = missionLanguage;
+        // if (asrEnabled) {
+        //     cssr_system::speechEventSetLanguage srv;
+        //     srv.request.language = missionLanguage;
 
-            printMsg(INFO_MSG, "ASR Enabled. Setting language to: " + missionLanguage);
+        //     printMsg(INFO_MSG, "ASR Enabled. Setting language to: " + missionLanguage);
 
-            if (client.call(srv)) {
-                if (!srv.response.response) {
-                    printMsg(WARNING_MSG, "Called service returned failure");
-                    storeResult(treeNodeName, 0);
-                    return BT::NodeStatus::FAILURE;
-                }
-            } else {
-                printMsg(ERROR_MSG, "Failed to call service");
-                storeResult(treeNodeName, 0);
-                return BT::NodeStatus::FAILURE;
-            }
-        }
-        storeResult(treeNodeName, 1);
+        //     if (client.call(srv)) {
+        //         if (!srv.response.response) {
+        //             printMsg(WARNING_MSG, "Called service returned failure");
+        //             storeResult(treeNodeName, 0);
+        //             return BT::NodeStatus::FAILURE;
+        //         }
+        //     } else {
+        //         printMsg(ERROR_MSG, "Failed to call service");
+        //         storeResult(treeNodeName, 0);
+        //         return BT::NodeStatus::FAILURE;
+        //     }
+        // }
+        // storeResult(treeNodeName, 1);
         return BT::NodeStatus::SUCCESS;
     }
 
    private:
     ros::ServiceClient client;
     bool missionStarted;
-    bool firstRun;
 };
 
 /*
@@ -1373,7 +1392,7 @@ void printMsg(int type, std::string args)
         return;
     }
 
-    std::string msg = nodeName + ": " + args;
+    std::string msg = nodeName + " : " + args;
     switch (type) {
         case INFO_MSG:
             ROS_INFO_STREAM(msg);

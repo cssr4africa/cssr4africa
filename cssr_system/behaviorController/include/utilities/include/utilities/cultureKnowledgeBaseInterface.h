@@ -19,6 +19,7 @@
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
+#include "utilities/behaviorControllerUtilities.h"
 
 using namespace std;
 
@@ -27,9 +28,9 @@ using namespace std;
    ROS package name
 
 ****************************************************************************************************************************/
-// #ifndef ROS_PACKAGE_NAME
-//   #define ROS_PACKAGE_NAME "utilities"
-// #endif
+#ifndef ROS_PACKAGE_NAME
+  #define ROS_PACKAGE_NAME "utilities"
+#endif
 
 
 /***************************************************************************************************************************
@@ -40,7 +41,7 @@ using namespace std;
 #define TRUE                           1
 #define FALSE                          0
 #define MAX_FILENAME_LENGTH          200
-#define STRING_LENGTH                200
+#define STRING_LENGTH                300
 #define KEY_LENGTH                   100
 
 
@@ -53,8 +54,6 @@ using namespace std;
 ****************************************************************************************************************************/
 
 #define NUMBER_OF_VALUE_TYPES          4
-#define NUMBER_OF_CONFIGURATION_KEYS   3
-#define MAX_STRING_LENGTH            200
 
 /* constant definitions for valueType flag to identify which element of the union is to be used */
 
@@ -155,17 +154,6 @@ char *valueType2Alphanumeric(int valueType);
 /* convert Boolean operational to alphnumeric */
 
 char *initialized2Alphanumeric(bool initialized);
-
-/* print message passed as argument and take appropriate action */
-
-int error(char *s);
-
-/* prompt the user to exit */
-
-void prompt_and_exit(int status);
-
-/* print a message to a specified file */
-
-void print_message_to_file(FILE *fp, char message[]);
 }
+
 #endif

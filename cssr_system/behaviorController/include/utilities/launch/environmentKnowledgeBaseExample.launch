@@ -1,0 +1,3 @@
+<launch>
+<node name="cultureKnowledgeBaseExample" pkg="utilities" type="cultureKnowledgeBaseExample" output="screen"  required="true"/>
+</launch>

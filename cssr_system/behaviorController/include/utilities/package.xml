@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>utilities</name>
+  <version>0.0.0</version>
+  <description>Utilities package for CSSR4Africa</description>
+  <maintainer email="david@vernon.eu">David Vernon</maintainer>
+  <license>BSD</license>
+  <url type="website">http://www.cssr4africal.org</url>
+  <author email="david@vernon.eu">David Vernon</author>
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>geometry_msgs</build_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>turtlesim</build_depend>
+  <build_export_depend>geometry_msgs</build_export_depend>
+  <build_export_depend>roscpp</build_export_depend>
+  <build_export_depend>turtlesim</build_export_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>roscpp</exec_depend>
+  <exec_depend>turtlesim</exec_depend>
+  <export>
+    <!-- Other tools can request additional information be placed here -->
+  </export>
+</package>
