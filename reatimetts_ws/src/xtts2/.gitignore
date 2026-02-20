@@ -1,0 +1,8 @@
+# Model weights (large files - download separately)
+model_files/
+
+# Python bytecode
+scripts/__pycache__/
+
+# Generated evaluation audio
+evaluation_results/audio/
