@@ -1,0 +1,44 @@
+{
+    "name": "ROS 1 (Noetic) Dev Container",
+    "privileged": true,
+    "remoteUser": "roboticcslab",
+    "image": "mahadanso/cssr4africa-conv-env:v1",
+    // "build": {
+    //     "dockerfile": "Dockerfile",
+    //     "args": {
+    //         "USERNAME": "roboticcslab"
+    //     }
+    // },
+    "workspaceFolder": "/home/roboticcslab/cssr4africa_conversation_pipeline",
+    "workspaceMount": "source=${localWorkspaceFolder},target=/home/roboticcslab/cssr4africa_conversation_pipeline,type=bind",
+    "customizations": {
+        "vscode": {
+            "extensions":[
+                "ms-vscode.cpptools",
+                "ms-vscode.cpptools-themes",
+                "twxs.cmake",
+                "donjayamanne.python-extension-pack",
+                "eamodio.gitlens",
+                "ms-iot.vscode-ros"
+            ]
+        }
+    },
+    "containerEnv": {
+        "DISPLAY": "unix:0",
+        "ROS_MASTER_URI": "http://jetson:11311",
+        "ROS_IP": "172.29.111.242"
+    },
+    "runArgs": [
+        "--gpus", "all",
+        "--net=host",
+        "--pid=host",
+        "--ipc=host",
+        "-e", "DISPLAY=${env:DISPLAY}"
+    ],
+    "mounts": [
+       "source=/tmp/.X11-unix,target=/tmp/.X11-unix,type=bind,consistency=cached",
+       "source=/dev/dri,target=/dev/dri,type=bind,consistency=cached"
+    ],
+    // "postCreateCommand": "sudo rosdep update && sudo rosdep install --from-paths src --ignore-src -r -y --rosdistro noetic && sudo chown -R $(whoami) /home/ros1_ws/"
+    "postCreateCommand": "bash -c 'source /opt/ros/noetic/setup.bash && rosdep update && source devel/setup.bash'"
+}

@@ -1,0 +1,164 @@
+[
+    {
+        "doc_id": 1,
+        "section": "Cybersecurity",
+        "content": "",
+        "subsections": [
+            {
+                "title": "Trade-offs in Mobile Money KYC: The role of ID- Privacy Preserving",
+                "tags": ["research"],
+                "status": "ongoing",
+                "overview": "This project explores the privacy and security challenges of Know Your Customer (KYC) processes in Mobile Money (MoMo) ecosystems in Kenya and Tanzania. With over 1.2 billion registered MoMo accounts worldwide, users rely heavily on agents for access and support. However, strict ID-based KYC requirements often cause friction, especially for individuals without reliable access to identification. Led by researchers from Carnegie Mellon University and Carnegie Mellon University Africa, the study used interviews and field observations to reveal how both users and agents create informal workarounds to bypass these requirements. These include sharing personal information on paper, using someone else’s ID, or depending on trusted agents, all of which introduce new security and privacy vulnerabilities. The project suggests a redesigned KYC protocol that leverages digital identity and local device authentication (such as biometrics and verifiable credentials) to limit agents' access to sensitive data. This new model shifts trust toward the telco, supports proxy transactions, and reduces data-sharing risks, while enhancing user confidence and compliance. Findings show that most users prefer the redesigned protocol for its improved privacy, lower fraud risk, and decreased reliance on intermediaries."
+            },
+            {
+                "title": "E-government services cybersecurity annual report",
+                "tags": ["research", "outreach"],
+                "status": "ongoing",
+                "overview": "This project assesses the cybersecurity posture of government-owned e-services across Africa. Conducted by the Upanzi Network, the initiative surveyed over 77,000 publicly accessible assets using a combination of passive enumeration and non-intrusive vulnerability testing across all African Union regions. The team discovered over 400 confirmed vulnerabilities, including SQL injection, cross-site scripting (XSS), exposed sensitive data, misconfigured HTTP methods, and broken authentication. While many government platforms demonstrated a strong baseline security, significant gaps still exist. These issues put governments at risk of data breaches, service disruptions, and reputational damage. Using frameworks such as OWASP, CWE, and NIST SP 800-115, the project employed scalable, low-risk methodologies, utilizing custom scripts to identify weaknesses specific to African digital infrastructure. The final report presents targeted remediation strategies, including stronger authentication, improved file access controls, and ongoing vulnerability assessments. Recommendations emphasize the importance of proactive measures and stakeholder engagement to foster sustainable cybersecurity resilience within Africa’s evolving digital government ecosystem."
+            },
+            {
+                "title": "Cookie Consent and Personally Identifiable Information Prevalence Project",
+                "tags": ["research", "outreach"],
+                "status": "completed",
+                "overview": "This project, carried out by the Upanzi Network at Carnegie Mellon University Africa, examines how African websites implement cookie consent and digital privacy standards. Researchers analyzed 1,793 websites from 49 African countries and reviewed data protection laws in 37 states. The findings are alarming: 78% of websites use cookies, and more than half deploy third-party trackers, but only 17% display cookie banners. Even worse, many banners use dark patterns to manipulate users  64% only show an 'Accept' button, and 82% highlight it through design tricks like color contrast. Importantly, none of the 37 data protection laws studied provides specific guidance on cookie consent, leaving digital consent largely unregulated. The study points out a significant privacy gap and urges regulatory reform, ethical web design, and public education to help users make informed decisions about their data."
+            },
+            {
+                "title": "Academic Security Operations Centre",
+                "tags": ["capacity building", "outreach"],
+                "status": "ongoing",
+                "overview": "The Upanzi Academic Security Operations Center (SOC) project by the Upanzi Network at CMU-Africa tackles Africa’s cybersecurity workforce shortage by establishing practical, hands-on cybersecurity labs in universities. Each academic SOC offers real-time security monitoring, threat detection, and vulnerability assessment, while also serving as a live training environment for students. Unlike traditional academic programs that focus solely on theory, these SOCs incorporate open-source tools and operational deployments that reflect actual infrastructure. The initiative features a SOC course, internship programs, and integration into partner university networks. Participating institutions receive support for infrastructure setup, training, and operational guidance, aiming to develop a continent-wide SOC network for shared threat intelligence, research, and cyber capacity-building. The SOC setup includes SIEM tools, intrusion detection systems, and a threat-sharing node, all designed for scalability and customization. This effort not only enhances local cybersecurity skills but also advances Africa’s wider digital development resilience."
+            },
+            {
+                "title": "Hardware security for Digital ID Wallets Research Project",
+                "tags": ["research"],
+                "status": "ongoing",
+                "overview": "The 'Hardware Security for Digital Credentials' project, led by the Upanzi Network at Carnegie Mellon University Africa, examines how hardware-based digital identity systems in Africa could be vulnerable and how innovators can be strengthened. With 78% of adults in sub-Saharan Africa holding government-issued IDs, the project investigates the transition of these credentials into secure digital formats. It traces the development of smart cards from simple memory storage to sophisticated biometric and secure element cards. The study considers various digital ID methods, such as chips, QR codes, and mobile phones, used at different trust levels and literacy stages. It identifies major threats like SIM swap attacks, phishing, malware, and rogue scanners, noting that low-cost phones with limited security are prevalent in the Global South. Key findings reveal that many smartphones lack accessible secure enclaves, making confidential computing on consumer devices unreliable. Recommendations focus on implementing device revocation, improving pre-deployment chip testing, and raising public awareness of digital ID risks. This research offers essential insights for policymakers and developers aiming to create next-generation, secure, and inclusive digital identity systems in Africa."
+            },
+            {
+                "title": "Smishing project",
+                "tags": ["research", "outreach"],
+                "status": "completed",
+                "overview": "The Smishing Project by the Upanzi Network at CMU-Africa addresses the growing threat of SMS-based phishing that targets mobile money users in Africa. As mobile money transactions in Sub-Saharan Africa exceed $900 billion and smishing attacks have surged by 300% during the COVID-19 pandemic, the project establishes an affordable and scalable honeynet using Raspberry Pi devices with GSM modems. These devices collect real-world smishing and legitimate SMS data through SIM cards from local telecom providers. A web portal enables the public to submit suspicious messages, which are then stored in a central database via a secure VPN. This data supports creating machine learning models for immediate scam detection. The main aim is to equip Mobile Network Operators and cybersecurity experts with tools to detect and prevent fraudulent messages before delivery, while also sharing datasets and models publicly to promote research and innovation in the region."
+            },
+            {
+                "title": "Pico CTF Africa",
+                "tags": ["capacity building", "outreach"],
+                "status": "ongoing",
+                "overview": "picoCTF-Africa is a gamified cybersecurity education and competition program designed to develop essential cybersecurity skills among African high school and college students. Launched in 2022 and supported by Carnegie Mellon University and the Upanzi Network, the 2025 program expanded to 13 countries, trained thousands of individuals, and attracted over 1,700 participants, marking a 21% increase from the previous year. Through hands-on challenges in programming, forensics, web security, binary exploitation, and reverse engineering, students learn by practicing real-world skills. The program promotes inclusive participation, offering national and gender-specific awards, and utilizes the picoGYM platform for ongoing skill development. With no costs and a fully online setup, picoCTF-Africa makes cybersecurity education accessible and helps foster the next generation of digital defenders across the continent."
+            },
+            {
+                "title": "Honeynet Africa Threat Intelligence Project",
+                "tags": ["research", "outreach"],
+                "status": "ongoing",
+                "overview": "The Upanzi Network, together with AfricaCERT, is spearheading a continent-wide effort to create an open, real-time threat intelligence system across Africa. The initiative strategically places honeypots throughout various networks to gather, analyze, and visualize cyber threat information. This system detects malicious activities, uncovers attackers’ techniques, and shares valuable insights with CSIRTs, SOCs, and ISPs. By leveraging open-source tools like ELK Stack, Opencanary, Cowrie, and MISP, the project enhances proactive cybersecurity measures, situational awareness, and rapid threat response. The focus is on developing and deploying a comprehensive network of threat sensors and establishing protocols for data sharing. Overall, this effort aims to enhance Africa’s cybersecurity resilience through the sharing of intelligence, policy development, and the fostering of a collaborative security culture."
+            }
+        ]
+    },
+    {
+        "doc_id": 2,
+        "section": "Digital Public Goods/ Digital Public Infrastructure",
+        "content": "",
+        "subsections": [
+            {
+                "title": "Upanzi DPI Interoperability and Deployability Stack Project",
+                "tags": ["research", "capacity building"],
+                "status": "ongoing",
+                "overview": "The Upanzi DPI Interoperability and Deployability Stack project is a working reference for countries that want to have a test bed for real services from open Digital Public Goods. The project integrates MOSIP for digital ID, Mojaloop for real-time payments, Mifos for core banking, the Upanzi Project Management System (UPMS) as custom middleware for service program control, and Mojashop for point-of-service redemption. The project investigates and delves into health and civil registration by assessing DPGs such as DHIS2 and OpenCRVS, and explores social protection through OpenG2P. It also adds open financing foresight and forensics through Tazama. The team is also deploying Matrix and Element for secure messaging, as well as end-to-end pilots that prove eKYC, instant settlement, and data exchange on Kubernetes. Each run tests deployability, security, and day-two operations, then ships hardened guides, tooling, and training. The stack serves as both a demo and a lab, transforming standards into live services that reduce fraud, enhance accountability, and accelerate the country's digital transformation journey."
+            },
+            {
+                "title": "Digital ID Capacitation Initiatives",
+                "tags": ["capacity building"],
+                "status": "ongoing",
+                "overview": "The Upanzi Network’s Digital ID Capacitation Initiatives Project is building talent, leadership, and ready-to-scale solutions for secure and inclusive digital ID across Africa. The program links three tracks, The Digital ID Hackathon Africa, that has been running since July 2024, has hosted four regional events with 600+ students from 20+ countries who prototype sector use cases in agriculture, health, finance, transport, public services, and education, with winners such as secure prescription management, energy ID, and cross-border transport verification; teams receive mentorship and post-hackathon support. The Africa Digital ID Champions Program is looking to train country teams of technologists, policymakers, and civil society in technical design, policy, law, and community engagement, and guides them through real-life implementation and advocacy work around the Digital ID ecosystem. The Introduction to Digital ID Course plans to deliver tiered, hybrid training with lectures, case studies, expert sessions, and labs, awarding certification. Together, these tracks create a pipeline from foundational learning to prototyping to national leadership, accelerating rights-based Digital ID and digital public infrastructure across Africa."
+            },
+            {
+                "title": "Biometric Fairness and Bias Audit Project",
+                "tags": ["research", "outreach"],
+                "status": "ongoing",
+                "overview": "The Biometric Fairness and Bias Audit Project is an effort with Tech5 to measure and reduce demographic bias in biometric recognition for African populations. The team audited the Tech5 facial SDK using data from 10 African countries and identified subgroup disparities in false match rates based on age, skin tone, and gender. The project plans to build on an open-source auditing protocol and run longitudinal face and fingerprint data collection. Project uses BQAT and NFIQ2 for quality control, a secure mobile capture app with real-time scoring, and diffusion models such as ID3 and ID-Booth to generate synthetic samples where data are sparse. The evaluation utilizes strict fairness metrics, such as Equalized Odds, and tests across FairFace, UTKFace, COLOR FERET, and national datasets. Planned work includes IRB-approved collection, debiasing algorithms, and empirical validation. Expected outputs include improved models, public reports, and peer-reviewed papers that support the development of accurate, inclusive biometric systems in Africa. Research status: ongoing."
+            },
+            {
+                "title": "Government Outreach Unit Initiative",
+                "tags": ["capacity building", "research"],
+                "status": "ongoing",
+                "overview": "The Government Outreach Unit Initiative project aims to support African governments in the rollout and adoption of their DPI stack through applied research, residency training, and capacity building on technical challenges of mutual interest. With the inaugural partner, Ethiopia’s National ID program, the team delivered two production-grade components. First, an Amharic document processing pipeline that accelerates NiD enrollment. It includes a YOLO-based region detector and a bilingual OCR model for English and Amharic, trained on 5,300+ consent forms and 20,000+ sentences from 400+ contributors. The models and dataset are open-source, reducing manual data entry errors. Second, a multilingual NiD grievance redressal chatbot operates across various channels, including Telegram. It uses fine-tuned LLMs such as GPT-4o and Gemma with retrieval, live knowledge updates, and Ge’ez–Latin transliteration handling. The chatbot reduces support backlogs and delivers consistent answers at scale. Together, these assets demonstrate a practical path for DPI adoption: open datasets and models, language-appropriate AI, and government-ready services that improve enrollment, service quality, and citizen trust."
+            }
+        ]
+    },
+    {
+        "doc_id": 3,
+        "section": "Data Exchange",
+        "content": "",
+        "subsections": [
+            {
+                "title": "Health Data Portability Wallet",
+                "tags": ["research", "outreach"],
+                "status": "ongoing",
+                "overview": "This project tackles the fragmentation of medical records across African health facilities. Typically, patient data is stored separately at each hospital or clinic, making it challenging to create a comprehensive and unified medical history. The Health Data Portability initiative aims to solve this by developing a patient-focused, open-source platform that uses a mobile app and a backend system based on FHIR standards. This setup allows patients to access, save, and share their medical records across multiple institutions, giving them a real-time overview of their health information. The backend offers secure login, flexible query options, decentralized storage, and multi-institution data access. It addresses challenges like the lack of shared standards and national identifiers, as well as unreliable cloud services, through local storage, OAuth authentication, and in-house file controls. The system sets a strong example for digital health interoperability in Africa and aligns with policy trends in countries such as Kenya and Uganda, where FHIR is becoming increasingly popular. The project will end with a live demonstration and a conference paper, marking a significant advance in digital health systems for low-resource environments."
+            },
+            {
+                "title": "Open Data Portal",
+                "tags": ["capacity building", "outreach"],
+                "status": "completed",
+                "overview": "The Open Data Portal, created by the Upanzi Network, provides a unified platform to tackle Africa’s scattered and underutilized data systems. Currently, datasets are distributed across various disconnected portals and isolated institutional systems, making it difficult to discover data and perform analyses. This portal offers a centralized access point for governments, researchers, entrepreneurs, and the public to find, publish, and reuse open datasets easily. Equipped with machine learning features like automated descriptions and quality scoring, the system enhances data discoverability and usability. It allows for both direct dataset uploads and integration from external sources. A built-in collaboration forum promotes active engagement and peer contributions, fostering a community focused on data sharing. The portal addresses issues such as inconsistent data quality, poor metadata, and platform fragmentation by using federated search, scoring algorithms, and intelligent metadata generation. It supports decision-making across sectors like public health, education, agriculture, finance, and governance. By providing access to reliable, structured data, the Open Data Portal acts as essential infrastructure for digital innovation and evidence-based development throughout Africa."
+            },
+            {
+                "title": "Policy Analyzer: GenAI for African ID Policy Analysis",
+                "tags": ["research", "outreach"],
+                "status": "ongoing",
+                "overview": "The Policy Analyzer is an AI-driven system that examines identity and data protection laws across African nations. Its purpose is to identify patterns, spot gaps, and compare legal frameworks through machine learning, while also allowing users, regardless of expertise, to ask questions about Digital Identity and data protection policies for specific countries. The tool highlights key differences and similarities in national ID laws and privacy legislation, assisting policymakers and tech developers in creating interoperable and inclusive digital ID systems. It now covers documents from over 50 African countries, indexing ID laws, data protection frameworks, and World Bank ID4D reports. It features OCR for scanned documents, COT-enhanced prompting, and web search capabilities. Overall, Policy Analyzer supports evidence-based policymaking by offering accessible, intelligent analysis of complex legal information."
+            }
+        ]
+    },
+    {
+        "doc_id": 4,
+        "section": "Connectivity",
+        "content": "",
+        "subsections": [
+            {
+                "title": "Rural Connectivity - Refugee connectivity, Kiziba, Mugombwa education, and WASH use case.",
+                "tags": ["research", "outreach"],
+                "status": "ongoing",
+                "overview": "The Rural Connectivity Project, led by the Upanzi Network at CMU-Africa in collaboration with World Vision Rwanda and CIDTA, aims to deploy resilient, low-cost digital infrastructure in underserved rural areas, starting with the Kiziba refugee camp in Rwanda. The team developed and installed battery-powered Raspberry Pi mesh nodes using readily available components to provide delay-tolerant, opportunistic connectivity. This approach eliminates the need for fiber, towers, or costly civil works. By combining Wi-Fi, GSM, Bluetooth, and LoRa technologies, the network intelligently routes data based on the natural movement of people and vehicles to expand coverage. The infrastructure supports digital public services such as education, sanitation, and health coordination, even in regions with unreliable power and challenging terrain. The deployment has already enhanced educational access, facilitated timely WASH communication, and demonstrated a scalable model for delivering digital infrastructure to remote communities. This project proves that achieving meaningful digital inclusion in rural and refugee areas is possible without significant capital investment. It establishes that connectivity can serve as a foundation for digital public services like digital ID, digital payments, and digital governance across the continent."
+            },
+            {
+                "title": "MIRA",
+                "tags": ["research", "outreach"],
+                "status": "ongoing",
+                "overview": "The Measuring Internet Resilience in Africa (MIRA) project is a joint initiative by the Upanzi Network, the Internet Society (ISOC), and partners like AFRINIC. It aims to evaluate the stability, availability, and robustness of internet connectivity across the African continent. By deploying Internet observatories, collecting empirical data, and increasing the number of active measurement vantage points, MIRA provides insights into internet availability, performance, security, and coverage. The initiative addresses the lack of consistent and centralized measurement in Africa, especially for mobile networks, which are often overlooked by conventional tools. Through data-driven analysis, MIRA supports evidence-based decision-making for governments, network operators, and digital infrastructure stakeholders. Key tools in the stack include RIPE Atlas, Murakami, NDT, DASH, and OONI. The project also focuses on building local capacity to host and maintain probes, empowering African institutions to contribute to a decentralized and continuous measurement ecosystem."
+            }
+        ]
+    },
+    {
+        "doc_id": 5,
+        "section": "Public Health, Climate, and Agriculture",
+        "content": "",
+        "subsections": [
+            {
+                "title": "Humeka FL-Early Detection of Birth Asphyxia Using Federated Learning",
+                "tags": ["research", "outreach"],
+                "status": "ongoing", 
+                "overview": "HumekaFL is a decentralized AI system designed to detect neonatal birth asphyxia (BA) by analyzing newborn cries using Federated Learning (FL). BA is the leading cause of under-five mortality globally, with Sub-Saharan Africa bearing the highest burden. Traditional diagnostic methods, such as APGAR scoring or costly imaging technologies, remain either error-prone or inaccessible in low-resource settings. HumekaFL offers a privacy-preserving, efficient alternative. The system leverages local data on healthcare facility devices to train Support Vector Machine (SVM) models without transferring sensitive patient data to central servers. Only model parameters are shared for aggregation, enabling secure and collaborative model development across institutions. In tests using the Baby Chillanto dataset, HumekaFL outperformed centralized models like Ubenwa with 95.88% accuracy. The next phase of the project includes refining the prototype and integrating differential privacy for enhanced security. HumekaFL demonstrates the potential of federated learning to drive medical AI innovation in low-resource contexts while respecting data sovereignty."
+            },
+            {
+                "title": "A Water Efficiency Dataset for African Data Centers",
+                "tags": ["research"],
+                "status": "ongoing",
+                "overview": "This project presents the first open dataset focused on water efficiency in African data centers, addressing a critical gap in sustainability metrics for the continent’s digital infrastructure. The dataset captures a comprehensive range of attributes across 10 data centers in 7 African countries, including Kenya, Rwanda, Uganda, South Africa, Egypt, Nigeria, and Morocco. It includes detailed records on cooling systems, water sources, operational scale, climate zones, and data center types (enterprise, co-location, or hyperscale). Unlike other global datasets that often overlook African-specific conditions, this resource incorporates localized variables such as altitude, rainfall patterns, water stress index, and proximity to freshwater sources. This dataset supports research on sustainable digital infrastructure and provides a baseline for benchmarking and designing water-efficient data center systems in Africa. It enables policy makers, researchers, and engineers to evaluate how data center water use correlates with environmental factors and operational design, laying the groundwork for African-led sustainability standards and innovation in digital ecosystems."
+            }
+        ]
+    },
+    {
+        "doc_id": 6,
+        "section": "Technology and Society",
+        "content": "",
+        "subsections": [
+            {
+                "title": "Responsible Research Initiative (RRI)",
+                "tags": ["research", "outreach"],
+                "status": "completed",
+                "overview": "The Responsible Research and Innovation (RRI) initiative at the Upanzi Network promotes ethical, secure, and inclusive digital innovation tailored for Sub-Saharan Africa. Recognizing that traditional RRI frameworks often overlook the unique realities of the Global South, the project developed a new, context-specific model to guide responsible innovation in digital public goods. The team combined a structured literature review with stakeholder insights to build a layered RRI framework and self-assessment tool, empowering African developers and researchers to evaluate and improve their adherence to RRI principles. The framework prioritizes security, ethics by design, and inclusivity while promoting transparency and accountability. Pilots focused on sectors such as agriculture, health, and financial inclusion. These findings underscore the importance of integrating cybersecurity and RRI from the design stage of digital public infrastructure. This initiative is building awareness, shaping responsible digital development practices, and ensuring that digital transformation in Africa is safe, ethical, and locally relevant. Link to website:https://rri.upanzi.net/"
+            }
+        ]
+    }
+]

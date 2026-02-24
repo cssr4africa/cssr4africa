@@ -1,0 +1,10 @@
+# goal
+int32 number_of_pizza_order
+
+---
+# result 
+string[] pizza_ready
+
+---
+# feedback
+string last_pizza_ready
