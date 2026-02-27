@@ -1,0 +1,103 @@
+<root BTCPP_format="4" main_tree_to_execute="MainTree">
+    <BehaviorTree ID="MainTree">
+        <Sequence name="root_sequence">
+            <SubTree ID="InitializationTree" _autoremap="true"/>
+            <SubTree ID="WelcomeVisitorTree" _autoremap="true"/>
+            <Inverter>
+                <KeepRunningUntilFailure name="main_keep_running_until_failure">
+                    <WhileDoElse name="main_while_do_else">
+                        <IsTourNotCompleteTree />
+                        <Sequence name="main_sequence">
+                            <SubTree ID="ExhibitHandlingTree" _autoremap="true"/>
+                            <Inverter name="inverter_before_questions">
+                                <SubTree ID="AnsweringQuestionsTree" _autoremap="true"/>
+                            </Inverter>
+                        </Sequence>
+                    </WhileDoElse>
+                </KeepRunningUntilFailure>
+            </Inverter>
+            <SubTree ID="GoodbyeVisitorTree" _autoremap="true"/>
+        </Sequence>
+    </BehaviorTree>
+
+    <BehaviorTree ID="InitializationTree">
+        <Sequence name="initialization_sequence">
+            <SetRobotPoseNode          pose_x="2.0" pose_y="7.8" pose_theta="270" nav_type="CAD"/>
+            <RetrieveListOfExhibits          />
+        </Sequence>
+    </BehaviorTree>
+
+    <BehaviorTree ID="WelcomeVisitorTree">
+        <Sequence name="welcome_visitor_sequence">
+            <SetOvertAttentionModeNode mode="scanning"/>
+            <Parallel name="welcome_parallel">
+                 <SayTextNode text="Welcome to the lab tour! I will be your guide today." />
+                 <PerformGestureNodeAsync gesture_type="iconic" gesture_name="welcome" />
+            </Parallel>
+        </Sequence>
+    </BehaviorTree>
+
+    <BehaviorTree ID="ExhibitHandlingTree">
+        <Sequence name="exhibit_handling_sequence">
+            <LoadExhibitInfoNode             />
+            <Parallel name="navigation_parallel">
+                <SetOvertAttentionModeNode mode="disabled"/>
+                <NavigateNodeAsync               />
+                <SayTextNode text="Let me show you around." />
+            </Parallel>
+            <SetOvertAttentionModeNode mode="social"/>
+            <Parallel name="gesture_and_speech_parallel">
+                <SayExhibitInfoNode       />
+                <PerformGestureNodeAsync  gesture_type="deictic" gesture_name="None" />
+            </Parallel>
+        </Sequence>
+    </BehaviorTree>
+
+    <BehaviorTree ID="AnsweringQuestionsTree">
+        <Sequence name="answering_questions_sequence">
+            <SetOvertAttentionModeNode mode="social"/>
+            <SayTextNode text="Now I will answer any questions you may have." />
+            <KeepRunningUntilFailure name="answering_questions_until_failure">
+                <WhileDoElse name="answering_questions_while_do_else">
+                    <SubTree ID="IntentRecognitionTree" _autoremap="true"/>
+                    <Sequence name="answering_questions_sequence">
+                        <QueryRagNodeSync            query="{asr_out}" response="{rag_response}"/>
+                        <SayTextNode                 text="{rag_response}" />
+                    </Sequence>
+                    <Parallel name="failure_sequence">
+                        <SayTextNode text="Alright, feel free to ask me if you have any questions later on!" />
+                        <FailureNode />
+                    </Parallel>
+                </WhileDoElse>
+            </KeepRunningUntilFailure>
+        </Sequence>
+    </BehaviorTree>
+
+    <BehaviorTree ID="IntentRecognitionTree">
+        <Sequence name="intent_recognition_sequence">
+            <Fallback name="intent_recognition_fallback">
+                <isRobotSpeakingNode />
+                 <Sequence name="recognize_intent_sequence">
+                    <RecognizeSpeechNodeAsync    recognized_text="{asr_out}"/>
+                    <GetIntentNode               query="{asr_out}" response="{intent}"/>
+                    <IsIntentPositiveNode        intent="{intent}"/>
+                </Sequence>
+            </Fallback>
+        </Sequence>
+    </BehaviorTree>
+
+    <BehaviorTree ID="GoodbyeVisitorTree">
+        <Sequence name="goodbye_visitor_sequence">
+            <Parallel name="navigation_parallel">
+                <SetOvertAttentionModeNode mode="disabled"/>
+                <NavigatePortsNodeAsync goal_x="2.0" goal_y="7.8" goal_theta="315"/>
+                <SayTextNode text="We have reached the end of the tour. I hope you enjoyed it!" />
+            </Parallel>
+            <SetOvertAttentionModeNode mode="scanning"/>
+            <Parallel name="goodbye_parallel">
+                 <SayTextNode text="Thank you for joining the lab tour! I hope to meet you again soon." />
+                 <PerformGestureNodeAsync gesture_type="iconic" gesture_name="goodbye" />
+            </Parallel>
+        </Sequence>
+    </BehaviorTree>
+</root>
