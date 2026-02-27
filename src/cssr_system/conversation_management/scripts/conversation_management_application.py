@@ -122,51 +122,6 @@ def handle_create_collection_request(req):
     
     return response
 
-class RAGActionServer:
-    """
-    Action server for handling RAG queries.
-    """
-    def __init__(self, name):
-        self._action_name = name
-        self._as = actionlib.SimpleActionServer(self._action_name, rag_node.msg.QueryAction, execute_cb=self.execute_cb, auto_start = False)
-        self._as.start()
-        rospy.loginfo(self._action_name + " - Action Server Started.")
-
-    def execute_cb(self, goal):
-        """
-        Callback function to execute the action.
-        """
-        global conversation_history, collection, config
-        
-        verbose_mode = config.get('verboseMode', 'false').lower() == 'true'
-        
-        if verbose_mode:
-            rospy.loginfo("Received action goal: %s", goal.query)
-            
-        self._as.start()
-
-        ai_response = handle_rag_query(collection, goal.query, conversation_history, config.get('llm', 'meta-llama/Llama-3.1-8B-Instruct'),
-                                        verbose_mode, int(config.get('topK', 3)), 
-                                        float(config.get('similarity_threshold', 0.05)))
-
-        conversation_history.append({"role": "user", "content": goal.query})
-        conversation_history.append({"role": "assistant", "content": ai_response})
-        
-        rospy.loginfo("Finished handle_rag_query. Setting succeeded.")
-
-        # Keep conversation history manageable
-        max_conversation_history_length = int(config.get('maxConversationHistoryLen', 3))
-        if len(conversation_history) > max_conversation_history_length:
-            conversation_history = conversation_history[-max_conversation_history_length:]
-
-        if verbose_mode:
-            rospy.loginfo("AI response: %s", ai_response)
-
-        result = rag_node.msg.QueryResult()
-        result.response = ai_response
-        self._as.set_succeeded(result)
-        rospy.loginfo("Server finished processing goal. Ready for next.")
-
 def rag_service_server():
     global config
     config = read_config(Path(__file__).parent.parent / 'config' / 'conversation_management_configuration.ini')

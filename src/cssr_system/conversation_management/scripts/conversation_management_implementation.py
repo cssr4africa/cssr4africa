@@ -184,10 +184,11 @@ def _perform_similarity_search(collection, query: str, n_results: int = 5, simil
             # Calculate similarity score (1 - distance)
             similarity_score = 1 - results['distances'][0][i]
             section = ''
-            if "section" not in results['metadatas'][0][i]:
+            if "title" in results['metadatas'][0][i]:
                 section = results['metadatas'][0][i]['title']
-            else:
+            elif "section" in results['metadatas'][0][i]:
                 section = results['metadatas'][0][i]['section']
+                
             result = {
                 'doc_id': results['ids'][0][i],
                 'section': section,
@@ -354,9 +355,10 @@ def _generate_llm_rag_response(query: str, search_results: List[Dict], conversat
                                 You need to determine the intent (positive or negative) of messages. 
                                 You are to determine if the statement is a question (positive) or the user is saying they have no further questions (negative).
                                 Respond only with either 'positive' or 'negative', and provide no further text. 
-                                No further explanations are to be provided. Always check the
-                                text you generate at least one more time to ensure that it contains only one word, either the word
-                                'positive' or the word 'negative', and rectifying the generated text to generate only either 'positive'
+                                If the user is asking a question or requesting information, respond with 'positive'. 
+                                If the user is indicating they have no more questions or do not want information or says thanks, respond with 'negative'.
+                                No further explanations are to be provided. Always check the text you generate at least one more time to ensure that it contains only one word, 
+                                either the word 'positive' or the word 'negative', and rectifying the generated text to generate only either 'positive'
                                 or 'negative' without any other text or explanation being provided. Remember, never generate anything
                                 other than 'positive' or 'negative', and never give extra information or explanations.
                                 """

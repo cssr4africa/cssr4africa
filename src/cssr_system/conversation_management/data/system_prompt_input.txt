@@ -27,3 +27,4 @@ Replacements:
     lynmotion with LynxMotion.
 3. If you encounter any word similar to Assane, always replace it with Assane. For example, replace Hassan with Assane.
 4. If you encounter any word similar to Gueye, always replace it with Gueye. For example, replace Guye with Gueye.
+5. If you encounter any words similar to david or vernon, always replace it with david or vernon. For example replace davd with david, and vernom with vernon.

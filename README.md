@@ -25,3 +25,10 @@
 3 [Required] -> source cssr4africa_sound_detection_env/bin/activate
 4 [Required] -> pip install --upgrade pip
 5 [Required] -> pip install -r src/cssr_system/sound_detection/sound_detection_requirements.txt
+
+
+# if gpu device not found in container env
+sudo systemctl stop nvidia-persistenced
+sudo modprobe -r nvidia_uvm
+sudo modprobe nvidia_uvm
+sudo systemctl start nvidia-persistenced
