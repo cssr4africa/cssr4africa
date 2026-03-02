@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="robot_ip"                            default="172.29.111.230" /> <!-- 127.0.0.1 -->
+  <arg name="robot_port"                          default="9559" />
+  <arg name="roscore_ip"                          default="172.29.111.237" />
+  <arg name="network_interface"                   default="wlp0s20f3" />
+  <arg name="cssr_system_namespace"               default="cssr_system" />
+  <arg name="gesture_execution_namespace"         default="gestureExecution" />
+  <arg name="overt_attention_namespace"           default="overtAttention" />
+  <arg name="robot_localization_namespace"        default="robotLocalization" />
+
+  <arg name="initial_robot_x"                     default="0.0" />
+  <arg name="initial_robot_y"                     default="0.0" />
+  <arg name="initial_robot_theta"                 default="0.0" />
+
+  <arg name="robot_navigation_namespace"          default="robotNavigation" />
+  <arg name="animate_behaviour_namespace"         default="animateBehaviour" />
+
+  <!-- <param name="initial_robot_x"                   value="$(arg initial_robot_x)" />
+  <param name="initial_robot_y"                   value="$(arg initial_robot_y)" />
+  <param name="initial_robot_theta"               value="$(arg initial_robot_theta)" /> -->
+
+  <!-- Launch the animateBehaviour node -->
+  <node pkg="$(arg cssr_system_namespace)" type="$(arg animate_behaviour_namespace)" name="$(arg animate_behaviour_namespace)" 
+    required="true" output="screen" launch-prefix="bash -c 'sleep 0; $0 $@'" />
+  
+    <!-- Launch robot_localization node // Change package name to cssr_system later -->
+  <node pkg="robot_localization" type="$(arg robot_localization_namespace)" name="$(arg robot_localization_namespace)" 
+    required="true" output="screen" launch-prefix="bash -c 'sleep 5; $0 $@'" />
+      <param name="initial_robot_x"                   value="$(arg initial_robot_x)" />
+      <param name="initial_robot_y"                   value="$(arg initial_robot_y)" />
+      <param name="initial_robot_theta"               value="$(arg initial_robot_theta)" />
+
+  <!-- Launch overt_attention node -->
+  <node pkg="$(arg cssr_system_namespace)" type="$(arg overt_attention_namespace)" name="$(arg overt_attention_namespace)" 
+    required="true" output="screen" launch-prefix="bash -c 'sleep 10; $0 $@'" />
+
+  <!-- Launch gesture_execution node -->
+  <node pkg="$(arg cssr_system_namespace)" type="$(arg gesture_execution_namespace)" name="$(arg gesture_execution_namespace)" 
+    required="true" output="screen" launch-prefix="bash -c 'sleep 15; $0 $@'" />
+
+  <!-- Launch robot_navigation node // Change package name to cssr_system later -->
+  <node pkg="robot_navigation" type="$(arg robot_navigation_namespace)" name="$(arg robot_navigation_namespace)" 
+    required="true" output="screen" launch-prefix="bash -c 'sleep 20; $0 $@'" />
+
+
+	
+</launch>

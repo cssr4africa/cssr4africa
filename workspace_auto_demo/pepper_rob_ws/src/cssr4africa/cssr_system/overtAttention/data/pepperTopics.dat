@@ -1,0 +1,12 @@
+FrontCamera                   /naoqi_driver/camera/front/image_raw
+RealSenseCamera               /camera/color/image_raw
+RealSenseCameraCompressed     /camera/color/image_raw/compressed
+BottomCamera                  /naoqi_driver/camera/bottom/image_raw
+DepthCamera                   /naoqi_driver/camera/depth/image_raw
+StereoCamera                  /naoqi_driver/camera/stereo/image_raw
+Head                          /pepper_dcm/Head_controller/follow_joint_trajectory
+Wheels                        /pepper_dcm/cmd_moveto
+RobotPose                     /robotLocalization/pose
+JointStates                   /joint_states
+FaceDetection                 /faceDetection/data
+SoundLocalization             /soundDetection/direction

@@ -1,0 +1,6 @@
+nemo-toolkit[asr]==2.3.1
+pyaudio==0.2.14
+rospkg
+rospy
+torch==2.7.1
+torchaudio==2.7.1

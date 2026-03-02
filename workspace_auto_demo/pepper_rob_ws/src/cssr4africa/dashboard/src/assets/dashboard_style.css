@@ -1,0 +1,525 @@
+/*
+dashboard_styles.css 
+  Stylesheet for Dash Application UI
+  This file defines the styling for various components of the dashboard, including layout, typography, tables, buttons, and interactive elements.
+
+Author:   Eyerusalem Mamuye Birhan
+Date:     2025-03-13
+Version:  1.0
+
+Copyright (C) 2023 CSSR4Africa Consortium
+This project is funded by the African Engineering and Technology Network (Afretec)
+Inclusive Digital Transformation Research Grant Programme.
+Website: www.cssr4africa.org
+
+This program comes with ABSOLUTELY NO WARRANTY.
+*/
+
+
+
+
+/* Table of contents
+––––––––––––––––––––––––––––––––––––––––––––––––––
+- Plotly.js
+- Grid
+- Base Styles
+- Typography
+- Links
+- Buttons
+- Forms
+- Lists
+- Code
+- Tables
+- Spacing
+- Utilities
+- Clearing
+- Media Queries
+*/
+
+/* Grid
+–––––––––––––––––––––––––––––––––––––––––––––––––– */
+.container {
+    position: relative;
+    width: 100%;
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 20px;
+    box-sizing: border-box; }
+  .column,
+  .columns {
+    width: 100%;
+    float: left;
+    box-sizing: border-box; }
+  
+  /* For devices larger than 400px */
+  @media (min-width: 400px) {
+    .container {
+      width: 85%;
+      padding: 0; }
+  }
+  
+  /* For devices larger than 550px */
+  @media (min-width: 550px) {
+    .container {
+      width: 80%; }
+    .column,
+    .columns {
+      margin-left: 4%; }
+    .column:first-child,
+    .columns:first-child {
+      margin-left: 0; }
+  
+    .one.column,
+    .one.columns                    { width: 4.66666666667%; }
+    .two.columns                    { width: 13.3333333333%; }
+    .three.columns                  { width: 22%;            }
+    .four.columns                   { width: 30.6666666667%; }
+    .five.columns                   { width: 39.3333333333%; }
+    .six.columns                    { width: 48%;            }
+    .seven.columns                  { width: 56.6666666667%; }
+    .eight.columns                  { width: 65.3333333333%; }
+    .nine.columns                   { width: 74.0%;          }
+    .ten.columns                    { width: 82.6666666667%; }
+    .eleven.columns                 { width: 91.3333333333%; }
+    .twelve.columns                 { width: 100%; margin-left: 0; }
+  
+    .one-third.column               { width: 30.6666666667%; }
+    .two-thirds.column              { width: 65.3333333333%; }
+  
+    .one-half.column                { width: 48%; }
+  
+    /* Offsets */
+    .offset-by-one.column,
+    .offset-by-one.columns          { margin-left: 8.66666666667%; }
+    .offset-by-two.column,
+    .offset-by-two.columns          { margin-left: 17.3333333333%; }
+    .offset-by-three.column,
+    .offset-by-three.columns        { margin-left: 26%;            }
+    .offset-by-four.column,
+    .offset-by-four.columns         { margin-left: 34.6666666667%; }
+    .offset-by-five.column,
+    .offset-by-five.columns         { margin-left: 43.3333333333%; }
+    .offset-by-six.column,
+    .offset-by-six.columns          { margin-left: 52%;            }
+    .offset-by-seven.column,
+    .offset-by-seven.columns        { margin-left: 60.6666666667%; }
+    .offset-by-eight.column,
+    .offset-by-eight.columns        { margin-left: 69.3333333333%; }
+    .offset-by-nine.column,
+    .offset-by-nine.columns         { margin-left: 78.0%;          }
+    .offset-by-ten.column,
+    .offset-by-ten.columns          { margin-left: 86.6666666667%; }
+    .offset-by-eleven.column,
+    .offset-by-eleven.columns       { margin-left: 95.3333333333%; }
+  
+    .offset-by-one-third.column,
+    .offset-by-one-third.columns    { margin-left: 34.6666666667%; }
+    .offset-by-two-thirds.column,
+    .offset-by-two-thirds.columns   { margin-left: 69.3333333333%; }
+  
+    .offset-by-one-half.column,
+    .offset-by-one-half.columns     { margin-left: 52%; }
+  
+  }
+  
+  
+  /* Base Styles
+  –––––––––––––––––––––––––––––––––––––––––––––––––– */
+  html {
+    font-size: 62.5%; }
+  body {
+    font-size: 1.5em; /* currently ems cause chrome bug misinterpreting rems on body element */
+    line-height: 1.6;
+    font-weight: 400;
+    font-family: "Open Sans", "HelveticaNeue", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    color: rgb(50, 50, 50); }
+  
+  
+  /* Typography
+  –––––––––––––––––––––––––––––––––––––––––––––––––– */
+  h1, h2, h3, h4, h5, h6 {
+    margin-top: 0;
+    margin-bottom: 0;
+    font-weight: 300; }
+  h1 { font-size: 4.5rem; line-height: 1.2;  letter-spacing: -.1rem; margin-bottom: 2rem; }
+  h2 { font-size: 3.6rem; line-height: 1.25; letter-spacing: -.1rem; margin-bottom: 1.8rem; margin-top: 1.8rem;}
+  h3 { font-size: 3.0rem; line-height: 1.3;  letter-spacing: -.1rem; margin-bottom: 1.5rem; margin-top: 1.5rem;}
+  h4 { font-size: 2.6rem; line-height: 1.35; letter-spacing: -.08rem; margin-bottom: 1.2rem; margin-top: 1.2rem;}
+  h5 { font-size: 2.2rem; line-height: 1.5;  letter-spacing: -.05rem; margin-bottom: 0.6rem; margin-top: 0.6rem;}
+  h6 { font-size: 2.0rem; line-height: 1.6;  letter-spacing: 0; margin-bottom: 0.75rem; margin-top: 0.75rem;}
+  
+  p {
+    margin-top: 0; }
+  
+  
+  /* Blockquotes
+  –––––––––––––––––––––––––––––––––––––––––––––––––– */
+  blockquote {
+    border-left: 4px lightgrey solid;
+    padding-left: 1rem;
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+    margin-left: 0rem;
+  }
+  
+  
+  /* Links
+  –––––––––––––––––––––––––––––––––––––––––––––––––– */
+  a {
+    color: #1EAEDB;
+    text-decoration: underline;
+    cursor: pointer;}
+  a:hover {
+    color: #0FA0CE; }
+  
+  
+  /* Buttons
+  –––––––––––––––––––––––––––––––––––––––––––––––––– */
+  .button,
+  button,
+  input[type="submit"],
+  input[type="reset"],
+  input[type="button"] {
+    display: inline-block;
+    height: 38px;
+    padding: 0 30px;
+    color: #555;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 38px;
+    letter-spacing: .1rem;
+    text-transform: uppercase;
+    text-decoration: none;
+    white-space: nowrap;
+    background-color: transparent;
+    border-radius: 4px;
+    border: 1px solid #bbb;
+    cursor: pointer;
+    box-sizing: border-box; }
+  .button:hover,
+  button:hover,
+  input[type="submit"]:hover,
+  input[type="reset"]:hover,
+  input[type="button"]:hover,
+  .button:focus,
+  button:focus,
+  input[type="submit"]:focus,
+  input[type="reset"]:focus,
+  input[type="button"]:focus {
+    color: #333;
+    border-color: #888;
+    outline: 0; }
+  .button.button-primary,
+  button.button-primary,
+  input[type="submit"].button-primary,
+  input[type="reset"].button-primary,
+  input[type="button"].button-primary {
+    color: #FFF;
+    background-color: #33C3F0;
+    border-color: #33C3F0; }
+  .button.button-primary:hover,
+  button.button-primary:hover,
+  input[type="submit"].button-primary:hover,
+  input[type="reset"].button-primary:hover,
+  input[type="button"].button-primary:hover,
+  .button.button-primary:focus,
+  button.button-primary:focus,
+  input[type="submit"].button-primary:focus,
+  input[type="reset"].button-primary:focus,
+  input[type="button"].button-primary:focus {
+    color: #FFF;
+    background-color: #1EAEDB;
+    border-color: #1EAEDB; }
+  
+  
+  /* Tables
+  –––––––––––––––––––––––––––––––––––––––––––––––––– */
+  table {
+    border-collapse: collapse;
+  }
+  th:not(.CalendarDay),
+  td:not(.CalendarDay) {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #E1E1E1; }
+  th:first-child:not(.CalendarDay),
+  td:first-child:not(.CalendarDay) {
+    padding-left: 0; }
+  th:last-child:not(.CalendarDay),
+  td:last-child:not(.CalendarDay) {
+    padding-right: 0; }
+  
+  
+  /* Spacing
+  –––––––––––––––––––––––––––––––––––––––––––––––––– */
+  button,
+  .button {
+    margin-bottom: 0rem; }
+  input,
+  textarea,
+  select,
+  fieldset {
+    margin-bottom: 0rem; }
+  pre,
+  dl,
+  figure,
+  table,
+  form {
+    margin-bottom: 0rem; }
+  p,
+  ul,
+  ol {
+    margin-bottom: 0.75rem; }
+  
+  /* Utilities
+  –––––––––––––––––––––––––––––––––––––––––––––––––– */
+  .u-full-width {
+    width: 100%;
+    box-sizing: border-box; }
+  .u-max-full-width {
+    max-width: 100%;
+    box-sizing: border-box; }
+  .u-pull-right {
+    float: right; }
+  .u-pull-left {
+    float: left; }
+  
+  
+  /* Misc
+  –––––––––––––––––––––––––––––––––––––––––––––––––– */
+  hr {
+    margin-top: 3rem;
+    margin-bottom: 3.5rem;
+    border-width: 0;
+    border-top: 1px solid #E1E1E1; }
+
+  /* Clearing
+  –––––––––––––––––––––––––––––––––––––––––––––––––– */
+  
+  /* Self Clearing Goodness */
+  .container:after,
+  .row:after,
+  .u-cf {
+    content: "";
+    display: table;
+    clear: both; }
+  
+  
+  /* Media Queries
+  –––––––––––––––––––––––––––––––––––––––––––––––––– */
+  /* Larger than mobile */
+  @media (min-width: 400px) {}
+  
+  /* Larger than phablet (also point when grid becomes active) */
+  @media (max-width: 550px) {
+  .flex_display {
+    display: block !important;
+  }
+  }
+  
+  /* Larger than tablet */
+  @media (min-width: 750px) {}
+  
+  /* Larger than desktop */
+  @media (min-width: 1000px) {}
+  
+  /* Larger than Desktop HD */
+  @media (min-width: 1200px) {}
+
+  body {
+    background-color: #F2F2F2;
+    margin-top: 0%;
+    margin-left: 5%;
+    margin-right: 5%;
+    margin-bottom: 5%;
+  }
+  
+  .logo {
+    max-width: 100px;
+    margin-right: 10px;
+  }
+  
+  .mainContainer {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .title_container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #AB0000;
+    height: 80px;
+    font-weight: bold;
+    size: 6;
+  }
+  
+  .title_text {
+    display: flex;
+    flex-direction: row;
+    color: #F2F2F2;
+  }
+  
+  .flex_display {
+    display: flex;
+  }
+  
+  .items_center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .create_container {
+    border: 1px solid #cccccc;
+    border-radius: 10px;
+    padding: 15px;
+  }
+  
+  .slider {
+    background-color: white;
+    border: 1px solid #cccccc;
+    margin-top: 40px;
+  }
+  
+  .bar_graph_border {
+    border: 1px solid white;
+    margin-top: 20px;
+  }
+  
+  .table_background {
+    border: 1px solid white;
+    background-color: white;
+    margin-top: 20px;
+  }
+  
+  .card_container {
+    border-radius: 5px;
+    background-color: white;
+    position: absolute;
+    top: 50%;
+    left: 22%;
+    transform: translate(-50%, -25%);
+    padding: 15px;
+    box-shadow: 2px 2px 2px white;
+  }
+  
+  .column_style {
+    margin-right: 20px;
+    border: 2px solid #F2F2F2;
+    border-radius: 10px;
+    padding: 15px;
+    margin-left: 20px;
+    background-color: #FF7070;
+    color: white;
+    font-weight: bold;
+  }
+  
+  .demo_title {
+    margin-right: 11px;
+    border-radius: 5px;
+    margin-left: 12px;
+  }
+  
+  .demographic {
+    border: 1px solid #cccccc;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 30px;
+  }
+  
+  .pie_graph_border {
+    border: 1px solid white;
+    margin-top: 35px;
+  }
+  
+  .container_text_border {
+    border: 1px solid white;
+    margin-top: 10px;
+  }
+  
+  .text_container {
+    margin-top: 20px;
+  }
+  
+  .text_container1 {
+    margin-top: 5px;
+  }
+  
+  .text_container2 {
+    margin-top: 10px;
+    margin-bottom: 20px;
+  }
+  
+  .box_style {
+    width: 90%;
+    border-collapse: collapse;
+    background-color: white;
+  }
+  
+  .style1 {
+    width: 80%;
+    background-color: #eeee;
+    font-weight: bold;
+  }
+  
+  .style2 {
+    width: 20%;
+    background-color: white;
+    font-weight: bold;
+  }
+  
+  .box_style td {
+    border: 1px solid #cccccc;
+    padding: 4px;
+  }
+  
+  ::-webkit-scrollbar {
+    width: 10px !important;
+    display: block !important;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background-color: #F2F2F2 !important;
+    display: block !important;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background-color: #AB0000;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: #AB0000;
+  }
+  
+  .rc-slider-dot-active {
+    border-color: #AB0000;
+    border: 2px solid #AB0000;
+  }
+  
+  .rc-slider-handle {
+    border-color: #AB0000;
+    background-color: #AB0000;
+  }
+  
+  .rc-slider-handle:hover {
+    border-color: orange;
+    background-color: red;
+  }
+  
+  .dash-debug-menu__icon {
+    display: none !important;
+  }
+  
+  .dash-debug-menu {
+    display: none !important;
+  }
+  
+  .dash-debug-menu__content {
+    display: none !important;
+  }
+  
+  .dash-debug-menu__outer--closed {
+    display: none !important;
+  }

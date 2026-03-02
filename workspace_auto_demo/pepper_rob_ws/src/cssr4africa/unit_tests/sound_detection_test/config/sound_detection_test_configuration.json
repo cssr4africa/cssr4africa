@@ -1,0 +1,9 @@
+{
+    "recordFiltered": true,
+    "recordUnfiltered": true,
+    "recordDuration": 10,
+    "saveDirectionData": true,
+    "targetRMS": 0.2,
+    "applyNormalization": true,
+    "verboseMode": true
+}

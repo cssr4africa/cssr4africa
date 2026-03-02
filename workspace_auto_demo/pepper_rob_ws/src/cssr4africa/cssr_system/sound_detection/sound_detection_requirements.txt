@@ -1,0 +1,8 @@
+scipy 
+soundfile 
+webrtcvad 
+pyYaml 
+rospkg 
+rospy
+noisereduce
+matplotlib

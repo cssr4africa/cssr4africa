@@ -1,0 +1,4 @@
+RealSenseCameraRGB      /camera/color/image_raw
+RealSenseCameraDepth    /camera/aligned_depth_to_color/image_raw
+PepperFrontCamera       /naoqi_driver/camera/front/image_raw
+PepperDepthCamera       /naoqi_driver/camera/depth/image_raw

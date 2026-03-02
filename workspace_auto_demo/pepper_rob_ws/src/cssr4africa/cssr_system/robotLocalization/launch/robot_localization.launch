@@ -1,0 +1,8 @@
+<launch>
+    <node name="robotLocalization" pkg="robotLocalization" type="robotLocalization_node" output="screen">
+        <!-- Pass parameters -->
+        <param name="initial_x" value="1.0" />
+        <param name="initial_y" value="2.0" />
+        <param name="initial_theta" value="90.0" />
+    </node>
+</launch>

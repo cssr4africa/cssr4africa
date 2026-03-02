@@ -1,0 +1,10 @@
+{   "algorithm": "sixdrep",
+    "useCompressed": true,
+    "saveVideo": true,
+    "saveImage": true, 
+    "videoDuration": 10,
+    "imageInterval": 5,
+    "recordingDelay": 0,
+    "maxFramesBuffer": 300,
+    "verboseMode": true
+}

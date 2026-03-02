@@ -1,0 +1,5 @@
+FrontCamera =           /pepper/camera/front/image_raw
+StereoCamera =          /pepper/camera/stereo/image_raw
+Odometry =              /pepper/odom
+IMU =                   /pepper/imu/base
+HeadYaw =               /joint_states

@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="behavior_controller_namespace" default="behaviorController" />
+  <arg name="animate_behaviour_namespace" default="animateBehaviour" />
+  <arg name="gesture_execution_namespace" default="gestureExecution" />
+  <arg name="overt_attention_namespace" default="overtAttention" />
+  <arg name="behavior_controller_driver_namespace" default="behaviorControllerDriver" />
+  <arg name="behavior_controller_stub_namespace" default="behaviorControllerStub" />
+  <arg name="behavior_controller_test_namespace" default="behaviorControllerTest" />
+  <arg name="launch_drivers_stubs" default="true" />
+  <arg name="launch_test" default="true" />
+
+
+  <!-- Conditionally Launch behavior_controller driver and stub -->
+  <group if="$(arg launch_drivers_stubs)">
+    <!-- Launch behaviorController driver -->
+    <node pkg="unit_tests" type="behaviorControllerTestDriver" name="$(arg behavior_controller_driver_namespace)" required="true" output="screen" launch-prefix="bash -c 'sleep 2; $0 $@'" />
+
+    <!-- Launch behaviorController stub -->
+    <node pkg="unit_tests" type="behaviorControllerTestStub" name="$(arg behavior_controller_stub_namespace)" required="true" output="screen" launch-prefix="bash -c 'sleep 3; $0 $@'" />
+  </group>
+
+  <!-- Conditionally Launch the 9 nodes that the behaviorController is dependent on-->
+  <group unless="$(arg launch_drivers_stubs)">
+
+    <!-- Launch animate_behaviour node -->
+    <node pkg="cssr_system" type="animateBehaviour" name="animate_behaviour" required="true" output="screen" launch-prefix="bash -c 'sleep 0; $0 $@'" />
+
+    <!-- Launch gestureExecution node -->
+    <node pkg="cssr_system" type="gestureExecution" name="$(arg gesture_execution_namespace)" required="true" output="screen" launch-prefix="bash -c 'sleep 15; $0 $@'" />
+
+    <!-- Launch overt_attention node -->
+    <node pkg="cssr_system" type="overtAttention" name="$(arg overt_attention_namespace)" required="true" output="screen" launch-prefix="bash -c 'sleep 10; $0 $@'" />
+
+    <!-- Add the other nodes as they get finalized and become available-->
+    <!-- Launch robotLocalization -->
+    <!-- Launch robotNavigation -->
+    <!-- Launch speechEvent -->
+    <!-- Launch tabletEvent -->
+    <!-- Launch textToSpeech -->
+
+
+  </group>
+
+  <!-- Launch behaviorController unit_tests node -->
+  <group if="$(arg launch_test)">
+    <node pkg="unit_tests" type="behaviorControllerTest" name="$(arg behavior_controller_test_namespace)" required="true" output="screen" launch-prefix="bash -c 'sleep 5; $0 $@'" />
+  </group>
+
+    <!-- Launch behaviorController node -->
+  <node pkg="cssr_system" type="behaviorController" name="$(arg behavior_controller_namespace)" required="true" output="screen" launch-prefix="bash -c 'sleep 10; $0 $@'" />
+
+
+
+
+</launch>

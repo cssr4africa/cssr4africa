@@ -1,0 +1,17 @@
+<!-- Launch file for testing the text-to-speech component on the physical robot -->
+<launch>
+    <arg name="run_tests" default="true" />
+
+    <!-- Define the virtual environment path -->
+    <arg name="text_to_speech_env_path" default="~/workspace/pepper_rob_ws/src/cssr4africa_virtual_envs/cssr4africa_text_to_speech_env" />
+
+    <!-- Launch speech_event node -->
+    <node pkg="cssr_system" type="text_to_speech_application.py" name="textToSpeech" output="screen" required="true"
+        launch-prefix="bash -c 'source $(arg text_to_speech_env_path)/bin/activate; sleep 5; $0 $@'"/>
+
+    <!-- Conditionally launch textToSpeechtest node -->
+    <group if="$(arg run_tests)">
+        <node pkg="unit_tests" type="text_to_speech_test_application.py" name="textToSpeechTest" output="screen" required="true"
+            launch-prefix="bash -c 'source $(arg text_to_speech_env_path)/bin/activate; sleep 15; $0 $@'"/>
+    </group>
+</launch>

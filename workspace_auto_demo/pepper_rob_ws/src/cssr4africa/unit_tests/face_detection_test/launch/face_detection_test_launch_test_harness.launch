@@ -1,0 +1,18 @@
+<launch>
+
+  <!-- Define the virtual environment path -->
+  <arg name="face_detection_env_path" default="~/workspace/pepper_rob_ws/src/cssr4africa_virtual_envs/cssr4africa_face_person_detection_env" />
+
+  <!-- Run the Face Detection Node -->
+  <node name="faceDetection" pkg="cssr_system" type="face_detection_application.py" output="screen" required="true"
+        launch-prefix="bash -c 'source $(arg face_detection_env_path)/bin/activate; $0 $@'"/>
+  
+  <!-- Add a delay -->
+  <arg name="startup_delay" value="0.5" />
+  <param name="startup_delay" value="$(arg startup_delay)" />
+  
+  <!-- Launch the face detection test node with a slight delay -->
+  <node name="faceDetectionTest" pkg="unit_tests" type="face_detection_test_application.py" 
+        output="screen" launch-prefix="bash -c 'sleep $(arg startup_delay); $0 $@'">
+  </node>
+</launch>

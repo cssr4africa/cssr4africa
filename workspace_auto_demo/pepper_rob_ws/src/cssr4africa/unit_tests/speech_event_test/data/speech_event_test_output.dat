@@ -1,0 +1,44 @@
+
+    Speech Event Test Report
+    Date: 2025-05-14 11:46:54
+    
+    ================================================================================
+    Test SpeechEvent's /speechEvent/set_enabled ROS service
+---
+As a:     behaviourController developer
+I want:   a means of enabling and disabling the transcription process at runtime
+So that:  I can stop the robot from transcribing its own speech by disabling the transcription process
+---
+Set unsupported status (agree): PASS
+Set unsupported status (1): PASS
+Set supported status (false): PASS
+Set supported status (true): PASS
+================================================================================
+
+Test SpeechEvent's /speechEvent/set_language ROS service
+---
+As a:     behaviourController developer
+I want:   a means of setting the transcription language of speechEvent at runtime
+So that:  I don't have to restart speechEvent every time I update the transcription language
+---
+Set unsupported language (Kiswahili): PASS
+Set unsupported language (Arabic): PASS
+Set supported language (English): PASS
+Set supported language (Kinyarwanda): PASS
+================================================================================
+
+Test SpeechEvent's end-to-end transcription process
+---
+Given:    a running speechEvent ROS node
+When:     an audio signal is detected on the /soundDetection/signal ROS topic
+Then:     the audio needs to be transcribed and the text transcription published on the /speechEvent/text ROS topic
+---
+Transcribe 'rw-kabiri': PASS
+Transcribe 'rw-atandatu': PASS
+Transcribe 'rw-ingendo': PASS
+Transcribe 'rw-ibikenewe': PASS
+Transcribe 'en-he now resides in monte carlo': PASS
+Transcribe 'en-turner construction was the construction manager for the project': PASS
+Transcribe 'en-the council was held': PASS
+
+    

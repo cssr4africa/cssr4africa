@@ -1,0 +1,5 @@
+add_executable(behaviorController src/cultureKnowledgeBaseImplementation.cpp src/environmentKnowledgeBaseImplementation.cpp src/behaviorControllerImplementation.cpp src/behaviorControllerApplication.cpp )
+set_target_properties(behaviorController PROPERTIES OUTPUT_NAME behaviorController PREFIX "")
+target_link_libraries(behaviorController  ${catkin_LIBRARIES} behaviortree_cpp )
+target_include_directories(behaviorController PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include ${catkin_INCLUDE_DIRS})
+add_dependencies(behaviorController ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})

@@ -1,0 +1,23 @@
+<launch>
+  <arg name="robot_ip" default="172.29.111.230" />
+  <arg name="robot_port" default="9559" />
+  <arg name="roscore_ip" default="127.0.0.1" />
+  <arg name="network_interface" default="eth0" />
+  <arg name="namespace" default="naoqi_driver" />
+  <arg name="launch_audio_nodes" default="true" />  <!-- Flag to control audio nodes -->
+
+  <!-- Launch naoqi_driver_node -->
+  <node pkg="naoqi_driver" type="naoqi_driver_node" name="$(arg namespace)" required="true"
+        args="--qi-url=tcp://$(arg robot_ip):$(arg robot_port) --roscore_ip=$(arg roscore_ip) --network_interface=$(arg network_interface) --namespace=$(arg namespace)"
+        output="screen" />
+
+  <!-- Conditionally launch naoqiAudioPublisher.py (Python 3 script) -->
+  <group if="$(arg launch_audio_nodes)">
+    <node pkg="naoqi_driver" type="naoqiAudioPublisher.py" name="naoqiAudioPublisher" output="screen"/>
+  </group>
+
+  <!-- Conditionally launch naoqiAudio.py (Python 2 script) using run_naoqiAudio.sh -->
+  <group if="$(arg launch_audio_nodes)">
+    <node pkg="naoqi_driver" type="run_naoqiAudio.sh" name="naoqiAudio" args="--ip=$(arg robot_ip) --port=$(arg robot_port)"/>
+  </group>
+</launch>

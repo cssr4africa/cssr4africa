@@ -1,0 +1,74 @@
+Robot Navigation Test Report: 
+==========================================
+Date: 2025-07-17 17:59:25
+Environment Map: scenarioOneEnvironmentMap.dat
+Configuration Map: scenarioOneConfigMap.dat
+Robot Topics: pepperTopics.dat
+Verbose Mode: true
+Test Method: Service-based testing
+
+BFS Path Planning Test 1: PASS
+	Algorithm: BFS
+	Start: (2, 7.8, 270)
+	Goal: (2, 7, 270)
+
+Dijkstra Path Planning Test 1: PASS
+	Algorithm: Dijkstra
+	Start: (2, 7.8, 270)
+	Goal: (2.6, 7, 270)
+
+Dijkstra Path Planning Test 2: PASS
+	Algorithm: Dijkstra
+	Start: (2.6, 7, 270)
+	Goal: (2, 7, 45)
+
+A* Path Planning Test 1: PASS
+	Algorithm: A*
+	Start: (2, 7.8, 270)
+	Goal: (2.6, 7, 270)
+
+A* Path Planning Test 2: PASS
+	Algorithm: A*
+	Start: (2.6, 7, 270)
+	Goal: (2, 7, 90)
+
+Boundary Test 1 (Goal: 10.000000, 10.000000): PASS
+	Goal: (10, 10, 0)
+
+Boundary Test 2 (Goal: -1.000000, 2.000000): PASS
+	Goal: (-1, 2, 0)
+
+Boundary Test 3 (Goal: 2.000000, -1.000000): PASS
+	Goal: (2, -1, 0)
+
+Boundary Test 4 (Goal: 0.000000, 0.000000): PASS
+	Goal: (0, 0, 0)
+
+Boundary Test 5 (Goal: 7.000000, 7.000000): PASS
+	Goal: (7, 7, 0)
+
+Service Test 1 (Goal: 2.000000, 7.000000, 0.000000): PASS
+	Service Call: /robotNavigation/set_goal
+	Goal: (2, 7, 0)
+
+bfs Performance Test:
+	Execution Time: 9792 ms
+	Path Found: Yes
+	Estimated Waypoints: 10
+
+dijkstra Performance Test:
+	Execution Time: 9749 ms
+	Path Found: Yes
+	Estimated Waypoints: 10
+
+astar Performance Test:
+	Execution Time: 9217 ms
+	Path Found: Yes
+	Estimated Waypoints: 10
+
+
+==========================================
+Test Execution Summary
+==========================================
+Overall Result: ALL TESTS PASSED
+Test report location: /home/user/workspace/pepper_rob_ws/src/cssr4africa/unit_tests/robotNavigationTest/data/robotNavigationTestOutput.dat

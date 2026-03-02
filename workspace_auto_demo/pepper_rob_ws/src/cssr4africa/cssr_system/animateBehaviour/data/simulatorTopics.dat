@@ -1,0 +1,4 @@
+RArm                /pepper/RightArm_controller/follow_joint_trajectory
+LArm                /pepper/LeftArm_controller/follow_joint_trajectory
+Leg                 /pepper/Pelvis_controller/follow_joint_trajectory
+Wheels              /pepper/cmd_vel

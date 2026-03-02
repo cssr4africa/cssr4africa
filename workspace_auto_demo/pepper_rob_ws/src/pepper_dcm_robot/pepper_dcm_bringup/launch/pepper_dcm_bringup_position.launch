@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="robot_ip"          default="$(optenv NAO_IP)" /> <!-- 127.0.0.1 -->
+  <arg name="robot_port"        default="$(optenv NAO_PORT 9559)" />
+  <arg name="roscore_ip"        default="127.0.0.1" />
+  <arg name="network_interface" default="eth0" />
+
+  <!-- Call Robot publisher -->
+  <include file="$(find pepper_description)/launch/pepper_upload.launch" />
+
+  <!-- Call Robot Trajectory Controller -->
+  <include file="$(find pepper_control)/launch/pepper_control_position.launch"/>
+
+  <!-- Call typosRobot Driver -->
+  <node pkg="naoqi_dcm_driver" type="naoqi_dcm_driver" name="naoqi_dcm_driver" respawn="false" output="screen" >
+    <!-- Load configurations from YAML file to parameter server -->
+    <rosparam file="$(find pepper_dcm_bringup)/config/pepper_dcm.yaml" command="load"/>
+    <param name="RobotIP"             value="$(arg robot_ip)" />
+    <param name="RobotPort"           value="$(arg robot_port)" />
+    <param name="DriverBrokerIP"      value="$(arg roscore_ip)" />
+    <param name="network_interface"   value="$(arg network_interface)" />
+    <param name="motor_groups"        value="Body" /> <!-- either "Body" or separate groups in the order "Head LArm RArm" -->
+    <param name="use_dcm"             value="False" />
+    <param name="max_stiffness"       value="0.9" />
+  </node>	
+</launch>

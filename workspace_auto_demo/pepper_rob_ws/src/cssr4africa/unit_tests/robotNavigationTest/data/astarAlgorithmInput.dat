@@ -1,0 +1,10 @@
+# A* Algorithm Test Input File
+# Format: start_x start_y start_theta goal_x goal_y goal_theta
+# Coordinates in meters, angles in degrees
+# Lines starting with # are comments and will be ignored
+
+# Test Scenario 1: Movement with slight position change
+2.0 7.8 270.0 2.6 7.0 270.0
+
+# Test Scenario 2: Movement with rotation
+2.6 7.0 270.0 2.0 7.0 90.0

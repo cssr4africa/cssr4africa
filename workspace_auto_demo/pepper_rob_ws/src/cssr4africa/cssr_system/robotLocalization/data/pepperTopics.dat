@@ -1,0 +1,5 @@
+FrontCamera =       /naoqi_driver/camera/front/image_raw
+StereoCamera =      /naoqi_driver/camera/stereo/image_raw
+Odometry =          /naoqi_driver/odom
+IMU =               /naoqi_driver/imu/base
+HeadYaw =           /joint_states

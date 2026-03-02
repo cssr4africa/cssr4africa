@@ -1,0 +1,22 @@
+Test Results
+Date: 2025-06-21 17:10:03
+
+StartOfTree -> Passed!
+SetSpeechEvent -> Passed!
+RetrieveListOfExhibits -> Passed!
+SetRobotPose -> Passed!
+SetAnimateBehavior -> Passed!
+SetOvertAttentionMode -> Passed!
+IsVisitorDiscovered -> Passed!
+SayText -> Passed!
+PerformIconicGesture -> Passed!
+IsMutualGazeDiscovered -> Passed!
+GetVisitorResponse -> Passed!
+HasVisitorResponded -> Passed!
+IsVisitorResponseYes -> Passed!
+IsListWithExhibit -> Passed!
+SelectExhibit -> Passed!
+Navigate -> Passed!
+IsVisitorPresent -> Passed!
+DescribeExhibit -> Passed!
+PerformDeicticGesture -> Passed!

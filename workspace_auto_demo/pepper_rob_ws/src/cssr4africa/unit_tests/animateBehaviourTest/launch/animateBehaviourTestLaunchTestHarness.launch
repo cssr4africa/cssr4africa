@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<launch>
+<!-- Launch animate_behaviour_unit_tests node -->
+  <node pkg="unit_tests" type="animateBehaviourTest" name="animate_behaviour_test" required="true"
+    output="screen" launch-prefix="bash -c 'sleep 5; $0 $@'" />
+
+ <!-- Launch animate_behaviour node -->
+  <node pkg="cssr_system" type="animateBehaviour" name="animate_behaviour" required="true"
+    output="screen" launch-prefix="bash -c 'sleep 0; $0 $@'" />
+
+  
+</launch>

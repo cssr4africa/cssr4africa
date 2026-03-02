@@ -1,0 +1,23 @@
+<launch>
+  <arg name="nao_ip" default="$(optenv NAO_IP)" />
+  <arg name="nao_port" default="$(optenv NAO_PORT 9559)" />
+  <arg name="roscore_ip" default="127.0.0.1" />
+  <arg name="network_interface" default="eth0" />
+  <arg name="namespace" default="naoqi_driver" />
+  <arg name="launch_audio" default="true" />  <!-- Flag to control audio nodes -->
+
+  <!-- Launch naoqi_driver_node -->
+  <node pkg="naoqi_driver" type="naoqi_driver_node" name="$(arg namespace)" required="true"
+        args="--qi-url=tcp://$(arg nao_ip):$(arg nao_port) --roscore_ip=$(arg roscore_ip) --network_interface=$(arg network_interface) --namespace=$(arg namespace)"
+        output="screen" />
+
+  <!-- Conditionally launch naoqiAudioPublisher.py based on launch_audio flag -->
+  <group if="$(arg launch_audio)">
+    <node pkg="naoqi_driver" type="naoqiAudioPublisher.py" name="naoqiAudioPublisher" output="screen"/>
+  </group>
+
+  <!-- Conditionally launch naoqiAudio.py based on launch_audio flag -->
+  <group if="$(arg launch_audio)">
+    <node pkg="naoqi_driver" type="run_naoqiAudio.sh" name="naoqiAudio" args="--ip=$(arg nao_ip) --port=$(arg nao_port)"/>
+  </group>
+</launch>

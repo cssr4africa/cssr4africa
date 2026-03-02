@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<launch>
+    <!-- Declare arguments -->
+    <arg name="robot_ip"            default="172.29.111.230" doc="IP address of the robot" />
+    <arg name="roscore_ip"          default="127.0.0.1" doc="IP address of the ROS master" />
+    <arg name="robot_port"          default="9559" doc="Port for the robot connection" />
+    <arg name="network_interface"   default="wlp0s20f3" doc="Network interface to use" />
+    <arg name="namespace"           default="naoqi_driver" doc="Namespace for the naoqi driver" />
+    <arg name="audio_file"          default="sound_distance" doc="Choose which audio file to play (e.g., 'normal' for normal speech)" />
+    <arg name="use_recorded_audio"  default="true" doc="Set to true to use pre-recorded audio instead of live microphone" />
+    
+    <!-- Set parameters for sound detection test -->
+    <param name="/soundDetection/unit_tests" value="true" />
+
+    <!-- Launch naoqi_driver and microphone nodes only when NOT using recorded audio -->
+    <group unless="$(arg use_recorded_audio)">
+        <!-- Launch naoqi_driver node for connecting to Pepper -->
+        <node pkg="naoqi_driver" type="naoqi_driver_node" name="$(arg namespace)" required="true"
+              args="--qi-url=tcp://$(arg robot_ip):$(arg robot_port) --roscore_ip=$(arg roscore_ip) --network_interface=$(arg network_interface) --namespace=$(arg namespace)"
+              output="screen" />
+
+        <!-- Launch audio publisher for Pepper's microphones -->
+        <node pkg="naoqi_driver" type="naoqiAudioPublisher.py" name="naoqiAudioPublisher" output="screen"/>
+
+        <!-- Launch audio processing script -->
+        <node pkg="naoqi_driver" type="run_naoqiAudio.sh" name="naoqiAudio" args="--ip=$(arg robot_ip) --port=$(arg robot_port)"/>
+    </group>
+
+    <!-- Use rosbag for audio playback when use_recorded_audio is true -->
+    <group if="$(arg use_recorded_audio)">
+        <arg name="audio_bag_path" default="$(find unit_tests)/sound_detection_test/data/sound_detection_test_input_$(arg audio_file).bag"/>
+        <node pkg="rosbag" type="play" name="rosbag_play" args="$(arg audio_bag_path)" required="true"/>
+    </group>
+</launch>

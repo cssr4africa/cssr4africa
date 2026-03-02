@@ -1,0 +1,1355 @@
+Tue Aug 12 16:18:51 2025
+Configuration file opened successfully: /home/cssr4africa1/integrated/pepper_rob_ws/src/cssr4africa/cssr_system/animateBehaviour/config/animateBehaviourConfiguration.ini
+Tue Aug 12 16:18:51 2025
+Config: armMaximumRange = 0.15,0.15,0.2,0.35,0.2
+Tue Aug 12 16:18:51 2025
+Config: behaviour = body
+Tue Aug 12 16:18:51 2025
+Config: gestureDuration = 1.0
+Tue Aug 12 16:18:51 2025
+Config: handMaximumRange = 0.7
+Tue Aug 12 16:18:51 2025
+Config: legMaximumRange = 0.1,0.1,0.08
+Tue Aug 12 16:18:51 2025
+Config: legRepeatFactor = 8
+Tue Aug 12 16:18:51 2025
+Config: numPoints = 100
+Tue Aug 12 16:18:51 2025
+Config: numPointsLeg = 2
+Tue Aug 12 16:18:51 2025
+Config: platform = robot
+Tue Aug 12 16:18:51 2025
+Config: robotTopics = pepperTopics.dat
+Tue Aug 12 16:18:51 2025
+Config: rotMaximumRange = 0.3
+Tue Aug 12 16:18:51 2025
+Config: selectedRange = 0.5
+Tue Aug 12 16:18:51 2025
+Config: simulatorTopics = simulatorTopics.dat
+Tue Aug 12 16:18:51 2025
+Config: verboseMode = false
+Tue Aug 12 16:18:51 2025
+animateBehaviour node started. Waiting for activation...
+Tue Aug 12 16:19:44 2025
+Configuration file opened successfully: /home/cssr4africa1/integrated/pepper_rob_ws/src/cssr4africa/cssr_system/animateBehaviour/config/animateBehaviourConfiguration.ini
+Tue Aug 12 16:19:44 2025
+Config: armMaximumRange = 0.15,0.15,0.2,0.35,0.2
+Tue Aug 12 16:19:44 2025
+Config: behaviour = body
+Tue Aug 12 16:19:44 2025
+Config: gestureDuration = 1.0
+Tue Aug 12 16:19:44 2025
+Config: handMaximumRange = 0.7
+Tue Aug 12 16:19:44 2025
+Config: legMaximumRange = 0.1,0.1,0.08
+Tue Aug 12 16:19:44 2025
+Config: legRepeatFactor = 8
+Tue Aug 12 16:19:44 2025
+Config: numPoints = 100
+Tue Aug 12 16:19:44 2025
+Config: numPointsLeg = 2
+Tue Aug 12 16:19:44 2025
+Config: platform = robot
+Tue Aug 12 16:19:44 2025
+Config: robotTopics = pepperTopics.dat
+Tue Aug 12 16:19:44 2025
+Config: rotMaximumRange = 0.3
+Tue Aug 12 16:19:44 2025
+Config: selectedRange = 0.5
+Tue Aug 12 16:19:44 2025
+Config: simulatorTopics = simulatorTopics.dat
+Tue Aug 12 16:19:44 2025
+Config: verboseMode = false
+Tue Aug 12 16:19:44 2025
+Configuration reloaded on enable
+Tue Aug 12 16:19:44 2025
+Animate behaviour enabled.
+Tue Aug 12 16:19:44 2025
+animateBehaviour node is active. Ready to animate.
+Tue Aug 12 16:19:44 2025
+Key: LArm, Value: /pepper_dcm/LeftArm_controller/follow_joint_trajectory
+Tue Aug 12 16:19:44 2025
+Key: LHand, Value: /pepper_dcm/LeftHand_controller/follow_joint_trajectory
+Tue Aug 12 16:19:44 2025
+Key: Leg, Value: /pepper_dcm/Pelvis_controller/follow_joint_trajectory
+Tue Aug 12 16:19:44 2025
+Key: RArm, Value: /pepper_dcm/RightArm_controller/follow_joint_trajectory
+Tue Aug 12 16:19:44 2025
+Key: RHand, Value: /pepper_dcm/RightHand_controller/follow_joint_trajectory
+Tue Aug 12 16:19:44 2025
+Key: Wheels, Value: /pepper_dcm/cmd_moveto
+Tue Aug 12 16:19:44 2025
+Data loaded successfully for platform: robot
+Tue Aug 12 16:19:44 2025
+Platform configuration loaded successfully: robot
+Tue Aug 12 16:19:44 2025
+Configuration loaded and data initialized.
+Tue Aug 12 16:19:44 2025
+[START SUBTLE BODY MOVEMENT]
+Tue Aug 12 16:19:45 2025
+----------[START RIGHT ARM ANIMATE MOVEMENT]-----------
+Tue Aug 12 16:19:45 2025
+The topic name for the right arm is /pepper_dcm/RightArm_controller/follow_joint_trajectory
+Tue Aug 12 16:19:45 2025
+The joint names for the right arm are: ["RShoulderPitch", "RShoulderRoll", "RElbowRoll", "RElbowYaw", "RWristYaw"]
+Tue Aug 12 16:19:45 2025
+The home position of the right arm is [1.741, -0.09664, 0.09664, 1.6981, -0.05679]
+Tue Aug 12 16:19:45 2025
+The random position of the right arm are
+Tue Aug 12 16:19:45 2025
+The size of the generated random positions are: 20
+Tue Aug 12 16:19:45 2025
+[1.6791, -0.118978, 0.339449, 2.00948, -0.0164194]
+Tue Aug 12 16:19:45 2025
+[1.61328, -0.0524565, 0.367726, 1.83373, -0.029946]
+Tue Aug 12 16:19:45 2025
+[1.46551, -0.144498, 0.360726, 1.57257, -0.190691]
+Tue Aug 12 16:19:45 2025
+[1.61848, -0.121209, 0.243098, 1.67241, -0.170737]
+Tue Aug 12 16:19:45 2025
+[1.41072, -0.0741447, 0.263916, 1.44921, 0.0109287]
+Tue Aug 12 16:19:45 2025
+[1.61775, -0.0693576, 0.25196, 1.72348, -0.118309]
+Tue Aug 12 16:19:45 2025
+[1.68093, -0.0837639, 0.268296, 1.34297, -0.119181]
+Tue Aug 12 16:19:45 2025
+[1.67216, -0.0451682, 0.304206, 1.69028, -0.116337]
+Tue Aug 12 16:19:45 2025
+[1.55669, -0.0747476, 0.232413, 1.82255, -0.0716563]
+Tue Aug 12 16:19:45 2025
+[1.51003, -0.13342, 0.285429, 2.0622, -0.168929]
+Tue Aug 12 16:19:45 2025
+[1.48676, -0.0506849, 0.255774, 1.75085, -0.0445331]
+Tue Aug 12 16:19:45 2025
+[1.54297, -0.0763653, 0.283667, 2.01593, 0.0946586]
+Tue Aug 12 16:19:45 2025
+[1.63205, -0.0901136, 0.265432, 1.88999, -0.0214088]
+Tue Aug 12 16:19:45 2025
+[1.49969, -0.102628, 0.33893, 1.53013, 0.0744108]
+Tue Aug 12 16:19:45 2025
+[1.49608, -0.112122, 0.309089, 2.01675, -0.0515906]
+Tue Aug 12 16:19:45 2025
+[1.56047, -0.148923, 0.380195, 1.91435, 0.0279004]
+Tue Aug 12 16:19:45 2025
+[1.56263, -0.154524, 0.306951, 1.85582, 0.0391145]
+Tue Aug 12 16:19:45 2025
+[1.38489, -0.148061, 0.333229, 1.98303, 0.0600906]
+Tue Aug 12 16:19:45 2025
+[1.61842, -0.0571897, 0.366951, 1.69626, -0.161484]
+Tue Aug 12 16:19:45 2025
+[1.39173, -0.0541007, 0.272611, 1.53091, -0.12508]
+Tue Aug 12 16:19:45 2025
+----------[END RIGHT ARM ANIMATE MOVEMENT]-----------
+Tue Aug 12 16:19:45 2025
+----------[START LEG ANIMATE MOVEMENT]-----------
+Tue Aug 12 16:19:45 2025
+The topic name for the leg is /pepper_dcm/Pelvis_controller/follow_joint_trajectory
+Tue Aug 12 16:19:45 2025
+The joint names for the leg are: ["HipPitch", "HipRoll", "KneePitch"]
+Tue Aug 12 16:19:45 2025
+The home position of the leg is [-0.0107, -0.00766, 0.03221]
+Tue Aug 12 16:19:45 2025
+The random position of the leg are:
+Tue Aug 12 16:19:45 2025
+The size of the generated random positions are: 20
+Tue Aug 12 16:19:45 2025
+[-0.145162, -0.0103023, 0.0308963]
+Tue Aug 12 16:19:45 2025
+[-0.157636, -0.00716342, 0.045964]
+Tue Aug 12 16:19:45 2025
+[-0.1107, -0.00766, 0.03221]
+Tue Aug 12 16:19:45 2025
+[-0.1107, -0.00766, 0.03221]
+Tue Aug 12 16:19:45 2025
+[-0.1107, -0.00766, 0.03221]
+Tue Aug 12 16:19:45 2025
+[-0.1107, -0.00766, 0.03221]
+Tue Aug 12 16:19:45 2025
+[-0.1107, -0.00766, 0.03221]
+Tue Aug 12 16:19:45 2025
+[-0.1107, -0.00766, 0.03221]
+Tue Aug 12 16:19:45 2025
+[-0.1107, -0.00766, 0.03221]
+Tue Aug 12 16:19:45 2025
+[-0.1107, -0.00766, 0.03221]
+Tue Aug 12 16:19:45 2025
+[-0.1107, -0.00766, 0.03221]
+Tue Aug 12 16:19:45 2025
+[-0.1107, -0.00766, 0.03221]
+Tue Aug 12 16:19:45 2025
+[-0.150304, -0.0242537, 0.0254615]
+Tue Aug 12 16:19:45 2025
+[-0.103127, -0.0147463, 0.0509428]
+Tue Aug 12 16:19:45 2025
+[-0.1107, -0.00766, 0.03221]
+Tue Aug 12 16:19:45 2025
+[-0.1107, -0.00766, 0.03221]
+Tue Aug 12 16:19:45 2025
+[-0.1107, -0.00766, 0.03221]
+Tue Aug 12 16:19:45 2025
+[-0.1107, -0.00766, 0.03221]
+Tue Aug 12 16:19:45 2025
+[-0.1107, -0.00766, 0.03221]
+Tue Aug 12 16:19:45 2025
+[-0.1107, -0.00766, 0.03221]
+Tue Aug 12 16:19:45 2025
+----------[END LEG ANIMATE MOVEMENT]-----------
+Tue Aug 12 16:19:45 2025
+----------[START RIGHT HAND ANIMATE MOVEMENT]-----------
+Tue Aug 12 16:19:45 2025
+The topic name for the right hand is /pepper_dcm/RightHand_controller/follow_joint_trajectory
+Tue Aug 12 16:19:45 2025
+The joint names for the right hand are: ["RHand"]
+Tue Aug 12 16:19:45 2025
+The home position of the right hand is [0.66608]
+Tue Aug 12 16:19:45 2025
+The random positions of the right hand are:
+Tue Aug 12 16:19:45 2025
+The size of the generated random positions are: 20
+Tue Aug 12 16:19:45 2025
+[0.687152]
+Tue Aug 12 16:19:45 2025
+[0.590523]
+Tue Aug 12 16:19:45 2025
+[0.609525]
+Tue Aug 12 16:19:45 2025
+[0.768366]
+Tue Aug 12 16:19:45 2025
+[0.524946]
+Tue Aug 12 16:19:45 2025
+[0.707206]
+Tue Aug 12 16:19:45 2025
+[0.550246]
+Tue Aug 12 16:19:45 2025
+[0.568162]
+Tue Aug 12 16:19:45 2025
+[0.737542]
+Tue Aug 12 16:19:45 2025
+[0.777808]
+Tue Aug 12 16:19:45 2025
+[0.835653]
+Tue Aug 12 16:19:45 2025
+[0.555776]
+Tue Aug 12 16:19:45 2025
+[0.583607]
+Tue Aug 12 16:19:45 2025
+[0.574601]
+Tue Aug 12 16:19:45 2025
+[0.797939]
+Tue Aug 12 16:19:45 2025
+[0.69285]
+Tue Aug 12 16:19:45 2025
+[0.706998]
+Tue Aug 12 16:19:45 2025
+[0.527674]
+Tue Aug 12 16:19:45 2025
+[0.631419]
+Tue Aug 12 16:19:45 2025
+[0.502878]
+Tue Aug 12 16:19:45 2025
+----------[END RIGHT HAND ANIMATE MOVEMENT]-----------
+Tue Aug 12 16:19:45 2025
+----------[START LEFT HAND ANIMATE MOVEMENT]-----------
+Tue Aug 12 16:19:45 2025
+The topic name for the left hand is /pepper_dcm/LeftHand_controller/follow_joint_trajectory
+Tue Aug 12 16:19:45 2025
+The joint names for the left hand are: ["LHand"]
+Tue Aug 12 16:19:45 2025
+The home position of the left hand is [0.6695]
+Tue Aug 12 16:19:45 2025
+The random position of the left hand are
+Tue Aug 12 16:19:45 2025
+The size of the generated random positions are: 20
+Tue Aug 12 16:19:45 2025
+[0.535609]
+Tue Aug 12 16:19:45 2025
+[0.635413]
+Tue Aug 12 16:19:45 2025
+[0.569748]
+Tue Aug 12 16:19:45 2025
+[0.738176]
+Tue Aug 12 16:19:45 2025
+[0.567461]
+Tue Aug 12 16:19:45 2025
+[0.584435]
+Tue Aug 12 16:19:45 2025
+[0.625201]
+Tue Aug 12 16:19:45 2025
+[0.702014]
+Tue Aug 12 16:19:45 2025
+[0.737514]
+Tue Aug 12 16:19:45 2025
+[0.810506]
+Tue Aug 12 16:19:45 2025
+[0.842742]
+Tue Aug 12 16:19:45 2025
+[0.537321]
+Tue Aug 12 16:19:45 2025
+[0.623976]
+Tue Aug 12 16:19:45 2025
+[0.702108]
+Tue Aug 12 16:19:45 2025
+[0.534214]
+Tue Aug 12 16:19:45 2025
+[0.670615]
+Tue Aug 12 16:19:45 2025
+[0.748545]
+Tue Aug 12 16:19:45 2025
+[0.716383]
+Tue Aug 12 16:19:45 2025
+[0.653452]
+Tue Aug 12 16:19:45 2025
+[0.78599]
+Tue Aug 12 16:19:45 2025
+----------[END LEFT HAND ANIMATE MOVEMENT]-----------
+Tue Aug 12 16:19:45 2025
+----------[START LEFT ARM ANIMATE MOVEMENT]-----------
+Tue Aug 12 16:19:45 2025
+The topic name for the left arm is /pepper_dcm/LeftArm_controller/follow_joint_trajectory
+Tue Aug 12 16:19:45 2025
+The joint names for the left arm are: ["LShoulderPitch", "LShoulderRoll", "LElbowRoll", "LElbowYaw", "LWristYaw"]
+Tue Aug 12 16:19:45 2025
+The home position of the left arm is [1.7625, 0.0997, -0.1334, -1.715, 0.06592]
+Tue Aug 12 16:19:45 2025
+The random position of the left arm are
+Tue Aug 12 16:19:45 2025
+The size of the generated random positions are: 20
+Tue Aug 12 16:19:45 2025
+[1.45392, 0.138468, -0.35118, -1.53245, 0.231513]
+Tue Aug 12 16:19:45 2025
+[1.56624, 0.133995, -0.339784, -2.02383, -0.0694918]
+Tue Aug 12 16:19:45 2025
+[1.57629, 0.15785, -0.293296, -1.55991, -0.0949035]
+Tue Aug 12 16:19:45 2025
+[1.60008, 0.118023, -0.405101, -1.80447, 0.108229]
+Tue Aug 12 16:19:45 2025
+[1.67297, 0.124896, -0.281748, -1.59213, 0.175183]
+Tue Aug 12 16:19:45 2025
+[1.41681, 0.0900884, -0.293227, -1.84754, 0.151887]
+Tue Aug 12 16:19:45 2025
+[1.59323, 0.125967, -0.382344, -1.61041, -0.0361794]
+Tue Aug 12 16:19:45 2025
+[1.50387, 0.111105, -0.388449, -1.40597, 0.115388]
+Tue Aug 12 16:19:45 2025
+[1.67138, 0.0435784, -0.365565, -1.37756, 0.133028]
+Tue Aug 12 16:19:45 2025
+[1.42922, 0.0585513, -0.29568, -1.75381, 0.219381]
+Tue Aug 12 16:19:45 2025
+[1.66509, 0.0494507, -0.331607, -1.7114, 0.165421]
+Tue Aug 12 16:19:45 2025
+[1.62796, 0.0479824, -0.397938, -1.44257, -0.0264066]
+Tue Aug 12 16:19:45 2025
+[1.68178, 0.115216, -0.367347, -2.02463, 0.19783]
+Tue Aug 12 16:19:45 2025
+[1.42458, 0.0622962, -0.401593, -2.04359, 0.0414665]
+Tue Aug 12 16:19:45 2025
+[1.42696, 0.12595, -0.295637, -1.96011, -0.0361127]
+Tue Aug 12 16:19:45 2025
+[1.53583, 0.0442582, -0.271107, -1.59385, -0.0883849]
+Tue Aug 12 16:19:45 2025
+[1.46149, 0.137193, -0.294616, -1.84805, 0.110449]
+Tue Aug 12 16:19:45 2025
+[1.56234, 0.144623, -0.391678, -1.92132, -0.0863098]
+Tue Aug 12 16:19:45 2025
+[1.41318, 0.153459, -0.346062, -1.88599, -0.0508964]
+Tue Aug 12 16:19:45 2025
+[1.59819, 0.110167, -0.30305, -1.56245, 0.242283]
+Tue Aug 12 16:19:45 2025
+----------[END LEFT ARM ANIMATE MOVEMENT]-----------
+Tue Aug 12 16:19:52 2025
+Animate behaviour disabled.
+Tue Aug 12 16:19:53 2025
+Animate behaviour disabled and goals cancelled.
+Tue Aug 12 16:19:53 2025
+[END SUBTLE BODY MOVEMENT]
+Tue Aug 12 16:19:54 2025
+animateBehaviour node is inactive. Activate to start animating.
+Tue Aug 12 16:22:33 2025
+Configuration file opened successfully: /home/cssr4africa1/integrated/pepper_rob_ws/src/cssr4africa/cssr_system/animateBehaviour/config/animateBehaviourConfiguration.ini
+Tue Aug 12 16:22:33 2025
+Config: armMaximumRange = 0.15,0.15,0.2,0.35,0.2
+Tue Aug 12 16:22:33 2025
+Config: behaviour = body
+Tue Aug 12 16:22:33 2025
+Config: gestureDuration = 1.0
+Tue Aug 12 16:22:33 2025
+Config: handMaximumRange = 0.7
+Tue Aug 12 16:22:33 2025
+Config: legMaximumRange = 0.1,0.1,0.08
+Tue Aug 12 16:22:33 2025
+Config: legRepeatFactor = 8
+Tue Aug 12 16:22:33 2025
+Config: numPoints = 100
+Tue Aug 12 16:22:33 2025
+Config: numPointsLeg = 2
+Tue Aug 12 16:22:33 2025
+Config: platform = robot
+Tue Aug 12 16:22:33 2025
+Config: robotTopics = pepperTopics.dat
+Tue Aug 12 16:22:33 2025
+Config: rotMaximumRange = 0.3
+Tue Aug 12 16:22:33 2025
+Config: selectedRange = 0.5
+Tue Aug 12 16:22:33 2025
+Config: simulatorTopics = simulatorTopics.dat
+Tue Aug 12 16:22:33 2025
+Config: verboseMode = false
+Tue Aug 12 16:22:33 2025
+Configuration reloaded on enable
+Tue Aug 12 16:22:33 2025
+Animate behaviour enabled.
+Tue Aug 12 16:22:33 2025
+animateBehaviour node is active. Ready to animate.
+Tue Aug 12 16:22:33 2025
+Key: LArm, Value: /pepper_dcm/LeftArm_controller/follow_joint_trajectory
+Tue Aug 12 16:22:33 2025
+Key: LHand, Value: /pepper_dcm/LeftHand_controller/follow_joint_trajectory
+Tue Aug 12 16:22:33 2025
+Key: Leg, Value: /pepper_dcm/Pelvis_controller/follow_joint_trajectory
+Tue Aug 12 16:22:33 2025
+Key: RArm, Value: /pepper_dcm/RightArm_controller/follow_joint_trajectory
+Tue Aug 12 16:22:33 2025
+Key: RHand, Value: /pepper_dcm/RightHand_controller/follow_joint_trajectory
+Tue Aug 12 16:22:33 2025
+Key: Wheels, Value: /pepper_dcm/cmd_moveto
+Tue Aug 12 16:22:33 2025
+Data loaded successfully for platform: robot
+Tue Aug 12 16:22:33 2025
+Platform configuration loaded successfully: robot
+Tue Aug 12 16:22:33 2025
+Configuration loaded and data initialized.
+Tue Aug 12 16:22:33 2025
+[START SUBTLE BODY MOVEMENT]
+Tue Aug 12 16:22:34 2025
+----------[START LEFT HAND ANIMATE MOVEMENT]-----------
+Tue Aug 12 16:22:34 2025
+The topic name for the left hand is /pepper_dcm/LeftHand_controller/follow_joint_trajectory
+Tue Aug 12 16:22:34 2025
+The joint names for the left hand are: ["LHand"]
+Tue Aug 12 16:22:34 2025
+The home position of the left hand is [0.6695]
+Tue Aug 12 16:22:34 2025
+The random position of the left hand are
+Tue Aug 12 16:22:34 2025
+The size of the generated random positions are: 20
+Tue Aug 12 16:22:34 2025
+[0.527318]
+Tue Aug 12 16:22:34 2025
+[0.530837]
+Tue Aug 12 16:22:34 2025
+[0.752649]
+Tue Aug 12 16:22:34 2025
+[0.630364]
+Tue Aug 12 16:22:34 2025
+[0.806821]
+Tue Aug 12 16:22:34 2025
+[0.668923]
+Tue Aug 12 16:22:34 2025
+[0.743868]
+Tue Aug 12 16:22:34 2025
+[0.777036]
+Tue Aug 12 16:22:34 2025
+[0.594467]
+Tue Aug 12 16:22:34 2025
+[0.615111]
+Tue Aug 12 16:22:34 2025
+[0.730661]
+Tue Aug 12 16:22:34 2025
+[0.707486]
+Tue Aug 12 16:22:34 2025
+[0.684221]
+Tue Aug 12 16:22:34 2025
+[0.73472]
+Tue Aug 12 16:22:34 2025
+[0.787789]
+Tue Aug 12 16:22:34 2025
+[0.701573]
+Tue Aug 12 16:22:34 2025
+[0.580549]
+Tue Aug 12 16:22:34 2025
+[0.728385]
+Tue Aug 12 16:22:34 2025
+[0.766704]
+Tue Aug 12 16:22:34 2025
+[0.683681]
+Tue Aug 12 16:22:34 2025
+----------[END LEFT HAND ANIMATE MOVEMENT]-----------
+Tue Aug 12 16:22:34 2025
+----------[START RIGHT HAND ANIMATE MOVEMENT]-----------
+Tue Aug 12 16:22:34 2025
+The topic name for the right hand is /pepper_dcm/RightHand_controller/follow_joint_trajectory
+Tue Aug 12 16:22:34 2025
+The joint names for the right hand are: ["RHand"]
+Tue Aug 12 16:22:34 2025
+The home position of the right hand is [0.66608]
+Tue Aug 12 16:22:34 2025
+The random positions of the right hand are:
+Tue Aug 12 16:22:34 2025
+The size of the generated random positions are: 20
+Tue Aug 12 16:22:34 2025
+[0.658164]
+Tue Aug 12 16:22:34 2025
+[0.603837]
+Tue Aug 12 16:22:34 2025
+[0.742097]
+Tue Aug 12 16:22:34 2025
+[0.616827]
+Tue Aug 12 16:22:34 2025
+[0.731814]
+Tue Aug 12 16:22:34 2025
+[0.713467]
+Tue Aug 12 16:22:34 2025
+[0.791974]
+Tue Aug 12 16:22:34 2025
+[0.695425]
+Tue Aug 12 16:22:34 2025
+[0.822175]
+Tue Aug 12 16:22:34 2025
+[0.543638]
+Tue Aug 12 16:22:34 2025
+[0.666708]
+Tue Aug 12 16:22:34 2025
+[0.838709]
+Tue Aug 12 16:22:34 2025
+[0.495607]
+Tue Aug 12 16:22:34 2025
+[0.690509]
+Tue Aug 12 16:22:34 2025
+[0.611788]
+Tue Aug 12 16:22:34 2025
+[0.754311]
+Tue Aug 12 16:22:34 2025
+[0.839246]
+Tue Aug 12 16:22:34 2025
+[0.624667]
+Tue Aug 12 16:22:34 2025
+[0.747745]
+Tue Aug 12 16:22:34 2025
+[0.835213]
+Tue Aug 12 16:22:34 2025
+----------[END RIGHT HAND ANIMATE MOVEMENT]-----------
+Tue Aug 12 16:22:34 2025
+----------[START LEFT ARM ANIMATE MOVEMENT]-----------
+Tue Aug 12 16:22:34 2025
+The topic name for the left arm is /pepper_dcm/LeftArm_controller/follow_joint_trajectory
+Tue Aug 12 16:22:34 2025
+The joint names for the left arm are: ["LShoulderPitch", "LShoulderRoll", "LElbowRoll", "LElbowYaw", "LWristYaw"]
+Tue Aug 12 16:22:34 2025
+----------[START LEG ANIMATE MOVEMENT]-----------
+Tue Aug 12 16:22:34 2025
+----------[START LEG ANIMATE MOVEMENT]-----------
+Tue Aug 12 16:22:34 2025
+The home position of the left arm is [1.7625, 0.0997, -0.1334, -1.715, 0.06592]
+Tue Aug 12 16:22:34 2025
+The topic name for the leg is /pepper_dcm/Pelvis_controller/follow_joint_trajectory
+Tue Aug 12 16:22:34 2025
+The topic name for the leg is /pepper_dcm/Pelvis_controller/follow_joint_trajectory
+Tue Aug 12 16:22:34 2025
+The random position of the left arm are
+Tue Aug 12 16:22:34 2025
+The joint names for the leg are: ["HipPitch", "HipRoll", "KneePitch"]
+Tue Aug 12 16:22:34 2025
+The size of the generated random positions are: 20
+Tue Aug 12 16:22:34 2025
+The home position of the leg is [-0.0107, -0.00766, 0.03221]
+Tue Aug 12 16:22:34 2025
+[1.42384, 0.097271, -0.327488, -1.93376, -0.0838497]
+Tue Aug 12 16:22:34 2025
+[1.42384, 0.097271, -0.327488, -1.93376, -0.0838497]
+Tue Aug 12 16:22:34 2025
+The random position of the leg are:
+Tue Aug 12 16:22:34 2025
+The size of the generated random positions are: 20
+Tue Aug 12 16:22:34 2025
+[1.6891, 0.0461738, -0.409319, -1.80336, 0.0605067]
+Tue Aug 12 16:22:34 2025
+[1.6891, 0.0461738, -0.409319, -1.80336, 0.0605067]
+Tue Aug 12 16:22:34 2025
+[-0.144116, 0.0087733, 0.0527552]
+Tue Aug 12 16:22:34 2025
+[1.56773, 0.0613735, -0.267069, -1.66903, 0.0242645]
+
+Tue Aug 12 16:22:34 2025
+[1.71687, 0.149822, -0.386953, -1.71176, -0.0191626]
+Tue Aug 12 16:22:34 2025
+[-0.1107, -0.00766, 0.03221]
+Tue Aug 12 16:22:34 2025
+[1.44526, 0.103866, -0.315565, -1.58213, 0.0972356]
+Tue Aug 12 16:22:34 2025
+[1.44526, 0.103866, -0.315565, -1.58213, 0.0972356]
+Tue Aug 12 16:22:34 2025
+[-0.1107, -0.00766, 0.03221]
+Tue Aug 12 16:22:34 2025
+[1.53365, 0.100098, -0.274193, -1.45386, -0.0119579]
+Tue Aug 12 16:22:34 2025
+[-0.1107, -0.00766, 0.03221]
+Tue Aug 12 16:22:34 2025
+[1.49735, 0.0859352, -0.35017, -1.65917, -0.0258543]
+Tue Aug 12 16:22:34 2025
+[-0.1107, -0.00766, 0.03221]
+Tue Aug 12 16:22:34 2025
+[1.41942, 0.0576152, -0.388072, -1.35665, 0.0432772]
+Tue Aug 12 16:22:34 2025
+[-0.1107, -0.00766, 0.03221]
+Tue Aug 12 16:22:34 2025
+[1.4678, 0.138209, -0.304368, -1.63806, 0.0132064]
+Tue Aug 12 16:22:34 2025
+[-0.1107, -0.00766, 0.03221]
+Tue Aug 12 16:22:34 2025
+[1.47429, 0.111712, -0.408897, -1.92166, 0.110873]
+Tue Aug 12 16:22:34 2025
+[-0.1107, -0.00766, 0.03221]
+Tue Aug 12 16:22:34 2025
+[1.46065, 0.0966494, -0.350989, -1.46255, 0.109258]
+Tue Aug 12 16:22:34 2025
+[-0.1107, -0.00766, 0.03221]
+Tue Aug 12 16:22:34 2025
+[1.57247, 0.112218, -0.379816, -1.53573, -0.096527]
+Tue Aug 12 16:22:34 2025
+[1.57247, 0.112218, -0.379816, -1.53573, -0.096527]
+Tue Aug 12 16:22:34 2025
+[-0.1107, -0.00766, 0.03221]
+Tue Aug 12 16:22:34 2025
+[1.4538, 0.150853, -0.280111, -1.65467, 0.248075]
+Tue Aug 12 16:22:34 2025
+[-0.113638, -0.0208628, 0.0258459]
+Tue Aug 12 16:22:34 2025
+[1.68251, 0.0761937, -0.338265, -1.95573, 0.17517]
+Tue Aug 12 16:22:34 2025
+[-0.14203, 0.0138758, 0.0168905]
+Tue Aug 12 16:22:34 2025
+[1.51865, 0.0639642, -0.385845, -2.07011, 0.128033]
+Tue Aug 12 16:22:34 2025
+[-0.1107, -0.00766, 0.03221]
+Tue Aug 12 16:22:34 2025
+[1.57738, 0.122037, -0.417551, -1.41641, -0.0387344]
+Tue Aug 12 16:22:34 2025
+[-0.1107, -0.00766, 0.03221]
+Tue Aug 12 16:22:34 2025
+[1.59419, 0.0535842, -0.345847, -2.07886, -0.108836]
+Tue Aug 12 16:22:34 2025
+[-0.1107, -0.00766, 0.03221]
+Tue Aug 12 16:22:34 2025
+[1.52278, 0.090596, -0.353079, -2.07314, -0.0728635]
+Tue Aug 12 16:22:34 2025
+[-0.1107, -0.00766, 0.03221]
+Tue Aug 12 16:22:34 2025
+[1.65369, 0.153334, -0.389189, -1.44392, 0.228402]
+Tue Aug 12 16:22:34 2025
+[1.65369, 0.153334, -0.389189, -1.44392, 0.228402]
+Tue Aug 12 16:22:34 2025
+[-0.1107, -0.00766, 0.03221]
+Tue Aug 12 16:22:34 2025
+[1.47872, 0.114053, -0.409408, -1.36089, 0.114823]
+Tue Aug 12 16:22:34 2025
+[-0.1107, -0.00766, 0.03221]
+Tue Aug 12 16:22:34 2025
+----------[END LEFT ARM ANIMATE MOVEMENT]-----------
+Tue Aug 12 16:22:34 2025
+----------[END LEFT ARM ANIMATE MOVEMENT]-----------
+Tue Aug 12 16:22:34 2025
+----------[END LEG ANIMATE MOVEMENT]-----------
+Tue Aug 12 16:22:34 2025
+----------[START RIGHT ARM ANIMATE MOVEMENT]-----------
+Tue Aug 12 16:22:34 2025
+The topic name for the right arm is /pepper_dcm/RightArm_controller/follow_joint_trajectory
+Tue Aug 12 16:22:34 2025
+The joint names for the right arm are: ["RShoulderPitch", "RShoulderRoll", "RElbowRoll", "RElbowYaw", "RWristYaw"]
+Tue Aug 12 16:22:34 2025
+The home position of the right arm is [1.741, -0.09664, 0.09664, 1.6981, -0.05679]
+Tue Aug 12 16:22:34 2025
+The random position of the right arm are
+Tue Aug 12 16:22:34 2025
+The size of the generated random positions are: 20
+Tue Aug 12 16:22:34 2025
+[1.44352, -0.0386454, 0.240899, 1.47908, -0.152518]
+Tue Aug 12 16:22:34 2025
+[1.68687, -0.0664868, 0.319472, 1.73811, 0.0735291]
+Tue Aug 12 16:22:34 2025
+[1.40443, -0.144066, 0.305128, 1.89889, -0.107507]
+Tue Aug 12 16:22:34 2025
+[1.53509, -0.109344, 0.257786, 2.05746, -0.0424608]
+Tue Aug 12 16:22:34 2025
+[1.64396, -0.131426, 0.267482, 1.87664, -0.17074]
+Tue Aug 12 16:22:34 2025
+[1.69264, -0.111444, 0.275241, 1.48442, -0.0525129]
+Tue Aug 12 16:22:34 2025
+[1.57409, -0.123864, 0.28724, 1.92198, -0.101676]
+Tue Aug 12 16:22:34 2025
+[1.53988, -0.0967251, 0.283014, 1.83549, 0.0741683]
+Tue Aug 12 16:22:34 2025
+[1.61326, -0.140077, 0.314073, 1.68238, -0.177786]
+Tue Aug 12 16:22:34 2025
+[1.59303, -0.0874577, 0.279061, 1.65915, 0.0630746]
+Tue Aug 12 16:22:34 2025
+[1.53481, -0.133371, 0.244111, 1.50086, -0.138785]
+Tue Aug 12 16:22:34 2025
+[1.50296, -0.0744685, 0.254829, 1.95663, 0.0349065]
+Tue Aug 12 16:22:34 2025
+[1.68865, -0.0995482, 0.312962, 1.36795, -0.0652192]
+Tue Aug 12 16:22:34 2025
+[1.56106, -0.15422, 0.292589, 1.86406, 0.0434315]
+Tue Aug 12 16:22:34 2025
+[1.4185, -0.0407071, 0.327737, 1.69264, 0.059609]
+Tue Aug 12 16:22:34 2025
+[1.68902, -0.0818501, 0.35953, 1.71417, -0.0702085]
+Tue Aug 12 16:22:34 2025
+[1.69361, -0.152407, 0.378241, 2.01277, -0.0811771]
+Tue Aug 12 16:22:34 2025
+[1.40153, -0.0886639, 0.336124, 1.79412, -0.106434]
+Tue Aug 12 16:22:34 2025
+[1.40131, -0.125247, 0.361529, 1.87035, 0.0530281]
+Tue Aug 12 16:22:34 2025
+[1.47338, -0.144612, 0.245087, 1.70694, -0.00322506]
+Tue Aug 12 16:22:34 2025
+----------[END RIGHT ARM ANIMATE MOVEMENT]-----------
+Tue Aug 12 16:24:14 2025
+[END SUBTLE BODY MOVEMENT]
+Tue Aug 12 16:24:14 2025
+[START SUBTLE BODY MOVEMENT]
+Tue Aug 12 16:24:15 2025
+----------[START LEFT ARM ANIMATE MOVEMENT]-----------
+Tue Aug 12 16:24:15 2025
+The topic name for the left arm is /pepper_dcm/LeftArm_controller/follow_joint_trajectory
+Tue Aug 12 16:24:15 2025
+The joint names for the left arm are: ["LShoulderPitch", "LShoulderRoll", "LElbowRoll", "LElbowYaw", "LWristYaw"]
+Tue Aug 12 16:24:15 2025
+The home position of the left arm is [1.7625, 0.0997, -0.1334, -1.715, 0.06592]
+Tue Aug 12 16:24:15 2025
+The random position of the left arm are
+Tue Aug 12 16:24:15 2025
+The size of the generated random positions are: 20
+Tue Aug 12 16:24:15 2025
+[1.41264, 0.0591817, -0.278753, -2.00668, 0.12785]
+Tue Aug 12 16:24:15 2025
+[1.50276, 0.156802, -0.349848, -1.3512, 0.217196]
+Tue Aug 12 16:24:15 2025
+[1.63646, 0.0639891, -0.416464, -1.85767, 0.106306]
+Tue Aug 12 16:24:15 2025
+[1.60122, 0.146748, -0.374871, -1.60221, 0.22432]
+Tue Aug 12 16:24:15 2025
+[1.63543, 0.0439738, -0.369998, -1.95647, 0.237405]
+Tue Aug 12 16:24:15 2025
+[1.589, 0.104149, -0.380075, -1.70264, -0.0864657]
+Tue Aug 12 16:24:15 2025
+[1.49162, 0.102652, -0.36429, -1.6704, 0.110485]
+Tue Aug 12 16:24:15 2025
+[1.65378, 0.0489313, -0.320812, -2.04335, 0.204996]
+Tue Aug 12 16:24:15 2025
+[1.44501, 0.0426944, -0.291713, -1.38121, -0.05895]
+Tue Aug 12 16:24:15 2025
+[1.56642, 0.0988047, -0.386067, -2.05928, -0.0684484]
+Tue Aug 12 16:24:15 2025
+[1.4674, 0.134483, -0.279178, -1.69064, 0.00449587]
+Tue Aug 12 16:24:15 2025
+[1.61693, 0.0823404, -0.419328, -2.04584, -0.071838]
+Tue Aug 12 16:24:15 2025
+[1.51573, 0.114296, -0.415272, -1.49952, -0.0227933]
+Tue Aug 12 16:24:15 2025
+[1.45585, 0.0481974, -0.283705, -1.71332, 0.222742]
+Tue Aug 12 16:24:15 2025
+[1.68566, 0.0537918, -0.323056, -1.55357, 0.179757]
+Tue Aug 12 16:24:15 2025
+[1.45439, 0.0794521, -0.299981, -1.76711, 0.234205]
+Tue Aug 12 16:24:15 2025
+[1.62482, 0.0417506, -0.288671, -1.49835, 0.210101]
+Tue Aug 12 16:24:15 2025
+[1.65468, 0.140978, -0.368222, -1.84657, 0.172111]
+Tue Aug 12 16:24:15 2025
+[1.45222, 0.13312, -0.304778, -2.01158, -0.0680796]
+Tue Aug 12 16:24:15 2025
+[1.45258, 0.138591, -0.283687, -1.82788, -0.00588454]
+Tue Aug 12 16:24:15 2025
+----------[END LEFT ARM ANIMATE MOVEMENT]-----------
+Tue Aug 12 16:24:15 2025
+----------[START LEFT HAND ANIMATE MOVEMENT]-----------
+Tue Aug 12 16:24:15 2025
+The topic name for the left hand is /pepper_dcm/LeftHand_controller/follow_joint_trajectory
+Tue Aug 12 16:24:15 2025
+The joint names for the left hand are: ["LHand"]
+Tue Aug 12 16:24:15 2025
+The home position of the left hand is [0.6695]
+Tue Aug 12 16:24:15 2025
+The random position of the left hand are
+Tue Aug 12 16:24:15 2025
+The size of the generated random positions are: 20
+Tue Aug 12 16:24:15 2025
+[0.69841]
+Tue Aug 12 16:24:15 2025
+[0.665314]
+Tue Aug 12 16:24:15 2025
+[0.531006]
+Tue Aug 12 16:24:15 2025
+[0.805211]
+Tue Aug 12 16:24:15 2025
+[0.503872]
+Tue Aug 12 16:24:15 2025
+[0.807758]
+Tue Aug 12 16:24:15 2025
+[0.784172]
+Tue Aug 12 16:24:15 2025
+[0.743495]
+Tue Aug 12 16:24:15 2025
+[0.832206]
+Tue Aug 12 16:24:15 2025
+[0.703822]
+Tue Aug 12 16:24:15 2025
+[0.538653]
+Tue Aug 12 16:24:15 2025
+[0.825571]
+Tue Aug 12 16:24:15 2025
+[0.746472]
+Tue Aug 12 16:24:15 2025
+[0.524645]
+Tue Aug 12 16:24:15 2025
+[0.627398]
+Tue Aug 12 16:24:15 2025
+[0.807353]
+Tue Aug 12 16:24:15 2025
+[0.59915]
+Tue Aug 12 16:24:15 2025
+[0.812651]
+Tue Aug 12 16:24:15 2025
+[0.757856]
+Tue Aug 12 16:24:15 2025
+[0.729856]
+Tue Aug 12 16:24:15 2025
+----------[END LEFT HAND ANIMATE MOVEMENT]-----------
+Tue Aug 12 16:24:15 2025
+----------[START LEG ANIMATE MOVEMENT]-----------
+Tue Aug 12 16:24:15 2025
+The topic name for the leg is /pepper_dcm/Pelvis_controller/follow_joint_trajectory
+Tue Aug 12 16:24:15 2025
+The joint names for the leg are: ["HipPitch", "HipRoll", "KneePitch"]
+Tue Aug 12 16:24:15 2025
+The home position of the leg is [-0.0107, -0.00766, 0.03221]
+Tue Aug 12 16:24:15 2025
+The random position of the leg are:
+Tue Aug 12 16:24:15 2025
+The size of the generated random positions are: 20
+Tue Aug 12 16:24:15 2025
+[-0.12023, -0.00885776, 0.0263973]
+Tue Aug 12 16:24:15 2025
+[-0.0997326, -0.00977983, 0.0404498]
+Tue Aug 12 16:24:15 2025
+[-0.1107, -0.00766, 0.03221]
+Tue Aug 12 16:24:15 2025
+[-0.1107, -0.00766, 0.03221]
+Tue Aug 12 16:24:15 2025
+[-0.1107, -0.00766, 0.03221]
+Tue Aug 12 16:24:15 2025
+[-0.1107, -0.00766, 0.03221]
+Tue Aug 12 16:24:15 2025
+[-0.1107, -0.00766, 0.03221]
+Tue Aug 12 16:24:15 2025
+[-0.1107, -0.00766, 0.03221]
+Tue Aug 12 16:24:15 2025
+[-0.1107, -0.00766, 0.03221]
+Tue Aug 12 16:24:15 2025
+[-0.1107, -0.00766, 0.03221]
+Tue Aug 12 16:24:15 2025
+[-0.1107, -0.00766, 0.03221]
+Tue Aug 12 16:24:15 2025
+[-0.1107, -0.00766, 0.03221]
+Tue Aug 12 16:24:15 2025
+[-0.138102, 0.00130725, 0.0380755]
+Tue Aug 12 16:24:15 2025
+[-0.0614907, 0.00435198, 0.0187873]
+Tue Aug 12 16:24:15 2025
+[-0.1107, -0.00766, 0.03221]
+Tue Aug 12 16:24:15 2025
+[-0.1107, -0.00766, 0.03221]
+Tue Aug 12 16:24:15 2025
+[-0.1107, -0.00766, 0.03221]
+Tue Aug 12 16:24:15 2025
+[-0.1107, -0.00766, 0.03221]
+Tue Aug 12 16:24:15 2025
+[-0.1107, -0.00766, 0.03221]
+Tue Aug 12 16:24:15 2025
+[-0.1107, -0.00766, 0.03221]
+Tue Aug 12 16:24:15 2025
+----------[END LEG ANIMATE MOVEMENT]-----------
+Tue Aug 12 16:24:15 2025
+----------[START RIGHT HAND ANIMATE MOVEMENT]-----------
+Tue Aug 12 16:24:15 2025
+The topic name for the right hand is /pepper_dcm/RightHand_controller/follow_joint_trajectory
+Tue Aug 12 16:24:15 2025
+The joint names for the right hand are: ["RHand"]
+Tue Aug 12 16:24:15 2025
+The home position of the right hand is [0.66608]
+Tue Aug 12 16:24:15 2025
+The random positions of the right hand are:
+Tue Aug 12 16:24:15 2025
+The size of the generated random positions are: 20
+Tue Aug 12 16:24:15 2025
+[0.798816]
+Tue Aug 12 16:24:15 2025
+[0.813795]
+Tue Aug 12 16:24:15 2025
+[0.618245]
+Tue Aug 12 16:24:15 2025
+[0.689104]
+Tue Aug 12 16:24:15 2025
+[0.57563]
+Tue Aug 12 16:24:15 2025
+[0.716488]
+Tue Aug 12 16:24:15 2025
+[0.556368]
+Tue Aug 12 16:24:15 2025
+[0.781751]
+Tue Aug 12 16:24:15 2025
+[0.725914]
+Tue Aug 12 16:24:15 2025
+[0.689572]
+Tue Aug 12 16:24:15 2025
+[0.509508]
+Tue Aug 12 16:24:15 2025
+[0.54575]
+Tue Aug 12 16:24:15 2025
+[0.509953]
+Tue Aug 12 16:24:15 2025
+[0.532182]
+Tue Aug 12 16:24:15 2025
+[0.682408]
+Tue Aug 12 16:24:15 2025
+[0.780569]
+Tue Aug 12 16:24:15 2025
+[0.792757]
+Tue Aug 12 16:24:15 2025
+[0.762049]
+Tue Aug 12 16:24:15 2025
+[0.540107]
+Tue Aug 12 16:24:15 2025
+[0.808427]
+Tue Aug 12 16:24:15 2025
+----------[END RIGHT HAND ANIMATE MOVEMENT]-----------
+Tue Aug 12 16:24:15 2025
+----------[START RIGHT ARM ANIMATE MOVEMENT]-----------
+Tue Aug 12 16:24:15 2025
+The topic name for the right arm is /pepper_dcm/RightArm_controller/follow_joint_trajectory
+Tue Aug 12 16:24:15 2025
+The joint names for the right arm are: ["RShoulderPitch", "RShoulderRoll", "RElbowRoll", "RElbowYaw", "RWristYaw"]
+Tue Aug 12 16:24:15 2025
+The home position of the right arm is [1.741, -0.09664, 0.09664, 1.6981, -0.05679]
+Tue Aug 12 16:24:15 2025
+The random position of the right arm are
+Tue Aug 12 16:24:15 2025
+The size of the generated random positions are: 20
+Tue Aug 12 16:24:15 2025
+[1.63893, -0.140342, 0.285778, 1.62588, -0.0454015]
+Tue Aug 12 16:24:15 2025
+[1.54724, -0.0950645, 0.369935, 1.40289, -0.18232]
+Tue Aug 12 16:24:15 2025
+[1.47722, -0.0828061, 0.253603, 1.75284, -0.0997924]
+Tue Aug 12 16:24:15 2025
+[1.47111, -0.150031, 0.290702, 1.34429, -0.0221979]
+Tue Aug 12 16:24:15 2025
+[1.56258, -0.107651, 0.259073, 1.90344, -0.159768]
+Tue Aug 12 16:24:15 2025
+[1.63959, -0.0598391, 0.275571, 1.59401, -0.0371233]
+Tue Aug 12 16:24:15 2025
+[1.62363, -0.14741, 0.284281, 1.99122, 0.0419534]
+Tue Aug 12 16:24:15 2025
+[1.53628, -0.0832586, 0.360319, 1.82325, -0.152439]
+Tue Aug 12 16:24:15 2025
+[1.63798, -0.0863139, 0.373996, 1.99432, 0.0430038]
+Tue Aug 12 16:24:15 2025
+[1.58988, -0.0524469, 0.36635, 1.89727, -0.0167324]
+Tue Aug 12 16:24:15 2025
+[1.45464, -0.111817, 0.34383, 1.40897, 0.0482606]
+Tue Aug 12 16:24:15 2025
+[1.38745, -0.11273, 0.234617, 1.61225, -0.0697973]
+Tue Aug 12 16:24:15 2025
+[1.4759, -0.0972739, 0.244017, 1.90887, 0.0923675]
+Tue Aug 12 16:24:15 2025
+[1.45175, -0.125591, 0.316932, 2.00091, -0.0654959]
+Tue Aug 12 16:24:15 2025
+[1.51204, -0.0916926, 0.279081, 1.79099, -0.0809895]
+Tue Aug 12 16:24:15 2025
+[1.56639, -0.0914044, 0.302013, 1.8752, 0.019281]
+Tue Aug 12 16:24:15 2025
+[1.68828, -0.104136, 0.306691, 1.47074, 0.0617593]
+Tue Aug 12 16:24:15 2025
+[1.50002, -0.0732831, 0.287773, 1.6822, 0.0394164]
+Tue Aug 12 16:24:15 2025
+[1.5208, -0.040734, 0.319563, 1.80042, 0.0842551]
+Tue Aug 12 16:24:15 2025
+[1.52697, -0.0908078, 0.318974, 1.62998, -0.0912463]
+Tue Aug 12 16:24:15 2025
+----------[END RIGHT ARM ANIMATE MOVEMENT]-----------
+Tue Aug 12 16:25:15 2025
+Configuration file opened successfully: /home/cssr4africa1/integrated/pepper_rob_ws/src/cssr4africa/cssr_system/animateBehaviour/config/animateBehaviourConfiguration.ini
+Tue Aug 12 16:25:15 2025
+Config: armMaximumRange = 0.15,0.15,0.2,0.35,0.2
+Tue Aug 12 16:25:15 2025
+Config: behaviour = body
+Tue Aug 12 16:25:15 2025
+Config: gestureDuration = 1.0
+Tue Aug 12 16:25:15 2025
+Config: handMaximumRange = 0.7
+Tue Aug 12 16:25:15 2025
+Config: legMaximumRange = 0.1,0.1,0.08
+Tue Aug 12 16:25:15 2025
+Config: legRepeatFactor = 8
+Tue Aug 12 16:25:15 2025
+Config: numPoints = 100
+Tue Aug 12 16:25:15 2025
+Config: numPointsLeg = 2
+Tue Aug 12 16:25:15 2025
+Config: platform = robot
+Tue Aug 12 16:25:15 2025
+Config: robotTopics = pepperTopics.dat
+Tue Aug 12 16:25:15 2025
+Config: rotMaximumRange = 0.3
+Tue Aug 12 16:25:15 2025
+Config: selectedRange = 0.5
+Tue Aug 12 16:25:15 2025
+Config: simulatorTopics = simulatorTopics.dat
+Tue Aug 12 16:25:15 2025
+Config: verboseMode = false
+Tue Aug 12 16:25:15 2025
+Configuration reloaded on enable
+Tue Aug 12 16:25:15 2025
+Animate behaviour enabled.
+Tue Aug 12 16:25:18 2025
+Animate behaviour disabled.
+Tue Aug 12 16:25:19 2025
+Animate behaviour disabled and goals cancelled.
+Tue Aug 12 16:25:19 2025
+[END SUBTLE BODY MOVEMENT]
+Tue Aug 12 16:25:20 2025
+animateBehaviour node is inactive. Activate to start animating.
+Tue Aug 12 16:26:29 2025
+Configuration file opened successfully: /home/cssr4africa1/integrated/pepper_rob_ws/src/cssr4africa/cssr_system/animateBehaviour/config/animateBehaviourConfiguration.ini
+Tue Aug 12 16:26:29 2025
+Config: armMaximumRange = 0.15,0.15,0.2,0.35,0.2
+Tue Aug 12 16:26:29 2025
+Config: behaviour = body
+Tue Aug 12 16:26:29 2025
+Config: gestureDuration = 1.0
+Tue Aug 12 16:26:29 2025
+Config: handMaximumRange = 0.7
+Tue Aug 12 16:26:29 2025
+Config: legMaximumRange = 0.1,0.1,0.08
+Tue Aug 12 16:26:29 2025
+Config: legRepeatFactor = 8
+Tue Aug 12 16:26:29 2025
+Config: numPoints = 100
+Tue Aug 12 16:26:29 2025
+Config: numPointsLeg = 2
+Tue Aug 12 16:26:29 2025
+Config: platform = robot
+Tue Aug 12 16:26:29 2025
+Config: robotTopics = pepperTopics.dat
+Tue Aug 12 16:26:29 2025
+Config: rotMaximumRange = 0.3
+Tue Aug 12 16:26:29 2025
+Config: selectedRange = 0.5
+Tue Aug 12 16:26:29 2025
+Config: simulatorTopics = simulatorTopics.dat
+Tue Aug 12 16:26:29 2025
+Config: verboseMode = false
+Tue Aug 12 16:26:29 2025
+Configuration reloaded on enable
+Tue Aug 12 16:26:29 2025
+Animate behaviour enabled.
+Tue Aug 12 16:26:29 2025
+animateBehaviour node is active. Ready to animate.
+Tue Aug 12 16:26:29 2025
+Key: LArm, Value: /pepper_dcm/LeftArm_controller/follow_joint_trajectory
+Tue Aug 12 16:26:29 2025
+Key: LHand, Value: /pepper_dcm/LeftHand_controller/follow_joint_trajectory
+Tue Aug 12 16:26:29 2025
+Key: Leg, Value: /pepper_dcm/Pelvis_controller/follow_joint_trajectory
+Tue Aug 12 16:26:29 2025
+Key: RArm, Value: /pepper_dcm/RightArm_controller/follow_joint_trajectory
+Tue Aug 12 16:26:29 2025
+Key: RHand, Value: /pepper_dcm/RightHand_controller/follow_joint_trajectory
+Tue Aug 12 16:26:29 2025
+Key: Wheels, Value: /pepper_dcm/cmd_moveto
+Tue Aug 12 16:26:29 2025
+Data loaded successfully for platform: robot
+Tue Aug 12 16:26:29 2025
+Platform configuration loaded successfully: robot
+Tue Aug 12 16:26:29 2025
+Configuration loaded and data initialized.
+Tue Aug 12 16:26:29 2025
+[START SUBTLE BODY MOVEMENT]
+Tue Aug 12 16:26:29 2025
+----------[START RIGHT ARM ANIMATE MOVEMENT]-----------
+Tue Aug 12 16:26:29 2025
+The topic name for the right arm is /pepper_dcm/RightArm_controller/follow_joint_trajectory
+Tue Aug 12 16:26:29 2025
+The joint names for the right arm are: ["RShoulderPitch", "RShoulderRoll", "RElbowRoll", "RElbowYaw", "RWristYaw"]
+Tue Aug 12 16:26:29 2025
+The home position of the right arm is [1.741, -0.09664, 0.09664, 1.6981, -0.05679]
+Tue Aug 12 16:26:29 2025
+The random position of the right arm are
+Tue Aug 12 16:26:29 2025
+The size of the generated random positions are: 20
+Tue Aug 12 16:26:29 2025
+[1.48977, -0.126902, 0.332249, 1.66959, -0.195964]
+Tue Aug 12 16:26:29 2025
+[1.48724, -0.095641, 0.341828, 2.02407, -0.147095]
+Tue Aug 12 16:26:29 2025
+[1.5443, -0.152188, 0.2639, 1.54263, 0.0787027]
+Tue Aug 12 16:26:29 2025
+[1.51265, -0.0814961, 0.284946, 1.78022, -0.0981931]
+Tue Aug 12 16:26:29 2025
+[1.51548, -0.142073, 0.284091, 1.34351, -0.190175]
+Tue Aug 12 16:26:29 2025
+[1.38893, -0.105723, 0.288971, 1.85514, -0.0815267]
+Tue Aug 12 16:26:29 2025
+[1.66003, -0.041165, 0.334603, 1.88183, -0.209586]
+Tue Aug 12 16:26:29 2025
+[1.39154, -0.0492345, 0.305906, 1.54082, 0.03411]
+Tue Aug 12 16:26:29 2025
+[1.51741, -0.0950986, 0.335261, 1.71918, 0.0691929]
+Tue Aug 12 16:26:29 2025
+[1.66279, -0.126769, 0.259395, 1.78414, -0.087284]
+Tue Aug 12 16:26:29 2025
+[1.41092, -0.098537, 0.245486, 2.04256, 0.0976622]
+Tue Aug 12 16:26:29 2025
+[1.52215, -0.116246, 0.288134, 1.89979, 0.0598662]
+Tue Aug 12 16:26:29 2025
+[1.65792, -0.0935742, 0.305494, 1.69897, -0.0165586]
+Tue Aug 12 16:26:29 2025
+[1.40992, -0.141034, 0.33694, 1.92634, -0.0469167]
+Tue Aug 12 16:26:29 2025
+[1.64452, -0.131878, 0.276472, 1.4431, -0.157977]
+Tue Aug 12 16:26:29 2025
+[1.56829, -0.151366, 0.256466, 1.99705, -0.218882]
+Tue Aug 12 16:26:29 2025
+[1.43032, -0.0455442, 0.245202, 1.38415, -0.0293371]
+Tue Aug 12 16:26:29 2025
+[1.49593, -0.0850728, 0.342452, 1.92128, 0.00296446]
+Tue Aug 12 16:26:29 2025
+[1.47268, -0.0447505, 0.300916, 1.92583, 0.0273251]
+Tue Aug 12 16:26:29 2025
+[1.65484, -0.0494836, 0.343446, 1.70658, -0.157947]
+Tue Aug 12 16:26:29 2025
+----------[END RIGHT ARM ANIMATE MOVEMENT]-----------
+Tue Aug 12 16:26:30 2025
+----------[START RIGHT HAND ANIMATE MOVEMENT]-----------
+Tue Aug 12 16:26:30 2025
+The topic name for the right hand is /pepper_dcm/RightHand_controller/follow_joint_trajectory
+Tue Aug 12 16:26:30 2025
+The joint names for the right hand are: ["RHand"]
+Tue Aug 12 16:26:30 2025
+The home position of the right hand is [0.66608]
+Tue Aug 12 16:26:30 2025
+The random positions of the right hand are:
+Tue Aug 12 16:26:30 2025
+The size of the generated random positions are: 20
+Tue Aug 12 16:26:30 2025
+[0.561659]
+Tue Aug 12 16:26:30 2025
+[0.700047]
+Tue Aug 12 16:26:30 2025
+[0.542529]
+Tue Aug 12 16:26:30 2025
+[0.63751]
+Tue Aug 12 16:26:30 2025
+[0.678268]
+Tue Aug 12 16:26:30 2025
+[0.785446]
+Tue Aug 12 16:26:30 2025
+[0.788853]
+Tue Aug 12 16:26:30 2025
+[0.702468]
+Tue Aug 12 16:26:30 2025
+[0.577979]
+Tue Aug 12 16:26:30 2025
+[0.73473]
+Tue Aug 12 16:26:30 2025
+[0.637547]
+Tue Aug 12 16:26:30 2025
+[0.748742]
+Tue Aug 12 16:26:30 2025
+[0.540033]
+Tue Aug 12 16:26:30 2025
+[0.637743]
+Tue Aug 12 16:26:30 2025
+[0.7653]
+Tue Aug 12 16:26:30 2025
+[0.613724]
+Tue Aug 12 16:26:30 2025
+[0.804814]
+Tue Aug 12 16:26:30 2025
+----------[START LEFT HAND ANIMATE MOVEMENT]-----------
+Tue Aug 12 16:26:30 2025
+The topic name for the left hand is /pepper_dcm/LeftHand_controller/follow_joint_trajectory
+Tue Aug 12 16:26:30 2025
+The joint names for the left hand are: ["LHand"]
+Tue Aug 12 16:26:30 2025
+The home position of the left hand is [0.6695]
+Tue Aug 12 16:26:30 2025
+The random position of the left hand are
+Tue Aug 12 16:26:30 2025
+The size of the generated random positions are: 20
+Tue Aug 12 16:26:30 2025
+[0.786065]
+Tue Aug 12 16:26:30 2025
+[0.570067]
+Tue Aug 12 16:26:30 2025
+[0.749484]
+Tue Aug 12 16:26:30 2025
+[0.63857]
+Tue Aug 12 16:26:30 2025
+[0.63857]
+Tue Aug 12 16:26:30 2025
+[0.53624]
+Tue Aug 12 16:26:30 2025
+[0.813889]
+Tue Aug 12 16:26:30 2025
+[0.570042]
+Tue Aug 12 16:26:30 2025
+[0.582166]
+Tue Aug 12 16:26:30 2025
+[0.692395]
+Tue Aug 12 16:26:30 2025
+[0.560602]
+Tue Aug 12 16:26:30 2025
+[0.69116]
+Tue Aug 12 16:26:30 2025
+[0.728954]
+Tue Aug 12 16:26:30 2025
+[0.547467]
+Tue Aug 12 16:26:30 2025
+[0.582704]
+Tue Aug 12 16:26:30 2025
+[0.822001]
+Tue Aug 12 16:26:30 2025
+[0.736417]
+Tue Aug 12 16:26:30 2025
+[0.719453]
+Tue Aug 12 16:26:30 2025
+[0.517819]
+Tue Aug 12 16:26:30 2025
+[0.68436]
+Tue Aug 12 16:26:30 2025
+[0.559296]
+Tue Aug 12 16:26:30 2025
+[0.697822]
+Tue Aug 12 16:26:30 2025
+[0.795384]
+Tue Aug 12 16:26:30 2025
+----------[END LEFT HAND ANIMATE MOVEMENT]-----------
+Tue Aug 12 16:26:30 2025
+[0.513627]
+Tue Aug 12 16:26:30 2025
+----------[END RIGHT HAND ANIMATE MOVEMENT]-----------
+Tue Aug 12 16:26:30 2025
+----------[START LEG ANIMATE MOVEMENT]-----------
+Tue Aug 12 16:26:30 2025
+The topic name for the leg is /pepper_dcm/Pelvis_controller/follow_joint_trajectory
+Tue Aug 12 16:26:30 2025
+The joint names for the leg are: ["HipPitch", "HipRoll", "KneePitch"]
+Tue Aug 12 16:26:30 2025
+The home position of the leg is [-0.0107, -0.00766, 0.03221]
+Tue Aug 12 16:26:30 2025
+The random position of the leg are:
+Tue Aug 12 16:26:30 2025
+The size of the generated random positions are: 20
+Tue Aug 12 16:26:30 2025
+[-0.126795, -0.0214623, 0.0136598]
+Tue Aug 12 16:26:30 2025
+[-0.148522, 0.0138412, 0.0310743]
+Tue Aug 12 16:26:30 2025
+[-0.1107, -0.00766, 0.03221]
+Tue Aug 12 16:26:30 2025
+[-0.1107, -0.00766, 0.03221]
+Tue Aug 12 16:26:30 2025
+[-0.1107, -0.00766, 0.03221]
+Tue Aug 12 16:26:30 2025
+[-0.1107, -0.00766, 0.03221]
+Tue Aug 12 16:26:30 2025
+[-0.1107, -0.00766, 0.03221]
+Tue Aug 12 16:26:30 2025
+[-0.1107, -0.00766, 0.03221]
+Tue Aug 12 16:26:30 2025
+[-0.1107, -0.00766, 0.03221]
+Tue Aug 12 16:26:30 2025
+[-0.1107, -0.00766, 0.03221]
+Tue Aug 12 16:26:30 2025
+[-0.1107, -0.00766, 0.03221]
+Tue Aug 12 16:26:30 2025
+[-0.1107, -0.00766, 0.03221]
+Tue Aug 12 16:26:30 2025
+[-0.13756, -0.0134052, 0.0142669]
+Tue Aug 12 16:26:30 2025
+[-0.146802, -0.00650353, 0.0331953]
+Tue Aug 12 16:26:30 2025
+[-0.1107, -0.00766, 0.03221]
+Tue Aug 12 16:26:30 2025
+[-0.1107, -0.00766, 0.03221]
+Tue Aug 12 16:26:30 2025
+[-0.1107, -0.00766, 0.03221]
+Tue Aug 12 16:26:30 2025
+[-0.1107, -0.00766, 0.03221]
+Tue Aug 12 16:26:30 2025
+[-0.1107, -0.00766, 0.03221]
+Tue Aug 12 16:26:30 2025
+[-0.1107, -0.00766, 0.03221]
+Tue Aug 12 16:26:30 2025
+----------[END LEG ANIMATE MOVEMENT]-----------
+Tue Aug 12 16:26:30 2025
+----------[START LEFT ARM ANIMATE MOVEMENT]-----------
+Tue Aug 12 16:26:30 2025
+The topic name for the left arm is /pepper_dcm/LeftArm_controller/follow_joint_trajectory
+Tue Aug 12 16:26:30 2025
+The joint names for the left arm are: ["LShoulderPitch", "LShoulderRoll", "LElbowRoll", "LElbowYaw", "LWristYaw"]
+Tue Aug 12 16:26:30 2025
+The home position of the left arm is [1.7625, 0.0997, -0.1334, -1.715, 0.06592]
+Tue Aug 12 16:26:30 2025
+The random position of the left arm are
+Tue Aug 12 16:26:30 2025
+The size of the generated random positions are: 20
+Tue Aug 12 16:26:30 2025
+[1.70547, 0.0775588, -0.357416, -2.03175, -0.104694]
+Tue Aug 12 16:26:30 2025
+[1.5367, 0.0473261, -0.394905, -1.71463, 0.200047]
+Tue Aug 12 16:26:30 2025
+[1.43638, 0.149948, -0.273743, -1.69113, 0.0801734]
+Tue Aug 12 16:26:30 2025
+[1.50645, 0.152884, -0.290574, -1.42868, 0.028296]
+Tue Aug 12 16:26:30 2025
+[1.51169, 0.081909, -0.294806, -1.63968, 0.117508]
+Tue Aug 12 16:26:30 2025
+[1.47333, 0.0812013, -0.405186, -1.54601, -0.0213859]
+Tue Aug 12 16:26:30 2025
+[1.65666, 0.0748216, -0.289181, -2.0101, 0.24092]
+Tue Aug 12 16:26:30 2025
+[1.64656, 0.0862958, -0.297945, -1.52804, 0.168099]
+Tue Aug 12 16:26:30 2025
+[1.55589, 0.154723, -0.287975, -1.44135, 0.0523994]
+Tue Aug 12 16:26:30 2025
+[1.53363, 0.0418406, -0.302945, -1.67001, 0.0585295]
+Tue Aug 12 16:26:30 2025
+[1.62154, 0.0651214, -0.340685, -1.57842, 0.120948]
+Tue Aug 12 16:26:30 2025
+[1.62734, 0.155318, -0.288036, -1.93802, 0.221101]
+Tue Aug 12 16:26:30 2025
+[1.61452, 0.142554, -0.353495, -1.88002, 0.225175]
+Tue Aug 12 16:26:30 2025
+[1.47225, 0.154043, -0.383239, -1.60528, 0.233323]
+Tue Aug 12 16:26:30 2025
+[1.47525, 0.060044, -0.28379, -1.89569, -0.0735646]
+Tue Aug 12 16:26:30 2025
+[1.51732, 0.0736088, -0.387756, -1.84324, 0.0548142]
+Tue Aug 12 16:26:30 2025
+[1.49684, 0.0860133, -0.311377, -1.7458, -0.0828313]
+Tue Aug 12 16:26:30 2025
+[1.52506, 0.143514, -0.288256, -1.97579, 0.236099]
+Tue Aug 12 16:26:30 2025
+[1.45232, 0.0495589, -0.307078, -1.97721, 0.238451]
+Tue Aug 12 16:26:30 2025
+[1.43836, 0.127812, -0.41, -1.48163, -0.064492]
+Tue Aug 12 16:26:30 2025
+----------[END LEFT ARM ANIMATE MOVEMENT]-----------
+Tue Aug 12 16:26:31 2025
+Animate behaviour disabled.
+Tue Aug 12 16:26:52 2025
+Animate behaviour disabled and goals cancelled.
+Tue Aug 12 16:26:52 2025
+[END SUBTLE BODY MOVEMENT]

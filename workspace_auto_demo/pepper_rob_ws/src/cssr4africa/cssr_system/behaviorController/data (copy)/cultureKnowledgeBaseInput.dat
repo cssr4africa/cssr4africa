@@ -1,0 +1,78 @@
+passingDistance 	                        100 
+passingPositionPreferred 	               BEHIND
+passingPositionAvoid                      BETWEEN 
+accompanyingDistanceLeading               100 
+accompanyingPositionLeading 	            FRONTSIDE
+accompanyingPositionOlder 	               SIDE
+accompanyingPositionSameAge               SIDE 
+accompanyingPositionYounger               SIDE  
+expressionLoudness                        40
+phraseLanguage                            English 
+phraseRhythmEnglish                       Nice
+phraseGreetingEnglish                     Greetings 
+phraseGreetingKinyarwanda                 Muraho 
+phraseTitleEnglish                        Excellency 
+phrasePreambleEnglish                     It is nice to meet you. How are you?
+phraseSocialEnglish                       I hope you are well
+phraseAddressOlderEnglish                 Hello  
+phraseAddressOlderKinyarwanda             Muraho  
+phraseAddressSameAgeEnglish               Hello
+phraseAddressSameAgeKinyarwanda           Muraho 
+phraseAddressYoungerEnglish               Hello 
+phraseAddressYoungerKinyarwanda           Muraho 
+phrasePassingEnglish                      Hello 
+phrasePassingKinyarwanda                  Muraho 
+pauseDuration                             2 
+turnTakingInitiationOrder                 WAIT 
+turnTakingAvoid                           INTERRUPT
+focusofAttentionTargetRespect             TORSO 
+focusofAttentionTargetAddressed           FACE 
+focusofAttentionTargetExplanationTo       FACE_AND_OBJECT 
+focusofAttentionTargetExplanationBy  	   FACE_AND_OBJECT 
+eyeContactDuration                        2 
+eyeContactFrequencyExplainingTo 	         5
+eyeContactFrequencyExplainingToOlder 	   5
+eyeContactFrequencyExplainingToYounger    5
+eyeContactFrequencyExplainingBy 	         5
+eyeContactFrequencyExplainingByOlder 	   5
+eyeContactFrequencyExplainingByYounger    5
+nodExtentAttention 	                     30 
+nodExtentGratitude 	                     30 
+nodExtentAgreement 	                     30 
+nodExtentRespect 	                        30 
+nodExtentFriendliness 	                  30 
+nodExtentComprehension                    30 
+nodExtentInterest 	                     30 
+deicticShape 	                           PALM_UPWARDS
+deicticAvoid 	                           PALM_FORWARDS 
+iconicShape 	                           ANIMATE_BEHAVIOR
+symbolicShapeRespect                      BOTH_HANDS_UP 
+symbolicShapeTurnTaking                   RIGHT_HAND_UP 
+symbolicShapeGratitude 	                  CLASP_HANDS
+symbolicShapeAgreement                    RIGHT_THUMB_UP
+symbolicShapeFriendliness                 HANDSHAKE 
+symbolicShapeConfusion 	                  RIGHT_HAND_UP
+symbolicShapeComprehension 	            RIGHT_THUMB_UP
+symbolicShapeInterest 	                  RIGHT_THUMB_UP
+symbolicShapeHandover 	                  BOTH_HANDS
+symbolicShapeHandShake 	                  POLITE_HANDSHAKE
+symbolicAvoidWave 	                     30
+symbolicAvoidHandover 	                  LEFT_HAND
+bowExtentGreeting 	                     10
+bowExtentRespect 	                        10
+bowExtentGratitude 	                     10
+swayIntensity 	                           ANIMATE_BEHAVIOR
+utilityPhraseEnglish1                     Hello everyone! My name is Pepper. I am what is called a humanoid robot. That means I was designed to look and move a little like you, humans!
+utilityPhraseKinyarwanda1                 I have a head
+utilityPhraseEnglish2                     I have a head
+utilityPhraseKinyarwanda2                 Munkurikire
+utilityPhraseEnglish3                     I have arms and hands
+utilityPhraseKinyarwanda3                 Ahari ikindi gihe
+utilityPhraseEnglish4                     and I can move around
+utilityPhraseKinyarwanda4                 Muraho! Murakazaneza muri robotikisi lab. Nitwa pepa nkaba ndi robo ifasha mugutembereza abashyitsi.
+utilityPhraseEnglish5                     so I can interact with the world in ways that feel familiar
+utilityPhraseKinyarwanda5                 Wakwifuza gutemberezwa muri laboratwari?
+utilityPhraseEnglish6                     I am part of a research project called Culturally-Sensitive Social Robotics for Africa. The idea behind that is to help robots like me learn how to communicate politely and sensitively with people in Africa. Not just with words, but also with gestures, expressions, and body language! This projecect is made possible thanks to a collaboration between Carnegie Mellon University Africa, here in Rwanda, and the University of the VitVatersrand, in South Africa.
+utilityPhraseKinyarwanda6                 Umuryango uri hano
+utilityPhraseEnglish7                     I hope you enjoyed this presentation. See you again soon
+utilityPhraseKinyarwanda7                 Murabeho

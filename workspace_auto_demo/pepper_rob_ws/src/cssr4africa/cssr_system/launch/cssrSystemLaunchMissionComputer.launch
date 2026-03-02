@@ -1,0 +1,256 @@
+<?xml version="1.0"?>
+<launch>
+  <!--
+    CSSR System - Computer Launch File (Computer as Remote Node)
+
+    This launch file runs on the main computer. The computer connects to the Jetson's ROS MASTER.
+
+    It launches:
+    1. Robot hardware interface (Pepper robot sensors and actuators)
+    2. All system nodes except face detection (which runs on Jetson)
+
+    Launch Order:
+    0. Robot bring-up (actuators + sensors)
+    1. robotLocalization
+    2. robotNavigation (depends on robotLocalization)
+    3. soundDetection (with virtual env)
+    4. speechEvent (depends on soundDetection, with virtual env)
+    5. textToSpeech (with virtual env)
+    6. overtAttention (depends on robotLocalization, faceDetection from Jetson, soundDetection)
+    7. gestureExecution (depends on overtAttention)
+    8. behaviorController (depends on all nodes)
+
+    Prerequisites:
+    - ROS workspace sourced
+    - ROS_MASTER_URI configured to point to Jetson's roscore
+    - Jetson nodes (roscore + camera + face detection) already launched
+    - Virtual environments installed
+  -->
+
+  <!-- ========================================== -->
+  <!-- Robot Network Configuration                -->
+  <!-- ========================================== -->
+  <arg name="robot_ip"                            default="172.29.111.230" doc="Pepper robot IP address" />
+  <arg name="robot_port"                          default="9559" />
+  <arg name="computer_ip"                         default="172.29.111.245" doc="This computer's IP address" />
+  <arg name="jetson_ip"                           default="172.29.111.248" doc="Jetson IP running roscore (ROS Master)" />
+  <arg name="network_interface"                   default="wlp0s20f3" doc="Network interface name" />
+
+  <!-- ========================================== -->
+  <!-- Virtual Environment Paths                  -->
+  <!-- ========================================== -->
+  <arg name="sound_detection_env_path"            default="~/integrated/dependencies/sound_detection" />
+  <arg name="speech_event_env_path"               default="~/integrated/dependencies/speech_event" />
+  <arg name="text_to_speech_env_path"             default="~/integrated/dependencies/text_to_speech" />
+
+  <!-- ========================================== -->
+  <!-- Node Namespaces                            -->
+  <!-- ========================================== -->
+  <arg name="cssr_system_namespace"               default="cssr_system" />
+  <arg name="naoqi_driver_namespace"              default="naoqi_driver" />
+  <arg name="robot_localization_namespace"        default="robotLocalization" />
+  <arg name="robot_navigation_namespace"          default="robotNavigation" />
+  <arg name="sound_detection_namespace"           default="soundDetection" />
+  <arg name="speech_event_namespace"              default="speechEvent" />
+  <arg name="text_to_speech_namespace"            default="textToSpeech" />
+  <arg name="overt_attention_namespace"           default="overtAttention" />
+  <arg name="gesture_execution_namespace"         default="gestureExecution" />
+  <arg name="behavior_controller_namespace"       default="behaviorController" />
+
+  <!-- ========================================== -->
+  <!-- Robot Configuration                        -->
+  <!-- ========================================== -->
+  <arg name="initial_robot_x"                     default="0.0" />
+  <arg name="initial_robot_y"                     default="0.0" />
+  <arg name="initial_robot_theta"                 default="0.0" />
+  <arg name="launch_audio_nodes"                  default="true" />
+  <arg name="launch_actuators"                    default="true" />
+  <arg name="launch_sensors"                      default="true" />
+  <arg name="launch_controller"                   default="true" doc="Set to true to launch behaviorController" />
+
+  <!-- ========================================== -->
+  <!-- Camera Configuration (using Jetson)        -->
+  <!-- ========================================== -->
+  <param name="/faceDetection/camera" value="realsense"/>
+  <param name="/faceDetection/unit_tests" value="false"/>
+  <param name="/soundDetection/unit_test" value="false"/>
+
+  <!-- ==========================================     -->
+  <!-- NOTE: ROS_MASTER_URI must point to Jetson     -->
+  <!-- Set before launching:                         -->
+  <!-- export ROS_MASTER_URI=http://JETSON_IP:11311  -->
+  <!-- export ROS_IP=COMPUTER_IP                     -->
+  <!-- This has been implemented in the launch script -->
+  <!-- ==========================================     -->
+
+  <!-- ============================================================================== -->
+  <!-- STEP 0: LAUNCH ROBOT HARDWARE (Actuators and Sensors)                         -->
+  <!-- Bring up Pepper Robot                                                         -->
+  <!-- ============================================================================== -->
+
+  <!-- Launch the actuators -->
+  <group if="$(arg launch_actuators)">
+
+    <!-- Call Robot publisher -->
+    <include file="$(find pepper_description)/launch/pepper_upload.launch" />
+
+    <!-- Call Robot Trajectory Controller -->
+    <include file="$(find pepper_control)/launch/pepper_control_trajectory.launch"/>
+
+    <!-- Call Robot Driver -->
+    <node pkg="naoqi_dcm_driver" type="naoqi_dcm_driver" name="naoqi_dcm_driver" respawn="false" output="screen">
+      <!-- Load configurations from YAML file to parameter server -->
+      <rosparam file="$(find pepper_dcm_bringup)/config/pepper_dcm.yaml" command="load"/>
+      <rosparam file="$(find pepper_control)/config/pepper_trajectory_control.yaml" command="load"/>
+      <param name="RobotIP"             value="$(arg robot_ip)" />
+      <param name="RobotPort"           value="$(arg robot_port)" />
+      <param name="DriverBrokerIP"      value="$(arg jetson_ip)" />
+      <param name="network_interface"   value="$(arg network_interface)" />
+      <param name="Prefix"              value="pepper_dcm" />
+      <param name="motor_groups"        value="Body" />
+      <param name="use_dcm"             value="false" />
+      <param name="max_stiffness"       value="0.7" />
+    </node>
+
+  </group>
+
+  <!-- Launch the sensors -->
+  <group if="$(arg launch_sensors)">
+
+    <!-- Launch naoqi_driver_node -->
+    <node pkg="naoqi_driver" type="naoqi_driver_node" name="$(arg naoqi_driver_namespace)" required="true"
+        args="--qi-url=tcp://$(arg robot_ip):$(arg robot_port) --roscore_ip=$(arg jetson_ip) --network_interface $(arg network_interface) --namespace $(arg naoqi_driver_namespace)"
+        output="screen" />
+
+    <!-- Conditionally launch naoqiAudioPublisher.py (Python 3 script) -->
+    <group if="$(arg launch_audio_nodes)">
+      <node pkg="naoqi_driver" type="naoqiAudioPublisher.py" name="naoqiAudioPublisher" output="screen" launch-prefix="bash -c 'sleep 15; $0 $@'" />
+    </group>
+
+    <!-- Conditionally launch naoqiAudio.py (Python 2 script) using run_naoqiAudio.sh -->
+    <group if="$(arg launch_audio_nodes)">
+      <node pkg="naoqi_driver" type="run_naoqiAudio.sh" name="naoqiAudio" args="--ip=$(arg robot_ip) --port=$(arg robot_port)" launch-prefix="bash -c 'sleep 15; $0 $@'"/>
+    </group>
+
+  </group>
+
+
+  <!-- ============================================================================== -->
+  <!-- STEP 1: LAUNCH ROBOT LOCALIZATION                                             -->
+  <!-- Wait 20s for robot sensors to initialize                                      -->
+  <!-- Dependencies: camera (from Jetson), odometry, joint states                    -->
+  <!-- ============================================================================== -->
+  <node pkg="$(arg cssr_system_namespace)"
+        type="$(arg robot_localization_namespace)"
+        name="$(arg robot_localization_namespace)"
+        required="true"
+        output="screen"
+        launch-prefix="bash -c 'sleep 20; $0 $@'">
+    <param name="initial_robot_x"     value="$(arg initial_robot_x)" />
+    <param name="initial_robot_y"     value="$(arg initial_robot_y)" />
+    <param name="initial_robot_theta" value="$(arg initial_robot_theta)" />
+  </node>
+
+
+  <!-- ============================================================================== -->
+  <!-- STEP 2: LAUNCH ROBOT NAVIGATION                                               -->
+  <!-- Wait 25s to ensure robotLocalization is running                               -->
+  <!-- Dependencies: robotLocalization pose                                          -->
+  <!-- ============================================================================== -->
+  <node pkg="$(arg cssr_system_namespace)"
+        type="$(arg robot_navigation_namespace)"
+        name="$(arg robot_navigation_namespace)"
+        required="true"
+        output="screen"
+        launch-prefix="bash -c 'sleep 25; $0 $@'">
+    <param name="robot_ip" value="$(arg robot_ip)" />
+  </node>
+
+
+  <!-- ============================================================================== -->
+  <!-- STEP 3: LAUNCH SOUND DETECTION                                                -->
+  <!-- Wait 20s for audio nodes to initialize                                        -->
+  <!-- Dependencies: naoqi_driver audio topics                                       -->
+  <!-- Uses virtual environment: sound_detection_env                                 -->
+  <!-- ============================================================================== -->
+  <node pkg="$(arg cssr_system_namespace)"
+        type="sound_detection_application.py"
+        name="$(arg sound_detection_namespace)"
+        output="screen"
+        required="true"
+        launch-prefix="bash -c 'source $(arg sound_detection_env_path)/bin/activate; sleep 20; $0 $@'"/>
+
+
+  <!-- ============================================================================== -->
+  <!-- STEP 4: LAUNCH SPEECH EVENT                                                   -->
+  <!-- Wait 30s to ensure soundDetection is running and producing audio signals      -->
+  <!-- Dependencies: soundDetection audio signal                                     -->
+  <!-- Uses virtual environment: speech_event_env                                    -->
+  <!-- ============================================================================== -->
+  <node pkg="$(arg cssr_system_namespace)"
+        type="speech_event_application.py"
+        name="$(arg speech_event_namespace)"
+        output="screen"
+        required="true"
+        launch-prefix="bash -c 'source $(arg speech_event_env_path)/bin/activate; sleep 30; $0 $@'"/>
+
+
+  <!-- ============================================================================== -->
+  <!-- STEP 5: LAUNCH TEXT TO SPEECH                                                 -->
+  <!-- Wait 20s for robot actuators to initialize                                    -->
+  <!-- Dependencies: robot actuators                                                 -->
+  <!-- Uses virtual environment: text_to_speech_env                                  -->
+  <!-- ============================================================================== -->
+  <node pkg="$(arg cssr_system_namespace)"
+        type="text_to_speech_application.py"
+        name="$(arg text_to_speech_namespace)"
+        output="screen"
+        required="true"
+        launch-prefix="bash -c 'source $(arg text_to_speech_env_path)/bin/activate; sleep 20; $0 $@'"/>
+
+
+  <!-- ============================================================================== -->
+  <!-- STEP 6: LAUNCH OVERT ATTENTION                                                -->
+  <!-- Wait 35s to ensure all dependencies are running:                              -->
+  <!-- - faceDetection (from Jetson)                                                 -->
+  <!-- - soundDetection                                                              -->
+  <!-- - robotLocalization                                                           -->
+  <!-- ============================================================================== -->
+  <node pkg="$(arg cssr_system_namespace)"
+        type="$(arg overt_attention_namespace)"
+        name="$(arg overt_attention_namespace)"
+        required="true"
+        output="screen"
+        launch-prefix="bash -c 'sleep 35; $0 $@'" />
+
+
+  <!-- ============================================================================== -->
+  <!-- STEP 7: LAUNCH GESTURE EXECUTION                                              -->
+  <!-- Wait 40s to ensure overtAttention is running                                  -->
+  <!-- Dependencies: overtAttention, robotLocalization, robot actuators              -->
+  <!-- ============================================================================== -->
+  <node pkg="$(arg cssr_system_namespace)"
+        type="$(arg gesture_execution_namespace)"
+        name="$(arg gesture_execution_namespace)"
+        required="true"
+        output="screen"
+        launch-prefix="bash -c 'sleep 40; $0 $@'" />
+
+
+  <!-- ============================================================================== -->
+  <!-- STEP 8: LAUNCH BEHAVIOR CONTROLLER (Central Mission Controller)               -->
+  <!-- Wait 60s to ensure ALL nodes are running and ready                            -->
+  <!-- Dependencies: ALL other nodes (gestureExecution, overtAttention,              -->
+  <!--               robotNavigation, speechEvent, textToSpeech, etc.)               -->
+  <!-- This is the final node that orchestrates the entire mission                   -->
+  <!-- ============================================================================== -->
+  <group if="$(arg launch_controller)">
+    <node pkg="$(arg cssr_system_namespace)"
+          type="$(arg behavior_controller_namespace)"
+          name="$(arg behavior_controller_namespace)"
+          required="true"
+          output="screen"
+          launch-prefix="bash -c 'sleep 60; $0 $@'" />
+  </group>
+
+</launch>

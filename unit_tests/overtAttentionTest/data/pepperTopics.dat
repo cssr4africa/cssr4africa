@@ -1,4 +1,0 @@
-RobotPose           /robotLocalization/pose
-Odometry            /naoqi_driver/odom
-soundLocalization   /soundDetection/direction
-faceDetection       /faceDetection/data

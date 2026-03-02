@@ -1,0 +1,283 @@
+Text-to-Speech Application Test Report
+============================================================
+Date: 2025-06-18 11:49:19
+
+[2025-06-18 11:49:19] INFO: ================================================================================
+[2025-06-18 11:49:19] INFO:  TTS APPLICATION UNIT TESTS
+[2025-06-18 11:49:19] INFO: ================================================================================
+[2025-06-18 11:49:19] TEST: Running test_handle_say_text_failure
+[2025-06-18 11:49:19] PASS: PASSED: handle_say_text failure test completed successfully
+[2025-06-18 11:49:19] TEST: Running test_handle_say_text_success
+[2025-06-18 11:49:19] PASS: PASSED: handle_say_text success test completed successfully
+[2025-06-18 11:49:19] TEST: Running test_init_file_creation
+[2025-06-18 11:49:19] PASS: PASSED: Init file creation test completed successfully
+[2025-06-18 11:49:19] TEST: Running test_path_setting
+[2025-06-18 11:49:19] PASS: PASSED: Path setting test completed successfully
+[2025-06-18 11:49:19] TEST: Running test_text_to_speech_node_exception_handling
+[2025-06-18 11:49:19] PASS: PASSED: TTS node exception handling test completed successfully
+[2025-06-18 11:49:19] TEST: Running test_text_to_speech_node_initialization
+[2025-06-18 11:49:19] PASS: PASSED: TTS node initialization test completed successfully
+[2025-06-18 11:49:19] INFO: ================================================================================
+[2025-06-18 11:49:19] INFO:  TEST SUMMARY
+[2025-06-18 11:49:19] INFO: ================================================================================
+[2025-06-18 11:49:19] INFO: Total tests run: 6
+[2025-06-18 11:49:19] INFO: Passed: 6
+[2025-06-18 11:49:19] INFO: Failed: 0
+[2025-06-18 11:49:19] INFO: Errors: 0
+[2025-06-18 11:49:19] INFO: Skipped: 0
+[2025-06-18 11:49:19] RESULT: ✅ ALL TESTS PASSED!
+
+============================================================
+
+Text-to-Speech Implementation Integration Test Report
+============================================================
+Date: 2025-06-18 11:50:44
+
+[2025-06-18 11:49:42] INFO: 
+================================================================================
+ TTS IMPLEMENTATION INTEGRATION TESTS
+================================================================================
+[2025-06-18 11:49:42] INFO: This test will verify the TTS implementation with actual service calls.
+[2025-06-18 11:49:42] INFO: The test will check if the implementation correctly processes all test scenarios.
+[2025-06-18 11:49:42] WARNING: Make sure the TTS service is running before proceeding.
+[2025-06-18 11:49:44] USER_INPUT: User started implementation testing
+[2025-06-18 11:49:44] INFO: Waiting for TTS service...
+[2025-06-18 11:49:44] SUCCESS: TTS service found!
+[2025-06-18 11:49:44] TEST_START: Starting English TTS Implementation Integration test
+[2025-06-18 11:49:44] INFO: 
+================================================================================
+ TEST 1: English TTS Implementation Integration
+================================================================================
+[2025-06-18 11:49:44] INFO: Sending text: 'world'
+[2025-06-18 11:49:44] SUCCESS: English message sent successfully
+[2025-06-18 11:49:44] TEST_RESULT: Service call successful for message: 'world' in English
+[2025-06-18 11:49:44] INFO: Waiting for 0.3 seconds for speech to complete...
+[2025-06-18 11:49:47] USER_INPUT: User response to 'Did you hear the English message correctly? (y/n):': y
+[2025-06-18 11:49:47] SUCCESS: English first message test passed!
+[2025-06-18 11:49:47] TEST_RESULT: TEST 1.1 - English first message: PASSED
+[2025-06-18 11:49:48] INFO: Sending text: 'Hello'
+[2025-06-18 11:49:48] SUCCESS: English message sent successfully
+[2025-06-18 11:49:48] TEST_RESULT: Service call successful for message: 'Hello' in English
+[2025-06-18 11:49:48] INFO: Waiting for 0.3 seconds for speech to complete...
+[2025-06-18 11:49:59] USER_INPUT: User response to 'Did you hear the second English message clearly? (y/n):': y
+[2025-06-18 11:49:59] SUCCESS: English second message test passed!
+[2025-06-18 11:49:59] TEST_RESULT: TEST 1.2 - English second message: PASSED
+[2025-06-18 11:50:01] TEST_START: Starting Kinyarwanda TTS Implementation Integration test
+[2025-06-18 11:50:01] INFO: 
+================================================================================
+ TEST 2: Kinyarwanda TTS Implementation Integration
+================================================================================
+[2025-06-18 11:50:01] INFO: Sending text: 'Muraho neza'
+[2025-06-18 11:50:07] SUCCESS: Kinyarwanda message sent successfully
+[2025-06-18 11:50:07] TEST_RESULT: Service call successful for message: 'Muraho neza' in Kinyarwanda
+[2025-06-18 11:50:07] INFO: Waiting for 1.0 seconds for speech to complete...
+[2025-06-18 11:50:10] USER_INPUT: User response to 'Did you hear the Kinyarwanda message correctly? (y/n):': y
+[2025-06-18 11:50:10] SUCCESS: Kinyarwanda message test passed!
+[2025-06-18 11:50:10] TEST_RESULT: TEST 2 - Kinyarwanda TTS Integration: PASSED
+[2025-06-18 11:50:12] TEST_START: Starting Language Switching Implementation test
+[2025-06-18 11:50:12] INFO: 
+================================================================================
+ TEST 3: Language Switching Implementation
+================================================================================
+[2025-06-18 11:50:12] INFO: Sending English text: 'me and you'
+[2025-06-18 11:50:12] INFO: Waiting for audio to play...
+[2025-06-18 11:50:15] INFO: Sending Kinyarwanda text: 'amakuru yanyu'
+[2025-06-18 11:50:20] INFO: Waiting for audio to play...
+[2025-06-18 11:50:23] INFO: Sending English text: 'Now back to English.'
+[2025-06-18 11:50:23] INFO: Waiting for audio to play...
+[2025-06-18 11:50:29] USER_INPUT: User response to 'Did all three messages play in the correct languages? (y/n):': y
+[2025-06-18 11:50:29] SUCCESS: Language switching test passed!
+[2025-06-18 11:50:29] TEST_RESULT: TEST 3 - Language Switching Implementation: PASSED
+[2025-06-18 11:50:31] TEST_START: Starting Empty Message Implementation test
+[2025-06-18 11:50:31] INFO: 
+================================================================================
+ TEST 4: Empty Message Implementation Test
+================================================================================
+[2025-06-18 11:50:31] INFO: Testing empty message...
+[2025-06-18 11:50:31] SUCCESS: Empty message processed successfully
+[2025-06-18 11:50:31] TEST_RESULT: TEST 4 - Empty Message Implementation: PASSED (processed successfully)
+[2025-06-18 11:50:32] TEST_START: Starting Unsupported Language Implementation test
+[2025-06-18 11:50:32] INFO: 
+================================================================================
+ TEST 5: Unsupported Language Implementation Test
+================================================================================
+[2025-06-18 11:50:32] INFO: Testing unsupported language...
+[2025-06-18 11:50:32] SUCCESS: Unsupported language correctly rejected
+[2025-06-18 11:50:32] TEST_RESULT: TEST 5 - Unsupported Language Implementation: PASSED (correctly rejected)
+[2025-06-18 11:50:33] TEST_START: Starting Long Message Implementation test
+[2025-06-18 11:50:33] INFO: 
+================================================================================
+ TEST 6: Long Message Implementation Test
+================================================================================
+[2025-06-18 11:50:33] INFO: Sending long English text: 'This is a longer test message to verify that the T...'
+[2025-06-18 11:50:33] SUCCESS: Long English message sent successfully
+[2025-06-18 11:50:33] TEST_RESULT: Service call successful for long message (121 characters)
+[2025-06-18 11:50:33] INFO: Waiting for 8.0 seconds for speech to complete...
+[2025-06-18 11:50:44] USER_INPUT: User response to 'Did you hear the complete long English message? (y/n):': y
+[2025-06-18 11:50:44] SUCCESS: Long message test passed!
+[2025-06-18 11:50:44] TEST_RESULT: TEST 6 - Long Message Implementation: PASSED
+[2025-06-18 11:50:44] INFO: 
+================================================================================
+ IMPLEMENTATION TEST SUMMARY
+================================================================================
+[2025-06-18 11:50:44] SUMMARY: FINAL TEST RESULTS:
+[2025-06-18 11:50:44] SUCCESS:  ✓ English TTS Implementation Integration - PASSED
+[2025-06-18 11:50:44] SUMMARY: SUMMARY: English TTS Implementation Integration - PASSED
+[2025-06-18 11:50:44] SUCCESS:  ✓ Kinyarwanda TTS Implementation Integration - PASSED
+[2025-06-18 11:50:44] SUMMARY: SUMMARY: Kinyarwanda TTS Implementation Integration - PASSED
+[2025-06-18 11:50:44] SUCCESS:  ✓ Language Switching Implementation - PASSED
+[2025-06-18 11:50:44] SUMMARY: SUMMARY: Language Switching Implementation - PASSED
+[2025-06-18 11:50:44] SUCCESS:  ✓ Empty Message Implementation - PASSED
+[2025-06-18 11:50:44] SUMMARY: SUMMARY: Empty Message Implementation - PASSED
+[2025-06-18 11:50:44] SUCCESS:  ✓ Unsupported Language Implementation - PASSED
+[2025-06-18 11:50:44] SUMMARY: SUMMARY: Unsupported Language Implementation - PASSED
+[2025-06-18 11:50:44] SUCCESS:  ✓ Long Message Implementation - PASSED
+[2025-06-18 11:50:44] SUMMARY: SUMMARY: Long Message Implementation - PASSED
+[2025-06-18 11:50:44] SUMMARY: Total tests run: 6
+[2025-06-18 11:50:44] SUMMARY: Passed: 6
+[2025-06-18 11:50:44] SUMMARY: Failed: 0
+[2025-06-18 11:50:44] SUCCESS: 
+ ALL IMPLEMENTATION TESTS PASSED! The TTS implementation is working correctly.
+[2025-06-18 11:50:44] FINAL_RESULT: FINAL RESULT: ALL IMPLEMENTATION TESTS PASSED
+
+============================================================
+
+Text-to-Speech Implementation Integration Test Report
+============================================================
+Date: 2025-06-18 14:46:22
+
+[2025-06-18 14:45:31] USER_INPUT: User started implementation testing
+[2025-06-18 14:45:32] TEST_START: Starting English TTS Implementation Integration test
+[2025-06-18 14:45:32] TEST_RESULT: Service call successful for message: 'world' in English
+[2025-06-18 14:45:34] TEST_RESULT: TEST 1.1 - English first message: PASSED
+[2025-06-18 14:45:35] TEST_RESULT: Service call successful for message: 'Hello' in English
+[2025-06-18 14:45:38] TEST_RESULT: TEST 1.2 - English second message: PASSED
+[2025-06-18 14:45:40] TEST_START: Starting Kinyarwanda TTS Implementation Integration test
+[2025-06-18 14:45:44] TEST_RESULT: Service call successful for message: 'Muraho neza' in Kinyarwanda
+[2025-06-18 14:45:48] TEST_RESULT: TEST 2 - Kinyarwanda TTS Integration: PASSED
+[2025-06-18 14:45:50] TEST_START: Starting Language Switching Implementation test
+[2025-06-18 14:46:05] TEST_RESULT: TEST 3 - Language Switching Implementation: PASSED
+[2025-06-18 14:46:07] TEST_START: Starting Empty Message Implementation test
+[2025-06-18 14:46:07] TEST_RESULT: TEST 4 - Empty Message Implementation: PASSED (processed successfully)
+[2025-06-18 14:46:08] TEST_START: Starting Unsupported Language Implementation test
+[2025-06-18 14:46:08] TEST_RESULT: TEST 5 - Unsupported Language Implementation: PASSED (correctly rejected)
+[2025-06-18 14:46:09] TEST_START: Starting Long Message Implementation test
+[2025-06-18 14:46:09] TEST_RESULT: Service call successful for long message (121 characters)
+[2025-06-18 14:46:22] TEST_RESULT: TEST 6 - Long Message Implementation: PASSED
+[2025-06-18 14:46:22] SUMMARY: FINAL TEST RESULTS:
+[2025-06-18 14:46:22] SUMMARY: SUMMARY: English TTS Implementation Integration - PASSED
+[2025-06-18 14:46:22] SUMMARY: SUMMARY: Kinyarwanda TTS Implementation Integration - PASSED
+[2025-06-18 14:46:22] SUMMARY: SUMMARY: Language Switching Implementation - PASSED
+[2025-06-18 14:46:22] SUMMARY: SUMMARY: Empty Message Implementation - PASSED
+[2025-06-18 14:46:22] SUMMARY: SUMMARY: Unsupported Language Implementation - PASSED
+[2025-06-18 14:46:22] SUMMARY: SUMMARY: Long Message Implementation - PASSED
+[2025-06-18 14:46:22] SUMMARY: Total tests run: 6
+[2025-06-18 14:46:22] SUMMARY: Passed: 6
+[2025-06-18 14:46:22] SUMMARY: Failed: 0
+[2025-06-18 14:46:22] FINAL_RESULT: FINAL RESULT: ALL IMPLEMENTATION TESTS PASSED
+
+============================================================
+
+Text-to-Speech Implementation Integration Test Report
+============================================================
+Date: 2025-06-18 15:52:29
+
+[2025-06-18 15:51:37] USER_INPUT: User started implementation testing
+[2025-06-18 15:51:37] TEST_START: Starting English TTS Implementation Integration test
+[2025-06-18 15:51:37] TEST_RESULT: Service call successful for message: 'world' in English
+[2025-06-18 15:51:42] TEST_RESULT: TEST 1.1 - English first message: PASSED
+[2025-06-18 15:51:43] TEST_RESULT: Service call successful for message: 'Hello' in English
+[2025-06-18 15:51:46] TEST_RESULT: TEST 1.2 - English second message: PASSED
+[2025-06-18 15:51:48] TEST_START: Starting Kinyarwanda TTS Implementation Integration test
+[2025-06-18 15:51:52] TEST_RESULT: Service call successful for message: 'Muraho neza' in Kinyarwanda
+[2025-06-18 15:51:55] TEST_RESULT: TEST 2 - Kinyarwanda TTS Integration: PASSED
+[2025-06-18 15:51:57] TEST_START: Starting Language Switching Implementation test
+[2025-06-18 15:52:14] TEST_RESULT: TEST 3 - Language Switching Implementation: PASSED
+[2025-06-18 15:52:16] TEST_START: Starting Empty Message Implementation test
+[2025-06-18 15:52:16] TEST_RESULT: TEST 4 - Empty Message Implementation: PASSED (processed successfully)
+[2025-06-18 15:52:17] TEST_START: Starting Unsupported Language Implementation test
+[2025-06-18 15:52:17] TEST_RESULT: TEST 5 - Unsupported Language Implementation: PASSED (correctly rejected)
+[2025-06-18 15:52:18] TEST_START: Starting Long Message Implementation test
+[2025-06-18 15:52:18] TEST_RESULT: Service call successful for long message (121 characters)
+[2025-06-18 15:52:29] TEST_RESULT: TEST 6 - Long Message Implementation: PASSED
+[2025-06-18 15:52:29] SUMMARY: FINAL TEST RESULTS:
+[2025-06-18 15:52:29] SUMMARY:  English TTS Implementation Integration - PASSED
+[2025-06-18 15:52:29] SUMMARY:  Kinyarwanda TTS Implementation Integration - PASSED
+[2025-06-18 15:52:29] SUMMARY:  Language Switching Implementation - PASSED
+[2025-06-18 15:52:29] SUMMARY:  Empty Message Implementation - PASSED
+[2025-06-18 15:52:29] SUMMARY:  Unsupported Language Implementation - PASSED
+[2025-06-18 15:52:29] SUMMARY:  Long Message Implementation - PASSED
+[2025-06-18 15:52:29] SUMMARY: Total tests run: 6
+[2025-06-18 15:52:29] SUMMARY: Passed: 6
+[2025-06-18 15:52:29] SUMMARY: Failed: 0
+[2025-06-18 15:52:29] FINAL_RESULT: FINAL RESULT: ALL IMPLEMENTATION TESTS PASSED
+
+============================================================
+
+Text-to-Speech Implementation Integration Test Report
+============================================================
+Date: 2025-06-19 16:54:58
+
+[2025-06-19 16:53:58] USER_INPUT: User started implementation testing
+[2025-06-19 16:53:59] TEST_START: Starting English TTS Implementation Integration test
+[2025-06-19 16:53:59] TEST_RESULT: Service call successful for message: 'world' in English
+[2025-06-19 16:54:11] TEST_RESULT: TEST 1.1 - English first message: PASSED
+[2025-06-19 16:54:12] TEST_RESULT: Service call successful for message: 'Hello' in English
+[2025-06-19 16:54:16] TEST_RESULT: TEST 1.2 - English second message: FAILED
+[2025-06-19 16:54:18] TEST_START: Starting Kinyarwanda TTS Implementation Integration test
+[2025-06-19 16:54:23] TEST_RESULT: Service call successful for message: 'Muraho neza' in Kinyarwanda
+[2025-06-19 16:54:26] TEST_RESULT: TEST 2 - Kinyarwanda TTS Integration: FAILED
+[2025-06-19 16:54:28] TEST_START: Starting Language Switching Implementation test
+[2025-06-19 16:54:43] TEST_RESULT: TEST 3 - Language Switching Implementation: PASSED
+[2025-06-19 16:54:45] TEST_START: Starting Empty Message Implementation test
+[2025-06-19 16:54:45] TEST_RESULT: TEST 4 - Empty Message Implementation: PASSED (processed successfully)
+[2025-06-19 16:54:46] TEST_START: Starting Unsupported Language Implementation test
+[2025-06-19 16:54:46] TEST_RESULT: TEST 5 - Unsupported Language Implementation: PASSED (correctly rejected)
+[2025-06-19 16:54:47] TEST_START: Starting Long Message Implementation test
+[2025-06-19 16:54:47] TEST_RESULT: Service call successful for long message (121 characters)
+[2025-06-19 16:54:58] TEST_RESULT: TEST 6 - Long Message Implementation: PASSED
+[2025-06-19 16:54:58] SUMMARY: FINAL TEST RESULTS:
+[2025-06-19 16:54:58] SUMMARY: SUMMARY: English TTS Implementation Integration - FAILED
+[2025-06-19 16:54:58] SUMMARY: SUMMARY: Kinyarwanda TTS Implementation Integration - FAILED
+[2025-06-19 16:54:58] SUMMARY: Language Switching Implementation - PASSED
+[2025-06-19 16:54:58] SUMMARY: Empty Message Implementation - PASSED
+[2025-06-19 16:54:58] SUMMARY: Unsupported Language Implementation - PASSED
+[2025-06-19 16:54:58] SUMMARY: Long Message Implementation - PASSED
+[2025-06-19 16:54:58] SUMMARY: Total tests run: 6
+[2025-06-19 16:54:58] SUMMARY: Passed: 4
+[2025-06-19 16:54:58] SUMMARY: Failed: 2
+[2025-06-19 16:54:58] FINAL_RESULT: FINAL RESULT: 2 IMPLEMENTATION TESTS FAILED
+
+============================================================
+
+Text-to-Speech Implementation Integration Test Report
+============================================================
+Date: 2025-06-19 17:00:17
+
+[2025-06-19 16:59:08] USER_INPUT: User started implementation testing
+[2025-06-19 16:59:08] TEST_START: Starting English TTS Implementation Integration test
+[2025-06-19 16:59:08] TEST_RESULT: Service call successful for message: 'world' in English
+[2025-06-19 16:59:21] TEST_RESULT: TEST 1.1 - English first message: FAILED
+[2025-06-19 16:59:23] TEST_START: Starting Kinyarwanda TTS Implementation Integration test
+[2025-06-19 16:59:27] TEST_RESULT: Service call successful for message: 'Muraho neza' in Kinyarwanda
+[2025-06-19 16:59:31] TEST_RESULT: TEST 2 - Kinyarwanda TTS Integration: PASSED
+[2025-06-19 16:59:33] TEST_START: Starting Language Switching Implementation test
+[2025-06-19 17:00:01] TEST_RESULT: TEST 3 - Language Switching Implementation: FAILED
+[2025-06-19 17:00:03] TEST_START: Starting Empty Message Implementation test
+[2025-06-19 17:00:03] TEST_RESULT: TEST 4 - Empty Message Implementation: PASSED (processed successfully)
+[2025-06-19 17:00:04] TEST_START: Starting Unsupported Language Implementation test
+[2025-06-19 17:00:04] TEST_RESULT: TEST 5 - Unsupported Language Implementation: PASSED (correctly rejected)
+[2025-06-19 17:00:05] TEST_START: Starting Long Message Implementation test
+[2025-06-19 17:00:05] TEST_RESULT: Service call successful for long message (121 characters)
+[2025-06-19 17:00:17] TEST_RESULT: TEST 6 - Long Message Implementation: FAILED (user could not hear complete message)
+[2025-06-19 17:00:17] SUMMARY: FINAL TEST RESULTS:
+[2025-06-19 17:00:17] SUMMARY: SUMMARY: English TTS Implementation Integration - FAILED
+[2025-06-19 17:00:17] SUMMARY: Kinyarwanda TTS Implementation Integration - PASSED
+[2025-06-19 17:00:17] SUMMARY: SUMMARY: Language Switching Implementation - FAILED
+[2025-06-19 17:00:17] SUMMARY: Empty Message Implementation - PASSED
+[2025-06-19 17:00:17] SUMMARY: Unsupported Language Implementation - PASSED
+[2025-06-19 17:00:17] SUMMARY: SUMMARY: Long Message Implementation - FAILED
+[2025-06-19 17:00:17] SUMMARY: Total tests run: 6
+[2025-06-19 17:00:17] SUMMARY: Passed: 3
+[2025-06-19 17:00:17] SUMMARY: Failed: 3
+[2025-06-19 17:00:17] FINAL_RESULT: FINAL RESULT: 3 IMPLEMENTATION TESTS FAILED

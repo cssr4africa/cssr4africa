@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=CSSR4Africa System Launcher
+Comment=Launch CSSR4Africa Robot System with GUI
+Exec=python3 /home/cssr4africa1/workspace_auto_demo/pepper_rob_ws/src/cssr4africa_demo_scripts/cssr_launcher_gui.py
+Icon=utilities-terminal
+Terminal=false
+Categories=Development;ROS;Robotics;
+StartupNotify=true

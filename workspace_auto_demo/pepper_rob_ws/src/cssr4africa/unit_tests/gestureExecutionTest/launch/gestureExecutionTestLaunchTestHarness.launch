@@ -1,0 +1,67 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="gesture_execution_namespace"         default="gestureExecution" />
+  <arg name="overt_attention_namespace"           default="overtAttention" />
+  <arg name="robot_localization_namespace"        default="robotLocalization" />
+  <arg name="face_detection_namespace"            default="faceDetection" />
+  <arg name="gesture_execution_driver_namespace"  default="gestureExecutionDriver" />
+  <arg name="gesture_execution_stub_namespace"    default="gestureExecutionStub" />
+  <arg name="gesture_execution_test_namespace"    default="gestureExecutionTest" />
+  <arg name="launch_drivers_stubs"                default="true" />
+  <arg name="launch_test"                         default="true" />
+
+  <arg name="initial_robot_x"                     default="0.0" />
+  <arg name="initial_robot_y"                     default="0.0" />
+  <arg name="initial_robot_theta"                 default="0.0" />
+
+  <arg name="face_detection_env_path" default="/home/cssr4a/face_gaze_detection" />
+
+
+  <!-- Conditionally Launch gesture_execution driver and stub -->
+  <group if="$(arg launch_drivers_stubs)">
+  <!-- Launch gesture_execution driver -->
+  <node pkg="unit_tests" type="gestureExecutionTestDriver" name="$(arg gesture_execution_driver_namespace)" required="true"
+    output="screen" launch-prefix="bash -c 'sleep 2; $0 $@'" />
+    <param name="initial_robot_x"                   value="$(arg initial_robot_x)" />
+    <param name="initial_robot_y"                   value="$(arg initial_robot_y)" />
+    <param name="initial_robot_theta"               value="$(arg initial_robot_theta)" />
+   
+    <!-- Launch gestureExecution stub -->
+    <node pkg="unit_tests" type="gestureExecutionTestStub" name="$(arg gesture_execution_stub_namespace)" required="true"
+    output="screen" launch-prefix="bash -c 'sleep 5; $0 $@'" />
+    </group>
+
+    <!-- Conditionally Launch faceDetection, overtAttention and robotLocalization -->
+  <group unless="$(arg launch_drivers_stubs)">
+     <!-- Launch the faceDetection node within the virtual environment -->
+    <node pkg="face_detection" type="face_detection_application.py" name="$(arg face_detection_namespace)" output="screen" launch-prefix="bash -c 'sleep 0; source $(arg face_detection_env_path)/bin/activate; rosrun face_detection face_detection_application.py'" />
+
+  <!-- Launch the speechEvent node within the virtual environment -->
+    <!-- <node pkg="speech_event" type="transcription.py" name="$(arg speech_event_namespace)" output="screen" launch-prefix="bash -c 'sleep 5; source $(arg speech_recognition_env_path)/bin/activate; python3 $0; rosrun speech_event transcription.py'" /> -->
+  
+    <!-- Launch robot_localization node // Change package name to cssr_system later -->
+  <node pkg="robot_localization" type="$(arg robot_localization_namespace)" name="$(arg robot_localization_namespace)" 
+    required="true" output="screen" launch-prefix="bash -c 'sleep 5; $0 $@'" />
+      <param name="initial_robot_x"                   value="$(arg initial_robot_x)" />
+      <param name="initial_robot_y"                   value="$(arg initial_robot_y)" />
+      <param name="initial_robot_theta"               value="$(arg initial_robot_theta)" />
+
+    <!-- Launch overtAttention -->
+  <node pkg="cssr_system" type="overtAttention" name="$(arg overt_attention_namespace)" required="true"
+    output="screen" launch-prefix="bash -c 'sleep 10; $0 $@'" />
+    </group>
+
+  <!-- Launch gestureExecution node -->
+  <node pkg="cssr_system" type="gestureExecution" name="$(arg gesture_execution_namespace)" required="true"
+    output="screen" launch-prefix="bash -c 'sleep 15; $0 $@'" />
+
+    <!-- Launch gesture_execution_unit_tests node -->
+  <group if="$(arg launch_test)">
+    <node pkg="unit_tests" type="gestureExecutionTest" name="$(arg gesture_execution_test_namespace)" required="true"
+      output="screen" launch-prefix="bash -c 'sleep 20; $0 $@'" />
+  </group>
+
+      
+
+	
+</launch>

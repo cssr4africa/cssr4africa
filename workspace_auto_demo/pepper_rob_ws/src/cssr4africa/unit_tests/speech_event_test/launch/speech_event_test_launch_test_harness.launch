@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<launch>
+    <arg name="launch_driver" default="true" />
+    <arg name="run_tests" default="true" />
+    <arg name="mode" default="file" />
+    
+
+    <!-- Define the virtual environment path -->
+    <arg name="sound_detection_env_path" default="~/workspace/pepper_rob_ws/src/cssr4africa_virtual_envs/cssr4africa_sound_detection_env" />
+
+    <!-- Define the virtual environment path -->
+    <arg name="speech_event_env_path" default="~/workspace/pepper_rob_ws/src/cssr4africa_virtual_envs/cssr4africa_speech_event_env" />
+
+    <param name="/speechEvent/param_mode" value="$(arg mode)"/>
+
+    <!-- Conditionally launch speech_event_driver node  or soundDetection ROS node -->
+    <group if="$(arg launch_driver)">
+        <!-- <node pkg="unit_tests" type="speech_eve                                                                                            nt_driver.py" name="speechEventDriver" respawn="false"/> -->
+        <node pkg="unit_tests" type="speech_event_driver.py" name="speechEventDriver" output="screen" required="true"
+            launch-prefix="bash -c 'source $(arg speech_event_env_path)/bin/activate; $0 $@'"/>
+    </group>
+
+    <group unless="$(arg launch_driver)">
+        <!-- <node pkg="cssr_system" type="sound_detection_application.py" name="soundDetection" respawn="false"/> -->
+        <!-- Start the main sound detection node -->
+        <node pkg="cssr_system" type="sound_detection_application.py" name="soundDetection" output="screen" required="true"
+            launch-prefix="bash -c 'source $(arg sound_detection_env_path)/bin/activate; $0 $@'"/>
+
+    </group>    
+
+    <!-- Launch speech_event node -->
+    <!-- <node pkg="cssr_system" type="speech_event_application.py" name="speechEvent" respawn="false" output="screen"/> -->
+
+    <node pkg="cssr_system" type="speech_event_application.py" name="speechEvent" output="screen" required="true"
+        launch-prefix="bash -c 'source $(arg speech_event_env_path)/bin/activate; sleep 5; $0 $@'"/>
+
+    <!-- Conditionally launch speech_event_test node -->
+    <group if="$(arg run_tests)">
+        <!-- <node pkg="unit_tests" type="speech_event_test_application.py" name="speechEventTest" respawn="false" required="true" output="screen"/> -->
+        <node pkg="unit_tests" type="speech_event_test_application.py" name="speechEventTest" output="screen" required="true"
+            launch-prefix="bash -c 'source $(arg speech_event_env_path)/bin/activate; sleep 15; $0 $@'"/>
+    </group>
+</launch>
+
+
