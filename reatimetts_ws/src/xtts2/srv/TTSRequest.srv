@@ -1,0 +1,5 @@
+string text
+string language   # "kinyarwanda" or "english"
+---
+bool success
+string message
