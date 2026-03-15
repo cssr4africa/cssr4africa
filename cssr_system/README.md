@@ -62,7 +62,7 @@ Accompanying this code will be the user manual that provides guide on how to set
 
 For issues or questions:
 - Create an issue on GitHub
-- Contact: <a href="mailto:mbusogiandrew.cmu.edu">mbusogiandrew.cmu.edu</a><br>
+- Contact: <a href="mailto:mbusogi@andrew.cmu.edu">mbusogi@andrew.cmu.edu</a><br>
 - Visit: <a href="http://www.cssr4africa.org">www.cssr4africa.org</a>
 
 ## License  
