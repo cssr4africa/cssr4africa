@@ -148,7 +148,7 @@ class SetOvertAttentionMode : public BT::SyncActionNode
         if (state == "location") {
             Environment::RobotLocationType location;
             Environment::GestureTargetType gestureTarget;
-            if (!config().blackboard->rootBlackboard()->get("exhibitGestureTarget", gestureTarget)) {
+            if (!config().blackboard->get("exhibitGestureTarget", gestureTarget)) {
                 printMsg(ERROR_MSG, "Unable to retrieve from blackboard");
                 storeResult(treeNodeName, 0);
                 return BT::NodeStatus::FAILURE;
@@ -585,7 +585,7 @@ class PerformDeicticGesture : public BT::SyncActionNode
         speak(treeNodeName);
 
         /* Retrieve gesture values from the blackboard*/
-        if (!config().blackboard->rootBlackboard()->get("exhibitGestureTarget", gestureTarget)) {
+        if (!config().blackboard->get("exhibitGestureTarget", gestureTarget)) {
             printMsg(ERROR_MSG, "Unable to retrieve from blackboard");
             storeResult(treeNodeName, 0);
             return BT::NodeStatus::FAILURE;
@@ -836,8 +836,8 @@ class SelectExhibit : public BT::SyncActionNode
         // Store the values in the blackboard to be retrieved by other mission nodes
         config().blackboard->set("exhibitPreGestureMessage", preGestureMessage);
         config().blackboard->set("exhibitPostGestureMessage", postGestureMessage);
-        config().blackboard->rootBlackboard()->set("exhibitLocation", enviornmentKeyValue.robotLocation);
-        config().blackboard->rootBlackboard()->set("exhibitGestureTarget", enviornmentKeyValue.gestureTarget);
+        config().blackboard->set("exhibitLocation", enviornmentKeyValue.robotLocation);
+        config().blackboard->set("exhibitGestureTarget", enviornmentKeyValue.gestureTarget);
 
         printMsg(INFO_MSG, std::string("Visiting: ") + enviornmentKeyValue.robotLocationDescription);
 
@@ -918,7 +918,7 @@ class Navigate : public BT::SyncActionNode
         speak(treeNodeName);
 
         // Retrieve location values fromthe blackboard
-        if (!config().blackboard->rootBlackboard()->get("exhibitLocation", location)) {
+        if (!config().blackboard->get("exhibitLocation", location)) {
             printMsg(ERROR_MSG, "Unable to retrieve from blackboard");
             storeResult(treeNodeName, 0);
             return BT::NodeStatus::FAILURE;
@@ -1035,7 +1035,7 @@ class RetrieveInitialLocation : public BT::SyncActionNode
         srv.request.y = location.y;
         srv.request.theta = location.theta;
 
-        config().blackboard->rootBlackboard()->set("exhibitLocation", location);
+        config().blackboard->set("exhibitLocation", location);
 
         storeResult(treeNodeName, 1);
         return BT::NodeStatus::SUCCESS;
@@ -1068,7 +1068,7 @@ class GetVisitorResponse : public BT::SyncActionNode
         speak(treeNodeName);
         ros::Rate rate(1);
         ros::Time startTime = ros::Time::now();
-        auto blackboard = config().blackboard->rootBlackboard();
+        auto blackboard = config().blackboard;
         while (ros::ok()) {
             ros::spinOnce();
             if (isResponseReceived) {
@@ -1167,7 +1167,7 @@ class IsVisitorResponseYes : public BT::ConditionNode
         printMsg(INFO_MSG, treeNodeName + "Condition Node");
         speak(treeNodeName);
 
-        auto blackboard = config().blackboard->rootBlackboard();
+        auto blackboard = config().blackboard;
         std::string visitorResponse;
         if (blackboard->get("visitorResponse", visitorResponse)) {
             if (visitorResponse == "yes") {
@@ -1206,7 +1206,7 @@ class HasVisitorResponded : public BT::ConditionNode
         printMsg(INFO_MSG, treeNodeName + "Condition Node");
         speak(treeNodeName);
 
-        auto blackboard = config().blackboard->rootBlackboard();
+        auto blackboard = config().blackboard;
         std::string visitorResponse;
         if (blackboard->get("visitorResponse", visitorResponse)) {
             if (visitorResponse != "") {

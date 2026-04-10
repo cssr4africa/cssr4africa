@@ -7,7 +7,12 @@
   <img src="CSSR4AfricaLogo.svg" alt="CSSR4Africa Logo" style="width:50%; height:auto;">
 </div>
 
-The `textToSpeech` ROS node provides multilingual text-to-speech functionality for the Pepper robot within the CSSR4Africa project. This component enables the robot to speak in multiple languages including English and Kinyarwanda, supporting both built-in robot TTS capabilities and custom neural TTS models. The node exposes a ROS service interface that accepts text messages and language specifications, then generates and plays the corresponding speech audio through the robot's audio system.
+The `textToSpeech` ROS node provides multilingual text-to-speech functionality for the Pepper robot within the CSSR4Africa project. The node supports two languages and two neural TTS backends:
+
+- **English** — [XTTS v2](https://huggingface.co/coqui/XTTS-v2) by Coqui AI, a state-of-the-art multilingual voice-cloning model.
+- **Kinyarwanda** — A fine-tuned [YourTTS](https://github.com/coqui-ai/TTS) model trained specifically for Kinyarwanda.
+
+The communication interface (ROS service or ROS action server) and audio playback destination (robot or local machine) are both configurable at runtime via the configuration file. The node exposes its interface at `/textToSpeech/say_text`.
 
 # Documentation
 Accompanying this code is the deliverable report that provides a detailed explanation of the TTS system architecture, neural models, and implementation details. The deliverable report can be found in [D5.5.2.4 Text-to-Speech](https://cssr4africa.github.io/deliverables/CSSR4Africa_Deliverable_D5.5.2.4.pdf).
@@ -48,10 +53,8 @@ Accompanying this code is the deliverable report that provides a detailed explan
    # Activate the virtual environment
    source ~/workspace/pepper_rob_ws/src/cssr4africa_virtual_envs/cssr4africa_text_to_speech_env/bin/activate
 
-
    # Install required Python packages
    pip install -r $HOME/workspace/pepper_rob_ws/src/cssr4africa/cssr_system/text_to_speech/text_to_speech_requirements.txt
-
 
    # Configure ROS path in virtual environment
    echo "import sys; sys.path.append('/opt/ros/noetic/lib/python3/dist-packages')" > $(python -c "import site; print(site.getsitepackages()[0])")/sitecustomize.py
@@ -60,150 +63,237 @@ Accompanying this code is the deliverable report that provides a detailed explan
    sudo apt-get install sshpass
    ```
 
-   Verify the model files are in the `model/` directory:
+4. **Download TTS Model Files:**
+
+   The node requires two sets of model files: the Kinyarwanda YourTTS model and the English XTTS v2 model.
+
+   **Kinyarwanda YourTTS model:**
 
    ```bash
-   # Verify the models are in the models directory:
-   ls ~/workspace/pepper_rob_ws/src/cssr4africa/cssr_system/text_to_speech/model
-
-   # If there is no output, use the commands below to obtain the models:
-
-   # If git-lfs is already set up, skip this section
+   # If git-lfs is already set up, skip the install step
    sudo apt-get update && sudo apt-get install git-lfs
    cd && git lfs install
 
    # Clone the models from HuggingFace:
    git clone https://huggingface.co/cssr4africa/cssr4africa_models
 
-   # Copy the text-to-speech model to the 'model/' directory:
+   # Copy the Kinyarwanda model files to the model/ directory:
    mkdir -p ~/workspace/pepper_rob_ws/src/cssr4africa/cssr_system/text_to_speech/model
    unzip cssr4africa_models/text_to_speech/model.zip -d ~/workspace/pepper_rob_ws/src/cssr4africa/cssr_system/text_to_speech
    ```
 
-4. **Update Configuration File:**
+   Verify the Kinyarwanda model files are in place:
+
+   ```bash
+   ls ~/workspace/pepper_rob_ws/src/cssr4africa/cssr_system/text_to_speech/model
+   # Expected: model.pth  config.json  speakers.pth  SE_checkpoint.pth.tar  config_se.json  conditioning_audio.wav
+   ```
+
+   **English XTTS v2 model:**
+
+   ```bash
+   # Download the XTTS v2 model (requires ~2 GB of disk space)
+   pip install huggingface_hub
+   python3 -c "
+   from huggingface_hub import snapshot_download
+   snapshot_download(repo_id='coqui/XTTS-v2', local_dir=os.path.expanduser('~/models/v2.0.2'))
+   "
+   ```
+
+   Alternatively, download manually from https://huggingface.co/coqui/XTTS-v2 and place the files under `~/models/v2.0.2/`.
+
+   Expected contents of `~/models/v2.0.2/`:
+   ```
+   config.json   model.pth   vocab.json   speakers_xtts.pth   dvae.pth
+   ```
+
+5. **Update Configuration File:**
    
-   Navigate to the configuration file located at `~/workspace/pepper_rob_ws/src/cssr4africa/cssr_system/text_to_speech/config/text_to_speech_configuration.ini` and update the configuration according to the key-value pairs below:
+   Navigate to the configuration file located at:
+   `~/workspace/pepper_rob_ws/src/cssr4africa/cssr_system/text_to_speech/config/text_to_speech_configuration.ini`
+
+   Update the configuration according to the key-value pairs below:
 
    | Parameter | Description | Values |
    |-----------|-------------|---------|
-   | `language` | Default language for TTS | `english` or `kinyarwanda` |
+   | `language` | Default synthesis language when the request does not specify one | `english` or `kinyarwanda` |
+   | `interface` | ROS communication interface to expose | `service`, `action`, or `both` |
+   | `playback_mode` | Where synthesized audio is played | `naoqi` (robot) or `local` (this machine) |
    | `verboseMode` | Enable detailed logging | `True` or `False` |
-   | `ip` | Pepper robot IP address | e.g., `172.29.111.240` |
-   | `port` | Robot communication port | `9559` (default) |
-   | `useCuda` | Enable GPU acceleration | `True` or `False` |
+   | `ip` | Pepper robot IP address (used when `playback_mode = naoqi`) | e.g., `172.29.111.240` |
+   | `port` | Robot communication port (used when `playback_mode = naoqi`) | `9559` (default) |
+   | `useCuda` | Enable GPU acceleration for synthesis | `True` or `False` |
+   | `kinyarwandaModelPath` | Path to the Kinyarwanda YourTTS model directory | e.g., `/home/<user>/workspace/.../text_to_speech/model` |
+   | `englishModelPath` | Path to the XTTS v2 model directory | e.g., `/home/<user>/models/v2.0.2` |
+   | `englishSpeakerWav` | Speaker reference WAV for XTTS v2 voice cloning (optional) | Absolute path to a `.wav` file; leave empty to use the Kinyarwanda conditioning audio |
 
-5. **Make application files executable:**
+   **Interface options explained:**
 
-   ```bash
-   cd $HOME/workspace/pepper_rob_ws/src/cssr4africa/cssr_system/text_to_speech/src
-   chmod +x text_to_speech_application.py
-   
-   ```
+   | `interface` value | Effect |
+   |-------------------|--------|
+   | `service` | Exposes a ROS service at `/textToSpeech/say_text` (blocking call) |
+   | `action` | Exposes a ROS action server at `/textToSpeech/say_text` (non-blocking with feedback) |
+   | `both` | Exposes both simultaneously (useful during development) |
 
-   **Update Model Paths:**
+6. **Update Kinyarwanda model config.json paths:**
+
    Open the model configuration file:
    ```bash
    nano ~/workspace/pepper_rob_ws/src/cssr4africa/cssr_system/text_to_speech/model/config.json
    ```
    
-   Change the following paths:
-   - Line 226: Change to `/home/<user>/workspace/pepper_rob_ws/src/cssr4africa/cssr_system/text_to_speech/model/speakers.pth`, where `<user>` is your username
-   - Line 228: Update with the same path
-   - Line 280: Update with the same path
-   - Line 286: Update with the same path
+   Update the following lines to point to your `model/` directory:
+   - Line 226: path to `speakers.pth`
+   - Line 228: path to `speakers.pth`
+   - Line 280: path to `speakers.pth`
+   - Line 286: path to `speakers.pth`
 
-    <div style="background-color: #1e1e1e; padding: 15px; border-radius: 4px; border: 1px solid #404040; margin: 10px 0;">
-      <span style="color:   #ff3333; font-weight: bold;">NOTE: </span>
-      <span style="color: #cccccc;">If you need to update the configuration values, please refer to the <a href="https://cssr4africa.github.io/deliverables/CSSR4Africa_Deliverable_D5.5.2.4.pdf" style="color: #66b3ff;">D5.5.2.4 Text-to-Speech Component</a>. Otherwise, the recommended values are the ones already set in the configuration file. Ensure the robot IP address matches your Pepper robot's network configuration.</span>
-  </div>
+   Replace `<user>` with your Linux username in each path.
 
-6. **Run the `textToSpeech` from `cssr_system` package:**
+7. **Make application files executable:**
+
+   ```bash
+   cd $HOME/workspace/pepper_rob_ws/src/cssr4africa/cssr_system/text_to_speech/src
+   chmod +x text_to_speech_application.py
+   ```
+
+   <div style="background-color: #1e1e1e; padding: 15px; border-radius: 4px; border: 1px solid #404040; margin: 10px 0;">
+     <span style="color: #ff3333; font-weight: bold;">NOTE: </span>
+     <span style="color: #cccccc;">If you need to update the configuration values, please refer to the <a href="https://cssr4africa.github.io/deliverables/CSSR4Africa_Deliverable_D5.5.2.4.pdf" style="color: #66b3ff;">D5.5.2.4 Text-to-Speech Component</a>. Otherwise, the recommended values are the ones already set in the configuration file. Ensure the robot IP address matches your Pepper robot's network configuration.</span>
+   </div>
+
+8. **Run the `textToSpeech` node:**
    
-   Follow below steps, run in different terminals.
-    -  Source the workspace in first terminal:
-        ```bash
-          cd $HOME/workspace/pepper_rob_ws && source devel/setup.bash
-        ```
-    -  Launch the robot:
-        ```bash
-        roslaunch cssr_system cssrSystemLaunchRobot.launch robot_ip:=<robot_ip> roscore_ip:=<roscore_ip> network_interface:=<network_interface> launch_sensors:=false launch_actuators:=true
-        ```
-        <div style="background-color: #1e1e1e; padding: 15px; border-radius: 4px; border: 1px solid #404040; margin: 10px 0;">
-         <span style="color: #ff3333; font-weight: bold;">NOTE: </span>
-         <span style="color: #cccccc;">Ensure that the IP address <code>robot_ip</code> and the network interface <code>network_interface</code> are correctly set based on your robot's configuration and your computer's network interface. </span>
-        </div>
-    - Open a new terminal to launch the `textToSpeech` node:
-        ```bash
-          # Activate the virtual environment first
-          source ~/workspace/pepper_rob_ws/src/cssr4africa_virtual_envs/cssr4africa_text_to_speech_env/bin/activate
-          cd $HOME/workspace/pepper_rob_ws && source devel/setup.bash 
-          rosrun cssr_system text_to_speech_application.py
-        ```
+   Follow the steps below, each in a separate terminal.
 
-    **Alternative: Launch robot and TTS node simultaneously:**
-    ```bash
-    cd $HOME/workspace/pepper_rob_ws && source devel/setup.bash
-    roslaunch unit_tests text_to_speech_test_launch_robot.launch robot_ip:=<robot_ip> network_interface:=<network_interface>
-    roslaunch unit_tests text_to_speech_test_launch_test_harness.launch run_tests:=false
-    ```
+   - Source the workspace in the first terminal:
+       ```bash
+         cd $HOME/workspace/pepper_rob_ws && source devel/setup.bash
+       ```
+   - Launch the robot:
+       ```bash
+       roslaunch cssr_system cssrSystemLaunchRobot.launch robot_ip:=<robot_ip> roscore_ip:=<roscore_ip> network_interface:=<network_interface> launch_sensors:=false launch_actuators:=true
+       ```
+       <div style="background-color: #1e1e1e; padding: 15px; border-radius: 4px; border: 1px solid #404040; margin: 10px 0;">
+        <span style="color: #ff3333; font-weight: bold;">NOTE: </span>
+        <span style="color: #cccccc;">Ensure that <code>robot_ip</code> and <code>network_interface</code> are correctly set based on your robot's configuration and your computer's network interface.</span>
+       </div>
+   - Open a new terminal to launch the `textToSpeech` node:
+       ```bash
+         # Activate the virtual environment first
+         source ~/workspace/pepper_rob_ws/src/cssr4africa_virtual_envs/cssr4africa_text_to_speech_env/bin/activate
+         cd $HOME/workspace/pepper_rob_ws && source devel/setup.bash 
+         rosrun cssr_system text_to_speech_application.py
+       ```
+
+   **Alternative: Launch robot and TTS node simultaneously:**
+   ```bash
+   cd $HOME/workspace/pepper_rob_ws && source devel/setup.bash
+   roslaunch unit_tests text_to_speech_test_launch_robot.launch robot_ip:=<robot_ip> network_interface:=<network_interface>
+   roslaunch unit_tests text_to_speech_test_launch_test_harness.launch run_tests:=false
+   ```
 
 ## Simulator Robot
-Does not have a simulator part
+Does not have a simulator part.
 
 ## Executing Text-to-Speech Actions
-Upon launching the node, the hosted service (`/textToSpeech/say_text`) is available and ready to be invoked. This can be verified by running the following command in a new terminal:
+
+Upon launching the node, the configured interface becomes available at `/textToSpeech/say_text`. Verify it is running:
 
 ```bash
+# For service interface:
 rosservice list | grep /textToSpeech
+
+# For action interface:
+rostopic list | grep /textToSpeech
 ```
 
-The command below invokes the service to execute text-to-speech actions (run in a new terminal) with the request parameters defined below:
+---
+
+### Using the ROS Service (`interface = service`)
+
+The service uses the `cssr_system/TTS` message type:
+- **Request**: `string message`, `string language`
+- **Response**: `bool success`
 
 ```bash
-rosservice call /textToSpeech/say_text -- message language
+rosservice call /textToSpeech/say_text "{message: '<text>', language: '<language>'}"
 ```
 
-### Service Request Parameters
-#### 1. Message (message)
-- **Type**: `string`
-- **Description**: The text content to be synthesized and spoken by the robot
-- **Examples**: 
-  - `"Hello world"` - Simple English greeting
-  - `"How are you today?"` - English question
-  - `"Muraho"` - Kinyarwanda greeting
-  - `"Amakuru?"` - Kinyarwanda question
-
-#### 2. Language (language)
-- **`english`**: Uses the robot's built-in English TTS system for speech synthesis
-- **`kinyarwanda`**: Uses the custom neural TTS model for Kinyarwanda speech synthesis
-
-### Sample Invocations
-
-**English Examples:**
+**English examples:**
 ```bash
-# Method 1: Inline format with braces
 rosservice call /textToSpeech/say_text "{message: 'Hello world', language: 'english'}"
-
-# Method 2: Simple positional arguments
-rosservice call /textToSpeech/say_text "Hello, how are you?" "english"
+rosservice call /textToSpeech/say_text "{message: 'How are you today?', language: 'english'}"
 ```
 
-**Kinyarwanda Examples:**
+**Kinyarwanda examples:**
 ```bash
-# Question in Kinyarwanda
+rosservice call /textToSpeech/say_text "{message: 'Muraho', language: 'kinyarwanda'}"
 rosservice call /textToSpeech/say_text "{message: 'Amakuru?', language: 'kinyarwanda'}"
-
-# Longer sentence in Kinyarwanda
-rosservice call /textToSpeech/say_text "Muraho, ubu ni ubutumwa bwo kugenzura." "kinyarwanda"
 ```
 
-**Testing Different Languages:**
+---
+
+### Using the ROS Action Server (`interface = action`)
+
+The action server uses the `cssr_system/TTSAction` message type:
+- **Goal**: `string text`, `string language`
+- **Feedback**: `string status`, `float32 progress` (0.0 → 1.0)
+- **Result**: `bool success`, `string message`, `string audio_file_path`
+
+The action server is non-blocking: it publishes feedback during synthesis and playback, and allows preemption (cancellation).
+
+**Send a goal from the command line:**
 ```bash
-# Test language switching
-rosservice call /textToSpeech/say_text "This is English" "english"
-rosservice call /textToSpeech/say_text "Iyi ni Ikinyarwanda" "kinyarwanda"
-rosservice call /textToSpeech/say_text "Back to English" "english"
+# English
+rostopic pub --once /textToSpeech/say_text/goal cssr_system/TTSActionGoal \
+  "{goal: {text: 'Hello, I am Pepper.', language: 'english'}}"
+
+# Kinyarwanda
+rostopic pub --once /textToSpeech/say_text/goal cssr_system/TTSActionGoal \
+  "{goal: {text: 'Muraho, nishimye kugira ikiganiro nawe.', language: 'kinyarwanda'}}"
 ```
+
+**Monitor feedback and result:**
+```bash
+# In separate terminals:
+rostopic echo /textToSpeech/say_text/feedback
+rostopic echo /textToSpeech/say_text/result
+```
+
+**Send a goal from Python:**
+```python
+import rospy
+import actionlib
+from cssr_system.msg import TTSAction, TTSGoal
+
+rospy.init_node('tts_client')
+client = actionlib.SimpleActionClient('/textToSpeech/say_text', TTSAction)
+client.wait_for_server()
+
+goal = TTSGoal(text='Hello, I am Pepper.', language='english')
+client.send_goal(goal)
+client.wait_for_result()
+
+result = client.get_result()
+print(result.success, result.message)
+```
+
+---
+
+### Language and Interface Reference
+
+| Parameter | Value | Description |
+|-----------|-------|-------------|
+| `language` | `english` | Synthesized with XTTS v2 (22050 Hz output) |
+| `language` | `kinyarwanda` | Synthesized with fine-tuned YourTTS (16000 Hz output) |
+| `interface` | `service` | Blocking ROS service — waits until audio finishes playing |
+| `interface` | `action` | Non-blocking ROS action — publishes progress feedback |
+| `interface` | `both` | Both interfaces active simultaneously |
+| `playback_mode` | `naoqi` | Transfer WAV to robot via SSH, play with ALAudioPlayer |
+| `playback_mode` | `local` | Play on local machine via `paplay` |
+
+---
 
 ## Troubleshooting
 
@@ -213,37 +303,49 @@ rosservice call /textToSpeech/say_text "Back to English" "english"
    ```
    ERROR: Service [/textToSpeech/say_text] is not available.
    ```
-   **Solution**: Ensure the TTS node is running and the virtual environment is activated.
+   **Solution**: Ensure the TTS node is running and the virtual environment is activated. Check that `interface` is set to `service` or `both` in the configuration file.
 
-2. **Model file not found:**
+2. **Action server not available:**
    ```
-   Unable to load synthesizer: [Errno 2] No such file or directory
+   [ERROR] Failed to connect to action server /textToSpeech/say_text
    ```
-   **Solution**: Verify all model files are in the correct location and paths in config.json are updated.
+   **Solution**: Ensure `interface` is set to `action` or `both` in the configuration file and restart the node.
 
-3. **Robot connection issues:**
+3. **Kinyarwanda model file not found:**
    ```
-   Failed to send message to robot
+   Unable to load synthesizer: [Errno 2] No such file or directory: '.../model/config.json'
    ```
-   **Solution**: Check robot IP address, network connectivity, and ensure robot is powered on.
+   **Solution**: Verify all Kinyarwanda model files are in the `model/` directory and that `kinyarwandaModelPath` in the configuration file points to the correct location.
 
-4. **Virtual environment issues:**
+4. **English XTTS v2 model not found:**
+   ```
+   [Errno 2] No such file or directory: '.../models/v2.0.2/config.json'
+   ```
+   **Solution**: Download the XTTS v2 model (see step 4) and verify `englishModelPath` in the configuration file.
+
+5. **Robot connection / playback failure:**
+   ```
+   Error in say_text: Command '['/usr/bin/python2', 'send_and_play_audio.py', ...]' returned non-zero exit status 1.
+   ```
+   **Solution**: Check the robot IP address and network connectivity, ensure the robot is powered on, and verify `sshpass` is installed. To test synthesis without the robot, set `playback_mode = local`.
+
+6. **Virtual environment issues:**
    ```
    ModuleNotFoundError: No module named 'TTS'
    ```
-   **Solution**: Activate the virtual environment before running the TTS node.
+   **Solution**: Activate the virtual environment before running the node.
 
-5. **Python version conflicts:**
+7. **Python version conflicts:**
    ```
    TypeError: unsupported operand type(s)
    ```
-   **Solution**: Confirm you're using Python 3.10 with `python --version` in the virtual environment.
+   **Solution**: Confirm you are using Python 3.10 with `python --version` inside the virtual environment.
 
-6. **CUDA warnings:**
+8. **CUDA warnings:**
    ```
    CUDA requested but not available. Falling back to CPU.
    ```
-   **Solution**: Either install CUDA/PyTorch or set `useCuda = False` in configuration.
+   **Solution**: Either install CUDA/PyTorch with GPU support or set `useCuda = False` in the configuration file.
 
 ## 
 <div style="background-color: #1e1e1e; padding: 15px; border-radius: 4px; border: 1px solid #404040; margin: 10px 0;">
