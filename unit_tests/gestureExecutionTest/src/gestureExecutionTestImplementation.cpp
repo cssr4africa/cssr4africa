@@ -654,7 +654,7 @@ TEST_F(GestureExecutionUnitTest, TestIconicGestures) {
         
         // Execute iconic gesture by calling the gesture execution service with a system call and save the response from the service
         std::string output; 
-        string service_call = "rosservice call /gestureExecution/perform_gesture -- iconic " + gesture_ID + " 3000 45 -1.2 3 0.82";
+        string service_call = "rosservice call /gestureExecution/perform_gesture -- iconic " + gesture_ID + " '' '' 3000 45 -1.2 3 0.82";
         output = invoke_service(service_call.c_str());
 
         bool test_result = false;                   // Status of the test
@@ -711,10 +711,11 @@ TEST_F(GestureExecutionUnitTest, TestDiecticGestures) {
 
     // Set the deictic gestures point coordinates
     std::vector<vector<string>> point_coordinates = {
-        {"0.6", "5.1", "0.82"},
-        {"6.8", "4.8", "0.82"},
-        {"5.0", "1.8", "0.82"},
-        {"6.8", "9.6", "0.82"}
+        {"0.6", "5.1", "0.82", "PALM_UPWARDS", "either"},
+        {"0.6", "5.1", "0.82", "PALM_UPWARDS", "left"},
+        {"6.8", "4.8", "0.82", "PALM_UPWARDS", "either"},
+        {"5.0", "1.8", "0.82", "PALM_UPWARDS", "either"},
+        {"6.8", "9.6", "0.82", "PALM_UPWARDS", "either"}
     };
 
     for (int i = 0; i < point_coordinates.size(); i++) {
@@ -722,6 +723,8 @@ TEST_F(GestureExecutionUnitTest, TestDiecticGestures) {
         string point_x = point_coordinates[i][0];
         string point_y = point_coordinates[i][1];
         string point_z = point_coordinates[i][2];
+        string deicticShape = point_coordinates[i][3];
+        string arm = point_coordinates[i][4];
 
         // Publish the speech command
         speech_msg.data = "         X                                      " + point_x + "                                                                                                                  " + \
@@ -731,7 +734,7 @@ TEST_F(GestureExecutionUnitTest, TestDiecticGestures) {
 
         // Execute diectic gesture by calling the gesture execution service with a system call and save the response from the service
         std::string output; 
-        string service_call = "rosservice call /gestureExecution/perform_gesture -- deictic 02 3000 45 " + point_x + " " + point_y + " " + point_z;
+        string service_call = "rosservice call /gestureExecution/perform_gesture -- deictic 02 "+arm+" "+deicticShape+" 3000 45 " + point_x + " " + point_y + " " + point_z;
         output = invoke_service(service_call.c_str());
         ros::Duration(2).sleep();
 
@@ -792,7 +795,7 @@ TEST_F(GestureExecutionUnitTest, TestBowGestures) {
 
         // Execute bow gesture by calling the gesture execution service with a system call and save the response from the service
         std::string output;
-        string service_call = "rosservice call /gestureExecution/perform_gesture -- bow 02 2000 " + bow_angle + " 0 0 0";
+        string service_call = "rosservice call /gestureExecution/perform_gesture -- bow 02 '' '' 2000 " + bow_angle + " 0 0 0";
         output = invoke_service(service_call.c_str());
         ros::Duration(2).sleep();
 
@@ -852,7 +855,7 @@ TEST_F(GestureExecutionUnitTest, TestNodGestures) {
 
         // Execute nod gesture by calling the gesture execution service with a system call and save the response from the service
         std::string output;
-        string service_call = "rosservice call /gestureExecution/perform_gesture -- nod 02 2000 " + nod_angle + " 0 0 0";
+        string service_call = "rosservice call /gestureExecution/perform_gesture -- nod 02 '' '' 2000 " + nod_angle + " 0 0 0";
         output = invoke_service(service_call.c_str());
         ros::Duration(2).sleep();
 

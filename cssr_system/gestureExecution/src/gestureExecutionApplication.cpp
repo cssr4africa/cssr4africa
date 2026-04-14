@@ -244,6 +244,17 @@ int main(int argc, char **argv){
     // Start the action server
     as.start();
     ROS_INFO("Action server started. Waiting for goals..."); 
+    
+    
+    // Advertise the /gestureExecution/perform_gesture service
+    std::string perform_gesture_service_name = "/gestureExecution/perform_gesture";
+    ros::ServiceServer perform_gesture_service;                                                     // perform gesture service object
+    ROS_INFO("%s: advertising the %s service...", node_name.c_str(), perform_gesture_service_name.c_str());
+    while(ros::ok() && !perform_gesture_service){
+        perform_gesture_service = n.advertiseService(perform_gesture_service_name, execute_gesture);
+        ros::Duration(1).sleep();
+    }
+    ROS_INFO("%s: advertised the %s service...", node_name.c_str(), perform_gesture_service_name.c_str());
 
     // Print the node ready message after initialization complete
     ROS_INFO("%s: initialization complete...", node_name.c_str());
