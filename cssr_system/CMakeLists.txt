@@ -188,6 +188,13 @@ add_service_files(
 #   Action2.action
 # )
 
+add_action_files(
+  DIRECTORY
+  gestureExecution/action
+  FILES
+  gesture.action
+)
+
 ## Generate added messages and services with any dependencies listed here
 generate_messages(
   DEPENDENCIES
@@ -196,6 +203,7 @@ generate_messages(
   sensor_msgs
   std_msgs
   std_srvs
+  actionlib_msgs
 )
 
 ###################################
