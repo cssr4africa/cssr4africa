@@ -72,6 +72,11 @@
 * Email: ttefferi@andrew.cmu.edu
 * Date: April 08, 2025
 * Version: v1.0
+*
+* Author: Tsegazeab Taye Tefferi, Carnegie Mellon University Africa
+* Email: ttefferi@andrew.cmu.edu
+* Date: April 20, 2026
+* Version: v1.1
 * *
 */
 
@@ -136,22 +141,29 @@ int main(int argc, char** argv)
 
     /* List of services to check for life*/
     std::vector<std::string> services = {
-        "/animateBehaviour/setActivation",
+        // "/animateBehaviour/setActivation",
         "/gestureExecution/perform_gesture",
         "/overtAttention/set_mode",
         "/robotLocalization/set_pose",
         "/robotNavigation/set_goal",
         "/speechEvent/set_language",
-        "/speechEvent/set_enabled",
-        "/tabletEvent/prompt_and_get_response",
+        // "/speechEvent/set_enabled",
+        // "/tabletEvent/prompt_and_get_response",
         "/textToSpeech/say_text"
     };
     
     /* List of topics to check for life*/
     std::vector<std::string> topics = {
         "/overtAttention/mode",
-        "/speechEvent/text",
+        // "/speechEvent/text",
     };
+
+    std::vector<std::string> actions = {
+    "/gestureExecution/perform_gesture",
+    "/robotNavigation/set_goal",
+    "/textToSpeech/say_text",
+    "/speechEvent/recognise_speech_action"
+};
 
     /* If any of the services from above isn't alive, exit program */
     ROS_INFO_STREAM(nodeName<<": Checking Services...");
@@ -168,6 +180,14 @@ int main(int argc, char** argv)
         ROS_INFO_STREAM(nodeName<<": Checking Topics...");
     }
     ROS_INFO_STREAM(nodeName<<": All topics available");
+
+     /* If any of the action servers from above isn't alive, exit program */
+    ROS_INFO_STREAM(nodeName<<": Checking Actions...");
+    while(ros::ok()&&!checkActions(actions)){
+        ros::Duration(3).sleep();
+        ROS_INFO_STREAM(nodeName<<": Checking Actions...");
+    }
+    ROS_INFO_STREAM(nodeName<<": All actions available");
 
     /* Use the mission specification file to create the tree and initiate the mission*/
     tree = initializeTree(scenario);
