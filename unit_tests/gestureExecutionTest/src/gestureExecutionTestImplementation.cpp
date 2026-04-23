@@ -1,6 +1,7 @@
 /* gestureExecutionTestImplementationcpp
  *
- * Author: Adedayo Akinade
+ * Author: Adedayo Akinade, Carnegie Mellon University Africa
+ * Email: aakinade@andrew.cmu.edu
  * Date: January 10, 2025
  * Version: v1.0
  *

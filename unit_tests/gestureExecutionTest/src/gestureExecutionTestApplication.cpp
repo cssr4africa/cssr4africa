@@ -8,8 +8,10 @@
 * Website: www.cssr4africa.org
 *
 * This program comes with ABSOLUTELY NO WARRANTY.
+*/
+
+/* gestureExecutioTestApplication.cpp
 *
-* <detailed functional description>
 * This module is responsible for running the tests on the gesture execution module.
 * The tests are run using Google Test and the results are written to a file. 
 * The module tests the iconic, deictic, bow, nod, and symbolic gestures.
@@ -43,6 +45,7 @@
 * bow                         true
 * nod                         true
 * symbolic                    false
+* verboseMode                 true
 *
 *
 *
@@ -56,6 +59,15 @@
 * /pepper/cmd_vel                                               geometry_msgs/Twist
 *
 *
+...
+* Services Invoked
+*
+* /gestureExecution/perform_gesture
+*
+...
+* Services Advertised and Message Types
+*
+* None
 *
 ...
 * Input Data Files
@@ -82,9 +94,6 @@
 * Example Instantiation of the Module
 *
 * rosrun unit_tests gestureExecutionTest
-*
-*
-...
 *
 * The launch file for the gesture execution unit tests is gestureExecutionTestLaunchTestHarness.launch.
 *

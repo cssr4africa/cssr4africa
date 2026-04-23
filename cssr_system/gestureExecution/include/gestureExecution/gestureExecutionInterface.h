@@ -1,13 +1,14 @@
 /*  gestureExecutionInterface.h
  *
- * Author: Adedayo Akinade, Tsegazeab Tefferi
+ * Author: Adedayo Akinade, Carnegie Mellon University Africa
+ * Email: aakinade@andrew.cmu.edu
  * Date: January 10, 2025
  * Version: v1.0
  *
  * Author: Tsegazeab Tefferi, Carnegie Mellon University Africa
  * Email: ttefferi@andrew.cmu.edu
  * Date: April 15, 2026
- * Version: v1.0
+ * Version: v1.1
  *
  * Copyright (C) 2023 CSSR4Africa Consortium
  *

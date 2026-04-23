@@ -8,8 +8,10 @@
 * Website: www.cssr4africa.org
 *
 * This program comes with ABSOLUTELY NO WARRANTY.
+*/
+
+/* gestureExecutionApplication.cpp
 *
-* <detailed functional description>
 * This module is responsible for hosting the service that executes the gestures on the robot.
 * The module receives the gesture type, gesture ID, gesture duration, bow/nod angle,
 * and the location in the world to pay attention/point to in x, y, z coordinates.
@@ -74,16 +76,18 @@
 *
 * None
 ...
-* Advertised Service
+* Services Invoked
+*
+* /overtAttention/set_mode
+...
+* Services Advertised and Message Types
 *
 * /gestureExecution/perform_gesture
 *
 ...
-* Invoked Service
+* Action Servers
 *
-* /overtAttention/set_mode
-*
-*
+* /gestureExecution/perform_gesture
 *
 ...
 * Input Data Files
@@ -136,7 +140,7 @@
 * Author: Tsegazeab Tefferi, Carnegie Mellon University Africa
 * Email: ttefferi@andrew.cmu.edu
 * Date: April 15, 2026
-* Version: v1.0
+* Version: v1.1
 *
 */
 
