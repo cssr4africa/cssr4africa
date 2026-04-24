@@ -1,0 +1,5 @@
+float32 wait
+---
+string transcription
+---
+int8 progress

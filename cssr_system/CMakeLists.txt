@@ -12,6 +12,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   actionlib
+  actionlib_msgs
   angles
   aruco
   control_msgs
@@ -171,7 +172,6 @@ add_service_files(
   speech_event/srv
   FILES
   set_language.srv
-  set_enabled.srv
 )
   
 add_service_files(
@@ -182,15 +182,17 @@ add_service_files(
 )
 
 ## Generate actions in the 'action' folder
-# add_action_files(
-#   FILES
-#   Action1.action
-#   Action2.action
-# )
+add_action_files(
+  DIRECTORY
+  speech_event/action
+  FILES
+  recognise_speech.action
+)
 
 ## Generate added messages and services with any dependencies listed here
 generate_messages(
   DEPENDENCIES
+  actionlib_msgs
   geometry_msgs
   nav_msgs
   sensor_msgs
@@ -210,7 +212,7 @@ generate_messages(
 catkin_package(
   INCLUDE_DIRS animateBehaviour behaviorController gestureExecution mapGeneration overtAttention robotLocalization robotNavigation
   LIBRARIES ${PROJECT_NAME}
-  CATKIN_DEPENDS angles cv_bridge geometry_msgs image_transport message_runtime nav_msgs roscpp roslib rospy sensor_msgs std_msgs std_srvs tf tf2 tf2_ros trajectory_msgs
+  CATKIN_DEPENDS actionlib actionlib_msgs angles cv_bridge geometry_msgs image_transport message_runtime nav_msgs roscpp roslib rospy sensor_msgs std_msgs std_srvs tf tf2 tf2_ros trajectory_msgs
   DEPENDS OpenCV yaml-cpp
 )
 
