@@ -2,8 +2,8 @@
 *
 * Author:   Birhanu Shimelis Girma, Carnegie Mellon University Africa
 * Email:    bgirmash@andrew.cmu.edu
-* Date:     June 05, 2025
-* Version:  v1.0
+* Date:     April 05, 2026
+* Version:  v1.1
 *
 * Copyright (C) 2023 CSSR4Africa Consortium
 *

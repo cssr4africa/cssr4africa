@@ -1,33 +1,33 @@
 Robot Navigation Test Report: 
 ==========================================
-Date: 2025-07-17 17:59:25
-Environment Map: scenarioOneEnvironmentMap.dat
-Configuration Map: scenarioOneConfigMap.dat
+Date: 2026-04-07 17:51:31
+Environment Map: environmentMap.png
+Configuration Map: configurationSpaceMap.png
 Robot Topics: pepperTopics.dat
 Verbose Mode: true
-Test Method: Service-based testing
+Test Method: Service-based and Action-based testing
 
-BFS Path Planning Test 1: PASS
+BFS Path Planning Test 1: FAIL
 	Algorithm: BFS
 	Start: (2, 7.8, 270)
 	Goal: (2, 7, 270)
 
-Dijkstra Path Planning Test 1: PASS
+Dijkstra Path Planning Test 1: FAIL
 	Algorithm: Dijkstra
 	Start: (2, 7.8, 270)
 	Goal: (2.6, 7, 270)
 
-Dijkstra Path Planning Test 2: PASS
+Dijkstra Path Planning Test 2: FAIL
 	Algorithm: Dijkstra
 	Start: (2.6, 7, 270)
 	Goal: (2, 7, 45)
 
-A* Path Planning Test 1: PASS
+A* Path Planning Test 1: FAIL
 	Algorithm: A*
 	Start: (2, 7.8, 270)
 	Goal: (2.6, 7, 270)
 
-A* Path Planning Test 2: PASS
+A* Path Planning Test 2: FAIL
 	Algorithm: A*
 	Start: (2.6, 7, 270)
 	Goal: (2, 7, 90)
@@ -47,28 +47,30 @@ Boundary Test 4 (Goal: 0.000000, 0.000000): PASS
 Boundary Test 5 (Goal: 7.000000, 7.000000): PASS
 	Goal: (7, 7, 0)
 
-Service Test 1 (Goal: 2.000000, 7.000000, 0.000000): PASS
+Service Test 1 (Goal: 2.000000, 7.000000, 0.000000): FAIL
 	Service Call: /robotNavigation/set_goal
 	Goal: (2, 7, 0)
 
 bfs Performance Test:
-	Execution Time: 9792 ms
-	Path Found: Yes
-	Estimated Waypoints: 10
+	Execution Time: 7183 ms
+	Path Found: No
 
 dijkstra Performance Test:
-	Execution Time: 9749 ms
-	Path Found: Yes
-	Estimated Waypoints: 10
+	Execution Time: 7189 ms
+	Path Found: No
 
 astar Performance Test:
-	Execution Time: 9217 ms
-	Path Found: Yes
-	Estimated Waypoints: 10
+	Execution Time: 7213 ms
+	Path Found: No
+
+Set Pose Service Test: FAIL
+	Service: /robotNavigation/set_pose
+	Pose: (2.0, 7.8, 270.0)
 
 
 ==========================================
 Test Execution Summary
 ==========================================
-Overall Result: ALL TESTS PASSED
-Test report location: /home/user/workspace/pepper_rob_ws/src/cssr4africa/unit_tests/robotNavigationTest/data/robotNavigationTestOutput.dat
+Overall Result: SOME TESTS FAILED
+Failed test count: 1
+Test report location: /home/br/workspace/pepper_rob_ws/src/cssr4africa/unit_tests/robotNavigationTest/data/robotNavigationTestOutput.dat

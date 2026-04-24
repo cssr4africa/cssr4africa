@@ -1,0 +1,26 @@
+# setPose.action - Action definition for robot pose setting
+#
+# Author:  Birhanu Shimelis Girma, Carnegie Mellon University Africa
+# Email:   bgirmash@andrew.cmu.edu
+# Date:    February 05, 2026
+# Version: v1.0
+#
+# Copyright (C) 2023 CSSR4Africa Consortium
+#
+# This project is funded by the African Engineering and Technology Network (Afretec)
+# Inclusive Digital Transformation Research Grant Programme.
+#
+# Website: www.cssr4africa.org
+#
+# This program comes with ABSOLUTELY NO WARRANTY.
+
+# Goal definition
+float64 pose_x
+float64 pose_y
+float64 pose_theta
+---
+# Result definition
+uint8 pose_set_success
+---
+# Feedback definition
+string status

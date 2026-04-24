@@ -2,8 +2,8 @@
 *
 * Author:   Birhanu Shimelis Girma, Carnegie Mellon University Africa
 * Email:    bgirmash@andrew.cmu.edu
-* Date:     June 05, 2025
-* Version:  v1.0
+* Date:     April 05, 2026
+* Version:  v1.1
 *
 * Copyright (C) 2023 CSSR4Africa Consortium
 *
@@ -33,6 +33,7 @@ std::string environmentMapFile;
 std::string configurationMapFile;
 int pathPlanningAlgorithm;
 bool socialDistanceMode;
+double socialDistanceValue = 100.0;  // Passing distance value from cultureKnowledgeBaseInput.dat (in cm)
 std::string robot_topics;
 string topics_filename;
 bool verbose_mode;
@@ -59,6 +60,21 @@ std::string robot_type;
 std::string nodeName = "robotNavigation";
 Mat mapImage;
 Mat configurationSpaceImage;
+
+// ########################################################
+// Navigation mode variables
+std::string navigation_mode;
+
+// SLAM mode publishers
+ros::Publisher slam_goal_publisher;
+ros::Publisher slam_initialpose_publisher;
+
+// SLAM mode action client
+MoveBaseClient* move_base_client = nullptr;
+
+// SLAM navigation stack subprocess PID (-1 = not launched)
+pid_t navigation_stack_pid = -1;
+// ########################################################
 
 // Publisher for the velocity commands
 ros::Publisher navigation_velocity_publisher;
@@ -128,6 +144,67 @@ bool setGoal(cssr_system::setGoal::Request  &service_request, cssr_system::setGo
 
     x_goal = roundFloatingPoint(x_goal, 1);
     y_goal = roundFloatingPoint(y_goal, 1);
+
+    //####################################################
+    ROS_INFO("Navigation mode: %s", navigation_mode.c_str());
+    
+    // SLAM mode - use move_base action client to wait for goal completion
+    if (navigation_mode == "SLAM") {
+        ROS_INFO("Using SLAM navigation mode");
+        
+        // Check if action client is available
+        if (move_base_client == nullptr || !move_base_client->isServerConnected()) {
+            ROS_ERROR("move_base action server is not available. Cannot navigate.");
+            service_response.navigation_goal_success = 0;
+            return true;
+        }
+        
+        // Create the goal
+        move_base_msgs::MoveBaseGoal goal;
+        goal.target_pose.header.frame_id = "map";
+        goal.target_pose.header.stamp = ros::Time::now();
+        
+        goal.target_pose.pose.position.x = x_goal;
+        goal.target_pose.pose.position.y = y_goal;
+        goal.target_pose.pose.position.z = 0.0;
+        
+        // Convert angle to quaternion (theta_goal is already in radians from conversion above)
+        double yaw = theta_goal;
+        goal.target_pose.pose.orientation.x = 0.0;
+        goal.target_pose.pose.orientation.y = 0.0;
+        goal.target_pose.pose.orientation.z = sin(yaw / 2.0);
+        goal.target_pose.pose.orientation.w = cos(yaw / 2.0);
+        
+        ROS_INFO("Sending goal to move_base: (%.2f, %.2f, %.2f degrees)", x_goal, y_goal, degrees(theta_goal));
+        
+        // Send the goal
+        move_base_client->sendGoal(goal);
+        
+        // Wait for the result (300 seconds = 5 minutes timeout)
+        bool finished_before_timeout = move_base_client->waitForResult(ros::Duration(300.0));
+        
+        if (finished_before_timeout) {
+            actionlib::SimpleClientGoalState state = move_base_client->getState();
+            
+            if (state == actionlib::SimpleClientGoalState::SUCCEEDED) {
+                ROS_INFO("Goal reached successfully in SLAM mode!");
+                service_response.navigation_goal_success = 1;
+            } else {
+                ROS_WARN("Goal failed with state: %s", state.toString().c_str());
+                service_response.navigation_goal_success = 0;
+            }
+        } else {
+            ROS_WARN("Goal did not finish before timeout (300 seconds)");
+            move_base_client->cancelGoal();
+            service_response.navigation_goal_success = 0;
+        }
+        
+        return true;
+    }
+    
+    // CAD mode - use existing logic (EXISTING CODE CONTINUES HERE)
+    ROS_INFO("Using CAD navigation mode");
+    //####################################################
 
     // Check if goal is same as current position (within tolerance)
     double distance_to_goal = sqrt(pow(x_goal - current_x, 2) + pow(y_goal - current_y, 2));
@@ -465,7 +542,7 @@ void moveToPosition(ControlClientPtr& client, const std::vector<std::string>& jo
 }
 
 
-int readConfigurationFile(string* environmentMapFile, string* configurationMapFile, int* path_planning_algorithm, bool* socialDistanceMode, string* robot_topics, string* topics_filename, bool* debug_mode, string* robot_type) {
+int readConfigurationFile(string* environmentMapFile, string* configurationMapFile, int* path_planning_algorithm, bool* socialDistanceMode, string* robot_topics, string* topics_filename, bool* debug_mode, string* robot_type, string* navigationMode) {
     std::string config_file = "robotNavigationConfiguration.ini";       // data filename
     std::string config_path;                                            // data path
     std::string config_path_and_file;                                   // data path and filename
@@ -476,7 +553,8 @@ int readConfigurationFile(string* environmentMapFile, string* configurationMapFi
     std::string social_distance_mode_key = "socialDistance";            // x offset to head yaw key
     std::string robot_topics_key = "robotTopics";                       // robot topics key
     std::string verbose_mode_key = "verboseMode";                       // verbose mode key
-    std::string robot_type_key = "robotType";         
+    std::string robot_type_key = "robotType";     
+    std::string navigation_mode_key = "navigationMode";        
 
     std::string environment_map_file_value;                             // camera value
     std::string configuration_map_file_value;                           // realignment threshold value
@@ -484,7 +562,8 @@ int readConfigurationFile(string* environmentMapFile, string* configurationMapFi
     std::string social_distance_mode_value;                             // x offset to head yaw value
     std::string robot_topics_value;                                     // robot topics value
     std::string verbose_mode_value;                                     // verbose mode value
-    std::string robot_type_value;                     
+    std::string robot_type_value;  
+    std::string navigation_mode_value;                    
 
     // Construct the full path of the configuration file
     #ifdef ROS
@@ -586,6 +665,20 @@ int readConfigurationFile(string* environmentMapFile, string* configurationMapFi
             robot_type_value = param_value;
             *robot_type = param_value;
         }
+        else if (param_key == navigation_mode_key) {        
+            navigation_mode_value = param_value;
+            boost::algorithm::to_lower(param_value);
+            if(param_value == "cad") {
+                *navigationMode = "CAD";
+            }
+            else if(param_value == "slam") {
+                *navigationMode = "SLAM";
+            }
+            else {
+                printf("Navigation mode value not supported. Supported values are: CAD and SLAM. Using default CAD.\n");
+                *navigationMode = "CAD";
+            }
+        }
     }
     data_if.close();
 
@@ -607,7 +700,7 @@ int readConfigurationFile(string* environmentMapFile, string* configurationMapFi
 }
 
 /* Print the overt attention configuration */
-void printConfiguration(string environmentMapFile, string configurationMapFile, int pathPlanningAlgorithm, bool socialDistanceMode, string robot_topics, string topics_filename, bool debug_mode, string robot_type){
+void printConfiguration(string environmentMapFile, string configurationMapFile, int pathPlanningAlgorithm, bool socialDistanceMode, string robot_topics, string topics_filename, bool debug_mode, string robot_type, string navigation_mode){
     extern std::string nodeName;    
     ROS_INFO("%s: Environment Map File: %s", nodeName.c_str(), environmentMapFile.c_str());
     ROS_INFO("%s: Configuration Map File: %s", nodeName.c_str(), configurationMapFile.c_str());
@@ -621,6 +714,7 @@ void printConfiguration(string environmentMapFile, string configurationMapFile, 
     ROS_INFO("%s: Topics Filename: %s", nodeName.c_str(), topics_filename.c_str());
     ROS_INFO("%s: Verbose Mode: %s", nodeName.c_str(), debug_mode ? "true" : "false");
     ROS_INFO("%s: Robot Type: %s", nodeName.c_str(), robot_type.c_str());
+    ROS_INFO("%s: Navigation Mode: %s", nodeName.c_str(), navigation_mode.c_str());
 }
 
 /******************************************************************************
@@ -3308,7 +3402,7 @@ void moveRobotActuatorsToDefault(){
       
       // Create a control client for the leg
       std::string leg_topic;
-      leg_topic = "//pepper_dcm/Pelvis_controller/follow_joint_trajectory";
+      leg_topic = "/pepper_dcm/Pelvis_controller/follow_joint_trajectory";
       ControlClientPtr leg_client = createClient(leg_topic);
 
       if(leg_client == nullptr){
@@ -3402,4 +3496,612 @@ void moveOneActuatorToPosition(ControlClientPtr& client, const std::vector<std::
     // Send the goal to move the actuator to the specified position
     client->sendGoal(goal);
     client->waitForResult(ros::Duration(duration));                     // Wait for the actuator to reach the specified position
+}
+
+
+
+
+// NEW SLAM MODE FUNCTIONS - ADD THIS ENTIRE SECTION AT THE END OF THE FILE
+
+/* New setPose service callback for SLAM mode */
+bool setPose(cssr_system::setGoal::Request  &service_request, cssr_system::setGoal::Response &service_response){
+    double pose_x = service_request.goal_x;
+    double pose_y = service_request.goal_y; 
+    double pose_theta = service_request.goal_theta;
+
+    // ROS_INFO("Setting robot pose to: x=%.2f, y=%.2f, theta=%.2f", pose_x, pose_y, pose_theta);
+
+    if (navigation_mode == "SLAM") {
+        publishSlamInitialPose(pose_x, pose_y, pose_theta);
+        ROS_INFO("Pose forwarded to ROS navigation stack initialpose topic");
+    } else {
+        ROS_INFO("CAD mode - pose setting handled by robotLocalization");
+    }
+
+    service_response.navigation_goal_success = 1;
+    return true;
+}
+
+/* Publish goal to move_base_simple/goal topic */
+void publishSlamGoal(double goal_x, double goal_y, double goal_theta) {
+    geometry_msgs::PoseStamped goal_msg;
+    
+    goal_msg.header.stamp = ros::Time::now();
+    goal_msg.header.frame_id = "map";
+    
+    goal_msg.pose.position.x = goal_x;
+    goal_msg.pose.position.y = goal_y;
+    goal_msg.pose.position.z = 0.0;
+    
+    // Convert angle to quaternion
+    double yaw = radians(goal_theta);
+    goal_msg.pose.orientation.x = 0.0;
+    goal_msg.pose.orientation.y = 0.0;
+    goal_msg.pose.orientation.z = sin(yaw / 2.0);
+    goal_msg.pose.orientation.w = cos(yaw / 2.0);
+    
+    slam_goal_publisher.publish(goal_msg);
+    ROS_INFO("Published goal to move_base_simple/goal: (%.2f, %.2f, %.2f)", goal_x, goal_y, goal_theta);
+}
+
+/* Publish initial pose to initialpose topic */
+void publishSlamInitialPose(double pose_x, double pose_y, double pose_theta) {
+    geometry_msgs::PoseWithCovarianceStamped pose_msg;
+    
+    pose_msg.header.stamp = ros::Time::now();
+    pose_msg.header.frame_id = "map";
+    
+    pose_msg.pose.pose.position.x = pose_x;
+    pose_msg.pose.pose.position.y = pose_y;
+    pose_msg.pose.pose.position.z = 0.0;
+    
+    // Convert angle to quaternion
+    double yaw = radians(pose_theta);
+    pose_msg.pose.pose.orientation.x = 0.0;
+    pose_msg.pose.pose.orientation.y = 0.0;
+    pose_msg.pose.pose.orientation.z = sin(yaw / 2.0);
+    pose_msg.pose.pose.orientation.w = cos(yaw / 2.0);
+    
+    // Set covariance (you can adjust these values)
+    pose_msg.pose.covariance[0] = 0.25;   // x
+    pose_msg.pose.covariance[7] = 0.25;   // y  
+    pose_msg.pose.covariance[35] = 0.068; // yaw
+    
+    slam_initialpose_publisher.publish(pose_msg);
+    ROS_INFO("Published initial pose to initialpose: (%.2f, %.2f, %.2f)", pose_x, pose_y, pose_theta);
+}
+
+
+/***************************************************************************************************************************
+
+   ACTION-BASED FUNCTIONS
+   These functions provide non-blocking navigation with feedback and preemption support.
+   They complement the service-based interface above.
+
+****************************************************************************************************************************/
+
+/***************************************************************************************************************************
+
+   Action callback function for setGoal action
+
+   This function is called when a new goal is received on the /robotNavigation/set_goal action.
+   It handles both SLAM and CAD navigation modes with feedback support.
+
+****************************************************************************************************************************/
+
+void setGoalActionCallback(const cssr_system::setGoalGoalConstPtr &goal,
+                           actionlib::SimpleActionServer<cssr_system::setGoalAction>* action_server) {
+    // Extract goal parameters
+    x_goal = goal->goal_x;
+    y_goal = goal->goal_y;
+    theta_goal = goal->goal_theta;
+    theta_goal = radians(theta_goal);
+
+    x_goal = roundFloatingPoint(x_goal, 1);
+    y_goal = roundFloatingPoint(y_goal, 1);
+
+    ROS_INFO("Navigation mode: %s", navigation_mode.c_str());
+
+    // Initialize result
+    cssr_system::setGoalResult result;
+    result.navigation_goal_success = 0;
+    result.final_x = current_x;
+    result.final_y = current_y;
+    result.final_theta = degrees(current_theta);
+
+    // SLAM mode - use move_base action client with feedback
+    if (navigation_mode == "SLAM") {
+        ROS_INFO("Using SLAM navigation mode");
+
+        if (move_base_client == nullptr || !move_base_client->isServerConnected()) {
+            ROS_ERROR("move_base action server is not available. Cannot navigate.");
+            result.navigation_goal_success = 0;
+            action_server->setAborted(result, "move_base action server not available");
+            return;
+        }
+
+        int navigation_result = executeSlamNavigationWithFeedback(x_goal, y_goal, theta_goal, action_server);
+
+        result.navigation_goal_success = navigation_result;
+        result.final_x = current_x;
+        result.final_y = current_y;
+        result.final_theta = degrees(current_theta);
+
+        if (navigation_result == 1) {
+            action_server->setSucceeded(result, "Goal reached successfully in SLAM mode");
+        } else {
+            action_server->setAborted(result, "Failed to reach goal in SLAM mode");
+        }
+        return;
+    }
+
+    // CAD mode - use existing logic with action feedback
+    ROS_INFO("Using CAD navigation mode");
+
+    // Check if goal is same as current position (within tolerance)
+    double distance_to_goal = sqrt(pow(x_goal - current_x, 2) + pow(y_goal - current_y, 2));
+    double angle_difference = fabs(theta_goal - current_theta);
+
+    while (angle_difference > M_PI) angle_difference -= 2 * M_PI;
+    while (angle_difference < -M_PI) angle_difference += 2 * M_PI;
+    angle_difference = fabs(angle_difference);
+
+    if (distance_to_goal <= locomotionParameterData.position_tolerance_goal &&
+        angle_difference <= locomotionParameterData.angle_tolerance_orienting) {
+
+        ROS_INFO("Robot is already at the goal location within tolerance. Distance: %.3f m, Angle diff: %.3f degrees",
+                distance_to_goal, angle_difference);
+
+        robotPose[0] = current_x;
+        robotPose[1] = current_y;
+        robotPose[2] = degrees(current_theta);
+        writeRobotPoseInput(robotPose);
+
+        result.navigation_goal_success = 1;
+        result.final_x = current_x;
+        result.final_y = current_y;
+        result.final_theta = degrees(current_theta);
+        action_server->setSucceeded(result, "Already at goal location");
+        return;
+    }
+
+    // Check if pose topic is still available
+    if (!isPoseTopicAvailable()) {
+        ROS_ERROR("Navigation request rejected: /robotLocalization/pose topic is not available");
+        result.navigation_goal_success = 0;
+        action_server->setAborted(result, "Pose topic not available");
+        return;
+    }
+
+    // Check if we're receiving recent pose updates
+    ros::Time current_time = ros::Time::now();
+    if (!last_pose_update_time.isZero()) {
+        double time_since_last_pose = (current_time - last_pose_update_time).toSec();
+        if (time_since_last_pose > 3.0) {
+            ROS_ERROR("Navigation request rejected: No pose updates received in %.1f seconds", time_since_last_pose);
+            result.navigation_goal_success = 0;
+            action_server->setAborted(result, "No recent pose updates");
+            return;
+        }
+    }
+
+    x_start = current_x;
+    x_start = roundFloatingPoint(x_start, 1);
+    y_start = current_y;
+    y_start = roundFloatingPoint(y_start, 1);
+    theta_start = current_theta;
+
+    if(x_start > (double) x_map_size/100 || y_start > (double) y_map_size/100){
+        ROS_ERROR("Robot pose is outside the map");
+        result.navigation_goal_success = 0;
+        action_server->setAborted(result, "Robot pose outside map");
+        return;
+    }
+    if(x_goal > (double) x_map_size/100 || y_goal > (double) y_map_size/100){
+        ROS_ERROR("Goal location is outside the map");
+        result.navigation_goal_success = 0;
+        action_server->setAborted(result, "Goal location outside map");
+        return;
+    }
+
+    int navigation_goal_success = navigateToGoalWithFeedback(x_start, y_start, theta_start, x_goal, y_goal, theta_goal,
+                                                            pathPlanningAlgorithm, mapImage, configurationSpaceImage,
+                                                            navigation_velocity_publisher, verbose_mode, action_server);
+
+    if(navigation_goal_success == 1){
+        robotPose[0] = current_x;
+        robotPose[1] = current_y;
+        robotPose[2] = degrees(current_theta);
+        writeRobotPoseInput(robotPose);
+    }
+
+    result.navigation_goal_success = navigation_goal_success;
+    result.final_x = current_x;
+    result.final_y = current_y;
+    result.final_theta = degrees(current_theta);
+
+    if (navigation_goal_success == 1) {
+        action_server->setSucceeded(result, "Goal reached successfully");
+    } else if (action_server->isPreemptRequested()) {
+        action_server->setPreempted(result, "Navigation preempted");
+    } else {
+        action_server->setAborted(result, "Navigation failed");
+    }
+
+    ROS_INFO("Response from /robotNavigation/set_goal action: [%d]\n", navigation_goal_success);
+}
+
+/***************************************************************************************************************************
+
+   Action callback function for setPose action
+
+   This function is called when a new pose is received on the /robotNavigation/set_pose action.
+
+****************************************************************************************************************************/
+
+void setPoseActionCallback(const cssr_system::setPoseGoalConstPtr &goal,
+                           actionlib::SimpleActionServer<cssr_system::setPoseAction>* action_server) {
+    double pose_x = goal->pose_x;
+    double pose_y = goal->pose_y;
+    double pose_theta = goal->pose_theta;
+
+    cssr_system::setPoseResult result;
+    cssr_system::setPoseFeedback feedback;
+
+    feedback.status = "Setting robot pose...";
+    action_server->publishFeedback(feedback);
+
+    ROS_INFO("Setting robot pose to: x=%.2f, y=%.2f, theta=%.2f", pose_x, pose_y, pose_theta);
+
+    if (navigation_mode == "SLAM") {
+        feedback.status = "Publishing to SLAM initialpose topic...";
+        action_server->publishFeedback(feedback);
+
+        publishSlamInitialPose(pose_x, pose_y, pose_theta);
+        ROS_INFO("Pose forwarded to ROS navigation stack initialpose topic");
+
+        feedback.status = "Pose set successfully in SLAM mode";
+        action_server->publishFeedback(feedback);
+    } else {
+        feedback.status = "CAD mode - pose setting handled by robotLocalization";
+        action_server->publishFeedback(feedback);
+        ROS_INFO("CAD mode - pose setting handled by robotLocalization");
+    }
+
+    result.pose_set_success = 1;
+    action_server->setSucceeded(result, "Pose set successfully");
+}
+
+/***************************************************************************************************************************
+
+   Action-based navigation function with feedback support
+
+****************************************************************************************************************************/
+
+int navigateToGoalWithFeedback(double start_x, double start_y, double start_theta, double goal_x, double goal_y, double goal_theta,
+                               int pathPlanningAlgorithm, Mat mapImage, Mat configurationSpaceImage, ros::Publisher velocity_publisher, bool debug,
+                               actionlib::SimpleActionServer<cssr_system::setGoalAction>* action_server){
+   ros::Rate rate(PUBLISH_RATE);
+
+   int path_found = 0;
+   int robot_moved = 0;
+   path_found = planRobotPath(start_x, start_y, start_theta, goal_x, goal_y, goal_theta, pathPlanningAlgorithm, mapImage, configurationSpaceImage, debug);
+   if (path_found){
+      if(debug){
+         printf("Path found from (%5.3f %5.3f %5.3f) to (%5.3f %5.3f %5.3f)\n", start_x, start_y, degrees(start_theta), goal_x, goal_y, degrees(goal_theta));
+      }
+      robot_moved = moveRobotWithFeedback(start_x, start_y, start_theta, goal_x, goal_y, goal_theta, velocity_publisher, rate, debug, action_server);
+   }
+   return robot_moved;
+}
+
+/***************************************************************************************************************************
+
+   Action-based move robot function with feedback support
+
+****************************************************************************************************************************/
+
+int moveRobotWithFeedback(double start_x, double start_y, double start_theta, double goal_x, double goal_y, double goal_theta,
+                          ros::Publisher velocity_publisher, ros::Rate rate, bool debug,
+                          actionlib::SimpleActionServer<cssr_system::setGoalAction>* action_server) {
+
+    if (locomotionParameterData.robot_available == false) {
+        printf("No physical robot present\n");
+        return 0;
+    }
+
+    if (valid_waypoints.size() == 0) {
+        printf("No waypoints available for navigation\n");
+        return 0;
+    }
+
+    return executeSmoothWaypointNavigationWithFeedback(start_x, start_y, start_theta, goal_x, goal_y, goal_theta,
+                                                       velocity_publisher, rate, debug, action_server);
+}
+
+/***************************************************************************************************************************
+
+   Action-based smooth waypoint navigation with preemption and feedback support
+
+****************************************************************************************************************************/
+
+int executeSmoothWaypointNavigationWithFeedback(double start_x, double start_y, double start_theta,
+                                                double goal_x, double goal_y, double goal_theta,
+                                                ros::Publisher velocity_publisher, ros::Rate rate, bool debug,
+                                                actionlib::SimpleActionServer<cssr_system::setGoalAction>* action_server) {
+
+    geometry_msgs::Twist msg;
+    cssr_system::setGoalFeedback feedback;
+
+    const double WAYPOINT_APPROACH_RADIUS = 0.25;
+    const double WAYPOINT_CAPTURE_RADIUS = 0.15;
+    const double LOOKAHEAD_DISTANCE = 0.4;
+    const double MAX_LINEAR_VEL = locomotionParameterData.max_linear_velocity * 0.9;
+    const double MAX_ANGULAR_VEL = locomotionParameterData.max_angular_velocity * 0.9;
+    const double MIN_LINEAR_VEL = locomotionParameterData.min_linear_velocity;
+    const double MIN_ANGULAR_VEL = locomotionParameterData.min_angular_velocity;
+
+    int current_waypoint_idx = 0;
+    double current_linear_velocity = 0.0;
+    double current_angular_velocity = 0.0;
+    bool navigation_complete = false;
+
+    // Feedback timing
+    ros::Time last_feedback_time = ros::Time::now();
+    double feedback_interval = 1.0 / FEEDBACK_RATE;
+
+    auto getWaypointWorldCoords = [&](int idx) -> std::tuple<double, double, double> {
+        if (idx >= (int)valid_waypoints.size()) return std::make_tuple(goal_x, goal_y, goal_theta);
+
+        double world_x, world_y;
+        convertPixelToWorld(valid_waypoints[idx].x, valid_waypoints[idx].y, world_x, world_y,
+                          room_width, room_height, image_width, image_height);
+        return std::make_tuple(world_x, world_y, valid_waypoints[idx].theta);
+    };
+
+    if (debug) {
+        printf("Starting smooth waypoint navigation with %zu waypoints\n", valid_waypoints.size());
+    }
+
+    while (!navigation_complete && ros::ok()) {
+        ros::spinOnce();
+
+        // Check for preemption
+        if (action_server->isPreemptRequested()) {
+            ROS_INFO("Navigation preempted");
+            msg.linear.x = 0.0;
+            msg.angular.z = 0.0;
+            velocity_publisher.publish(msg);
+            return 0;
+        }
+
+        auto [target_x, target_y, target_theta] = getWaypointWorldCoords(current_waypoint_idx);
+
+        double distance_to_waypoint = sqrt(pow(target_x - current_x, 2) + pow(target_y - current_y, 2));
+        double distance_to_goal = sqrt(pow(goal_x - current_x, 2) + pow(goal_y - current_y, 2));
+
+        // Publish feedback at the specified rate
+        ros::Time current_time = ros::Time::now();
+        if ((current_time - last_feedback_time).toSec() >= feedback_interval) {
+            feedback.distance_remaining = distance_to_goal;
+            feedback.current_x = current_x;
+            feedback.current_y = current_y;
+            feedback.current_theta = degrees(current_theta);
+            action_server->publishFeedback(feedback);
+            last_feedback_time = current_time;
+        }
+
+        if (distance_to_waypoint < WAYPOINT_CAPTURE_RADIUS) {
+            current_waypoint_idx++;
+            if (current_waypoint_idx >= (int)valid_waypoints.size()) {
+                navigation_complete = true;
+                break;
+            }
+
+            if (debug) {
+                printf("Advanced to waypoint %d\n", current_waypoint_idx);
+            }
+            continue;
+        }
+
+        double lookahead_x = target_x;
+        double lookahead_y = target_y;
+        double lookahead_weight = 0.0;
+
+        if (current_waypoint_idx + 1 < (int)valid_waypoints.size() && distance_to_waypoint < WAYPOINT_APPROACH_RADIUS) {
+            auto [next_x, next_y, next_theta] = getWaypointWorldCoords(current_waypoint_idx + 1);
+
+            lookahead_weight = 1.0 - (distance_to_waypoint / WAYPOINT_APPROACH_RADIUS);
+            lookahead_weight = std::min(0.6, lookahead_weight);
+
+            lookahead_x = target_x * (1.0 - lookahead_weight) + next_x * lookahead_weight;
+            lookahead_y = target_y * (1.0 - lookahead_weight) + next_y * lookahead_weight;
+        }
+
+        double goal_direction = atan2(lookahead_y - current_y, lookahead_x - current_x);
+        double angle_error = goal_direction - current_theta;
+
+        while (angle_error > M_PI) angle_error -= 2 * M_PI;
+        while (angle_error < -M_PI) angle_error += 2 * M_PI;
+
+        double target_linear_vel = MAX_LINEAR_VEL;
+
+        double turn_factor = 1.0 - std::min(1.0, std::abs(angle_error) / (M_PI/3));
+        target_linear_vel *= (0.4 + 0.6 * turn_factor);
+
+        if (lookahead_weight < 0.3) {
+            double approach_factor = std::min(1.0, distance_to_waypoint / WAYPOINT_APPROACH_RADIUS);
+            target_linear_vel *= (0.5 + 0.5 * approach_factor);
+        }
+
+        target_linear_vel = std::max(target_linear_vel, MIN_LINEAR_VEL);
+
+        double target_angular_vel = locomotionParameterData.angle_gain_dq * angle_error;
+        target_angular_vel = std::max(std::min(target_angular_vel, MAX_ANGULAR_VEL), -MAX_ANGULAR_VEL);
+
+        if (std::abs(target_angular_vel) < MIN_ANGULAR_VEL && std::abs(angle_error) > 0.05) {
+            target_angular_vel = MIN_ANGULAR_VEL * ((target_angular_vel >= 0) ? 1 : -1);
+        }
+
+        double accel_limit = 0.15;
+        double angular_accel_limit = 0.2;
+
+        double linear_vel_diff = target_linear_vel - current_linear_velocity;
+        if (std::abs(linear_vel_diff) > accel_limit) {
+            current_linear_velocity += accel_limit * ((linear_vel_diff > 0) ? 1 : -1);
+        } else {
+            current_linear_velocity = target_linear_vel;
+        }
+
+        double angular_vel_diff = target_angular_vel - current_angular_velocity;
+        if (std::abs(angular_vel_diff) > angular_accel_limit) {
+            current_angular_velocity += angular_accel_limit * ((angular_vel_diff > 0) ? 1 : -1);
+        } else {
+            current_angular_velocity = target_angular_vel;
+        }
+
+        msg.linear.x = current_linear_velocity;
+        msg.angular.z = current_angular_velocity;
+        velocity_publisher.publish(msg);
+
+        rate.sleep();
+    }
+
+    if (navigation_complete) {
+        if (debug) {
+            printf("Executing final precision navigation to goal\n");
+        }
+
+        goToPoseDQ(goal_x, goal_y, goal_theta, locomotionParameterData, velocity_publisher, rate);
+    }
+
+    msg.linear.x = 0.0;
+    msg.angular.z = 0.0;
+    velocity_publisher.publish(msg);
+
+    // Final feedback
+    feedback.distance_remaining = 0.0;
+    feedback.current_x = current_x;
+    feedback.current_y = current_y;
+    feedback.current_theta = degrees(current_theta);
+    action_server->publishFeedback(feedback);
+
+    if (debug) {
+        printf("Smooth waypoint navigation completed successfully\n");
+    }
+
+    return 1;
+}
+
+/***************************************************************************************************************************
+
+   SLAM navigation with action feedback support
+
+****************************************************************************************************************************/
+
+int executeSlamNavigationWithFeedback(double goal_x, double goal_y, double goal_theta,
+                                      actionlib::SimpleActionServer<cssr_system::setGoalAction>* action_server) {
+    if (move_base_client == nullptr || !move_base_client->isServerConnected()) {
+        ROS_ERROR("move_base action server is not available. Cannot navigate.");
+        return 0;
+    }
+
+    move_base_msgs::MoveBaseGoal goal;
+    goal.target_pose.header.frame_id = "map";
+    goal.target_pose.header.stamp = ros::Time::now();
+
+    goal.target_pose.pose.position.x = goal_x;
+    goal.target_pose.pose.position.y = goal_y;
+    goal.target_pose.pose.position.z = 0.0;
+
+    double yaw = goal_theta;
+    goal.target_pose.pose.orientation.x = 0.0;
+    goal.target_pose.pose.orientation.y = 0.0;
+    goal.target_pose.pose.orientation.z = sin(yaw / 2.0);
+    goal.target_pose.pose.orientation.w = cos(yaw / 2.0);
+
+    ROS_INFO("Sending goal to move_base: (%.2f, %.2f, %.2f degrees)", goal_x, goal_y, degrees(goal_theta));
+
+    move_base_client->sendGoal(goal);
+
+    cssr_system::setGoalFeedback feedback;
+    ros::Time last_feedback_time = ros::Time::now();
+    double feedback_interval = 1.0 / FEEDBACK_RATE;
+
+    ros::Rate rate(10);
+    while (ros::ok()) {
+        if (action_server->isPreemptRequested()) {
+            ROS_INFO("SLAM navigation preempted");
+            move_base_client->cancelGoal();
+            return 0;
+        }
+
+        actionlib::SimpleClientGoalState state = move_base_client->getState();
+
+        if (state == actionlib::SimpleClientGoalState::SUCCEEDED) {
+            ROS_INFO("Goal reached successfully in SLAM mode!");
+            return 1;
+        } else if (state == actionlib::SimpleClientGoalState::ABORTED ||
+                   state == actionlib::SimpleClientGoalState::REJECTED ||
+                   state == actionlib::SimpleClientGoalState::LOST) {
+            ROS_WARN("Goal failed with state: %s", state.toString().c_str());
+            return 0;
+        }
+
+        ros::Time current_time = ros::Time::now();
+        if ((current_time - last_feedback_time).toSec() >= feedback_interval) {
+            double distance_to_goal = sqrt(pow(goal_x - current_x, 2) + pow(goal_y - current_y, 2));
+            feedback.distance_remaining = distance_to_goal;
+            feedback.current_x = current_x;
+            feedback.current_y = current_y;
+            feedback.current_theta = degrees(current_theta);
+            action_server->publishFeedback(feedback);
+            last_feedback_time = current_time;
+        }
+
+        ros::spinOnce();
+        rate.sleep();
+    }
+
+    return 0;
+}
+
+/***************************************************************************************************************************
+
+   Read passing distance from cultureKnowledgeBaseInput.dat
+
+   This function reads the passingDistance parameter from the behaviorController's
+   cultureKnowledgeBaseInput.dat file when socialDistance mode is enabled.
+
+****************************************************************************************************************************/
+
+int readPassingDistanceFromCultureKnowledgeBase(double* passingDistance) {
+    std::string culture_kb_path = ros::package::getPath(ROS_PACKAGE_NAME) +
+                                  "/behaviorController/data/cultureKnowledgeBaseInput.dat";
+
+    std::ifstream file(culture_kb_path);
+    if (!file.is_open()) {
+        ROS_WARN("Could not open cultureKnowledgeBaseInput.dat at: %s", culture_kb_path.c_str());
+        return 1;
+    }
+
+    std::string line;
+    while (std::getline(file, line)) {
+        std::istringstream iss(line);
+        std::string key;
+        if (iss >> key) {
+            if (key == "passingDistance") {
+                double value;
+                if (iss >> value) {
+                    *passingDistance = value;
+                    file.close();
+                    return 0;
+                }
+            }
+        }
+    }
+
+    file.close();
+    ROS_WARN("passingDistance parameter not found in cultureKnowledgeBaseInput.dat");
+    return 1;
 }
