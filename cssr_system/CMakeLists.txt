@@ -66,12 +66,7 @@ pkg_check_modules(JSONCPP jsoncpp)
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-add_message_files(
-  DIRECTORY
-  behaviorController/msg
-  FILES
-  overtAttentionMode.msg
-)
+
 
 add_message_files(
   DIRECTORY
@@ -124,20 +119,7 @@ add_service_files(
   setActivation.srv
 )
 
-add_service_files(
-  DIRECTORY
-  behaviorController/srv
-  FILES
-  animateBehaviorSetActivation.srv
-  gestureExecutionPerformGesture.srv
-  overtAttentionSetMode.srv
-  robotLocalizationSetPose.srv
-  robotNavigationSetGoal.srv
-  speechEventSetStatus.srv
-  speechEventSetLanguage.srv
-  tabletEventPromptAndGetResponse.srv
-  textToSpeechSayText.srv
-)
+
 
 add_service_files(
   DIRECTORY
@@ -212,7 +194,7 @@ generate_messages(
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-  INCLUDE_DIRS animateBehaviour behaviorController gestureExecution mapGeneration overtAttention robotLocalization robotNavigation
+  INCLUDE_DIRS animateBehaviour gestureExecution mapGeneration overtAttention robotLocalization robotNavigation
   LIBRARIES ${PROJECT_NAME}
   CATKIN_DEPENDS actionlib actionlib_msgs angles cv_bridge geometry_msgs image_transport message_runtime nav_msgs roscpp roslib rospy sensor_msgs std_msgs std_srvs tf tf2 tf2_ros trajectory_msgs
   DEPENDS OpenCV yaml-cpp
@@ -227,7 +209,7 @@ catkin_package(
 include_directories(
   include
   animateBehaviour/include
-  behaviorController/include
+
   gestureExecution/include
   mapGeneration/include
   overAttention/include
@@ -241,7 +223,7 @@ include_directories(
 )
 
 add_subdirectory(animateBehaviour)
-add_subdirectory(behaviorController)
+
 add_subdirectory(gestureExecution)
 add_subdirectory(mapGeneration)
 add_subdirectory(overtAttention)

@@ -4,8 +4,8 @@
 text_to_speech_application.py - ROS node for integrated multilingual text-to-speech
 
 Author:     Muhirwa Richard
-Date:       2025-04-18
-Version:    v2.0
+Date:       2026-04-27
+Version:    v1.1
 
 Copyright (C) 2023 CSSR4Africa Consortium
 

@@ -10,7 +10,7 @@
 The `textToSpeech` ROS node provides multilingual text-to-speech functionality for the Pepper robot within the CSSR4Africa project. The node supports two languages and two neural TTS backends:
 
 - **English** — [XTTS v2](https://huggingface.co/coqui/XTTS-v2) by Coqui AI, a state-of-the-art multilingual voice-cloning model.
-- **Kinyarwanda** — A fine-tuned [YourTTS](https://github.com/coqui-ai/TTS) model trained specifically for Kinyarwanda.
+- **Kinyarwanda** — A fine-tuned [YourTTS](https://github.com/coqui-ai/TTS) model trained specifically for Kinyarwanda .
 
 The communication interface (ROS service or ROS action server) and audio playback destination (robot or local machine) are both configurable at runtime via the configuration file. The node exposes its interface at `/textToSpeech/say_text`.
 
