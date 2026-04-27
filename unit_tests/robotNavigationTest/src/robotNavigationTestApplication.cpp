@@ -1,5 +1,10 @@
 /* robotNavigationTestApplication.cpp - robot navigation unit test ROS Node definition
 *
+* Author:  Birhanu Shimelis Girma, Carnegie Mellon University Africa
+* Email:   bgirmash@andrew.cmu.edu
+* Date:    June 05, 2025
+* Version: v1.0
+* 
 * Author:   Birhanu Shimelis Girma, Carnegie Mellon University Africa
 * Email:    bgirmash@andrew.cmu.edu
 * Date:     April 05, 2026
@@ -40,6 +45,11 @@
 *           serviceTests          |     true
 *           boundaryTests         |     true
 *           configurationTests    |     true
+*           algorithmComparison	  |     true
+*           actionTests			  |     true
+*           actionFeedbackTests	  |     true
+*           actionPreemptionTests |     true
+*           setPoseTests		  |     true
 *           verboseMode           |     true
 *
 * Subscribed Topics and Message Types
@@ -48,11 +58,14 @@
 * Published Topics and Message Types
 *       None
 *
-* Services Used
+* Services Invoked
 *       /robotNavigation/set_goal                                      cssr_system/setGoal
 *
 * Services Advertised and Message Types
 *       None
+*
+* Action servers:
+*      None
 *
 * Input Data Files
 *       astarAlgorithmInput.dat
@@ -71,8 +84,13 @@
 * Example Instantiation of the Module
 *       rosrun unit_tests robotNavigationTest
 *
-* The launch file for the robot navigation unit tests is robotNavigationLaunchTestHarness.launch.
+* The launch file for the robot navigation unit tests is robotNavigationLaunchTestHarness.launch
 *       roslaunch unit_tests robotNavigationLaunchTestHarness.launch
+*
+* Author:  Birhanu Shimelis Girma, Carnegie Mellon University Africa
+* Email:   bgirmash@andrew.cmu.edu
+* Date:    June 05, 2025
+* Version: v1.0
 *
 * Author:   Birhanu Shimelis Girma, Carnegie Mellon University Africa
 * Email:    bgirmash@andrew.cmu.edu

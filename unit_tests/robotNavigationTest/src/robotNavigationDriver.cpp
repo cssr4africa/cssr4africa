@@ -1,5 +1,10 @@
 /* robotNavigationDriver.cpp - a driver software that simulates robot localization
 *
+* Author:  Birhanu Shimelis Girma, Carnegie Mellon University Africa
+* Email:   bgirmash@andrew.cmu.edu
+* Date:    June 05, 2025
+* Version: v1.0
+* 
 * Author:   Birhanu Shimelis Girma, Carnegie Mellon University Africa
 * Email:    bgirmash@andrew.cmu.edu
 * Date:     April 05, 2026
