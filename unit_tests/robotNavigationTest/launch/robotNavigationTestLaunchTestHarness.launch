@@ -23,7 +23,7 @@
 
 <launch>
     <!-- Launch file parameters -->
-    <arg name="robot_ip" default="172.29.111.240" />
+    <arg name="robot_ip" default="172.29.111.230" />
     <arg name="launch_test" default="true" />
     <arg name="initial_robot_x" default="2.0" />
     <arg name="initial_robot_y" default="7.8" />

@@ -4,6 +4,11 @@
  * Email:   bgirmash@andrew.cmu.edu
  * Date:    June 05, 2025
  * Version: v1.0
+ * 
+ * Author:  Birhanu Shimelis Girma, Carnegie Mellon University Africa
+ * Email:   bgirmash@andrew.cmu.edu
+ * Date:    April 05, 2026
+ * Version: v1.1
  *
  * Copyright (C) 2023 CSSR4Africa Consortium
  *
@@ -46,6 +51,7 @@
  *          robotTopics           |     pepperTopics.dat
  *          verboseMode           |     true
  *          robotType             |     old
+ *          navigationMode        |     CAD
  *
  * Subscribed Topics and Message Types
  *      /robotLocalization/pose                 geometry_msgs/Pose2D
@@ -59,6 +65,10 @@
  *
  * Services Advertised and Message Types
  *      /robotNavigation/set_goal               cssr_system/setGoal
+ *
+ * Action servers:
+ *      /robotNavigation/set_goal
+ *      /robotNavigation/set_pose
  *
  * Input Data Files
  *      pepperTopics.dat - Contains topic names for robot actuators
@@ -87,9 +97,15 @@
  * Email:   bgirmash@andrew.cmu.edu
  * Date:    June 05, 2025
  * Version: v1.0
+ * 
+ * Author:  Birhanu Shimelis Girma, Carnegie Mellon University Africa
+ * Email:   bgirmash@andrew.cmu.edu
+ * Date:    April 05, 2026
+ * Version: v1.1
  */
 
 #include "robotNavigation/robotNavigationInterface.h"
+
 
 int main(int argc, char** argv) {
     // Initialize ROS
@@ -108,20 +124,55 @@ int main(int argc, char** argv) {
 
     ROS_INFO("%s: startup.", nodeName.c_str()); 
 
+    // Service servers (blocking interface for backward compatibility)
     ros::ServiceServer set_goal_service = nh.advertiseService("/robotNavigation/set_goal", setGoal);
-    ROS_INFO("%s: Goal Server Ready to receive requests.", nodeName.c_str());
+    ROS_INFO("%s: Goal Service Server Ready to receive requests.", nodeName.c_str());
 
+    ros::ServiceServer set_pose_service = nh.advertiseService("/robotNavigation/set_pose", setPose);
+    ROS_INFO("%s: Pose Service Server Ready to receive requests.", nodeName.c_str());
+
+    // Action servers (non-blocking interface with feedback and preemption)
+    actionlib::SimpleActionServer<cssr_system::setGoalAction> set_goal_action_server(
+        nh, "/robotNavigation/set_goal",
+        boost::bind(&setGoalActionCallback, _1, &set_goal_action_server),
+        false);
+
+    actionlib::SimpleActionServer<cssr_system::setPoseAction> set_pose_action_server(
+        nh, "/robotNavigation/set_pose",
+        boost::bind(&setPoseActionCallback, _1, &set_pose_action_server),
+        false);
+
+    set_goal_action_server.start();
+    ROS_INFO("%s: Goal Action Server Ready to receive requests.", nodeName.c_str());
+
+    set_pose_action_server.start();
+    ROS_INFO("%s: Pose Action Server Ready to receive requests.", nodeName.c_str());
+    
     // Read the configuration file
     int config_file_read = 0;
     topics_filename = robot_topics;
-    config_file_read = readConfigurationFile(&environmentMapFile, &configurationMapFile, &pathPlanningAlgorithm, &socialDistanceMode, &robot_topics, &topics_filename, &verbose_mode, &robot_type);
-    printConfiguration(environmentMapFile, configurationMapFile, pathPlanningAlgorithm, socialDistanceMode, robot_topics, topics_filename, verbose_mode, robot_type);
-    
+    config_file_read = readConfigurationFile(&environmentMapFile, &configurationMapFile, &pathPlanningAlgorithm, &socialDistanceMode, &robot_topics, &topics_filename, &verbose_mode, &robot_type, &navigation_mode);
+    printConfiguration(environmentMapFile, configurationMapFile, pathPlanningAlgorithm, socialDistanceMode, robot_topics, topics_filename, verbose_mode, robot_type, navigation_mode);
+
     // Check if the configuration file was read successfully
     if(config_file_read == 1){
         ROS_ERROR("Error reading the configuration file\n");
         return 0;
-    }   
+    }
+
+    // Read passing distance from cultureKnowledgeBaseInput.dat if socialDistance mode is enabled
+    if (socialDistanceMode) {
+        double passingDistance = 0.0;
+        int read_result = readPassingDistanceFromCultureKnowledgeBase(&passingDistance);
+        if (read_result == 0) {
+            socialDistanceValue = passingDistance;
+            ROS_INFO("%s: Social distance enabled - passing distance value: %.1f cm", nodeName.c_str(), socialDistanceValue);
+        } else {
+            ROS_WARN("%s: Social distance enabled but could not read passingDistance from cultureKnowledgeBaseInput.dat. Using default.", nodeName.c_str());
+        }
+    } else {
+        ROS_INFO("%s: Social distance mode disabled.", nodeName.c_str());
+    }
 
     /* Create a publisher object for velocity commands */
     /* ----------------------------------------------- */
@@ -138,7 +189,51 @@ int main(int argc, char** argv) {
     // navigation_pelvis_publisher = nh.advertise<trajectory_msgs::JointTrajectory>("/pepper_dcm/Pelvis_controller/command", 1000, true);
     navigation_pelvis_publisher = nh.advertise<naoqi_bridge_msgs::JointAnglesWithSpeed>("/joint_angles", 1000, true);
 
-    
+    // #####################################################
+    // SLAM mode publishers setup
+    if (navigation_mode == "SLAM") {
+        ROS_INFO("%s: Setting up SLAM mode", nodeName.c_str());
+
+        // Launch the navigation stack (map_server, amcl, move_base, rviz) as a subprocess
+        std::string slam_launch_path = ros::package::getPath(ROS_PACKAGE_NAME) +
+                                       "/robotNavigation/slam/launch/navigation.launch";
+        ROS_INFO("%s: Launching navigation stack from: %s", nodeName.c_str(), slam_launch_path.c_str());
+        navigation_stack_pid = fork();
+        if (navigation_stack_pid == 0) {
+            // Child process: launch the navigation stack
+            execlp("roslaunch", "roslaunch", slam_launch_path.c_str(), (char*)NULL);
+            // If execlp returns, it failed
+            perror("Failed to launch navigation stack");
+            _exit(1);
+        } else if (navigation_stack_pid < 0) {
+            ROS_ERROR("%s: Failed to fork navigation stack subprocess!", nodeName.c_str());
+        } else {
+            ROS_INFO("%s: Navigation stack launched (PID: %d)", nodeName.c_str(), navigation_stack_pid);
+        }
+
+        // Publishers for manual goal/pose setting (optional, can keep for compatibility)
+        slam_goal_publisher = nh.advertise<geometry_msgs::PoseStamped>("move_base_simple/goal", 1);
+        slam_initialpose_publisher = nh.advertise<geometry_msgs::PoseWithCovarianceStamped>("initialpose", 1);
+
+        // Initialize move_base action client
+        ROS_INFO("%s: Connecting to move_base action server...", nodeName.c_str());
+        move_base_client = new MoveBaseClient("move_base", true);
+
+        // Wait for the action server to come up with timeout (longer timeout to allow navigation stack to start)
+        ROS_INFO("%s: Waiting for move_base action server (timeout: 60 seconds)...", nodeName.c_str());
+        if (!move_base_client->waitForServer(ros::Duration(60.0))) {
+            ROS_ERROR("%s: move_base action server not available after 60 seconds!", nodeName.c_str());
+            ROS_ERROR("%s: SLAM navigation will not work. Check that pepper-ros-navigation is installed.", nodeName.c_str());
+            delete move_base_client;
+            move_base_client = nullptr;
+        } else {
+            ROS_INFO("%s: Successfully connected to move_base action server", nodeName.c_str());
+        }
+
+        ROS_INFO("%s: SLAM mode initialization complete", nodeName.c_str());
+    }
+
+    // #######################################################
 
     bool                 debug = true;
    
@@ -287,6 +382,28 @@ int main(int argc, char** argv) {
         ROS_INFO_THROTTLE(10, "%s: running.", nodeName.c_str());
         ros::spinOnce(); 
 
+    }
+
+    // Cleanup
+    if (move_base_client != nullptr) {
+        delete move_base_client;
+        move_base_client = nullptr;
+    }
+
+    // Shut down the navigation stack subprocess if it was launched
+    if (navigation_stack_pid > 0) {
+        ROS_INFO("%s: Shutting down navigation stack (PID: %d)...", nodeName.c_str(), navigation_stack_pid);
+        kill(navigation_stack_pid, SIGINT);
+        int status;
+        waitpid(navigation_stack_pid, &status, WNOHANG);
+        ros::Duration(2.0).sleep();
+        // Force kill if still running
+        if (waitpid(navigation_stack_pid, &status, WNOHANG) == 0) {
+            kill(navigation_stack_pid, SIGKILL);
+            waitpid(navigation_stack_pid, &status, 0);
+        }
+        ROS_INFO("%s: Navigation stack terminated.", nodeName.c_str());
+        navigation_stack_pid = -1;
     }
 
     return 0;

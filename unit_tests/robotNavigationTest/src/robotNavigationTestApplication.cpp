@@ -1,9 +1,14 @@
 /* robotNavigationTestApplication.cpp - robot navigation unit test ROS Node definition
 *
+* Author:  Birhanu Shimelis Girma, Carnegie Mellon University Africa
+* Email:   bgirmash@andrew.cmu.edu
+* Date:    June 05, 2025
+* Version: v1.0
+* 
 * Author:   Birhanu Shimelis Girma, Carnegie Mellon University Africa
 * Email:    bgirmash@andrew.cmu.edu
-* Date:     June 05, 2025
-* Version:  v1.0
+* Date:     April 05, 2026
+* Version:  v1.1
 *
 * Copyright (C) 2023 CSSR4Africa Consortium
 *
@@ -40,6 +45,11 @@
 *           serviceTests          |     true
 *           boundaryTests         |     true
 *           configurationTests    |     true
+*           algorithmComparison	  |     true
+*           actionTests			  |     true
+*           actionFeedbackTests	  |     true
+*           actionPreemptionTests |     true
+*           setPoseTests		  |     true
 *           verboseMode           |     true
 *
 * Subscribed Topics and Message Types
@@ -48,13 +58,17 @@
 * Published Topics and Message Types
 *       None
 *
-* Services Used
+* Services Invoked
 *       /robotNavigation/set_goal                                      cssr_system/setGoal
 *
 * Services Advertised and Message Types
 *       None
 *
+* Action servers:
+*      None
+*
 * Input Data Files
+*       actionNavigationInput.dat
 *       astarAlgorithmInput.dat
 *       bfsAlgorithmInput.dat
 *       boundaryTestInput.dat
@@ -71,13 +85,18 @@
 * Example Instantiation of the Module
 *       rosrun unit_tests robotNavigationTest
 *
-* The launch file for the robot navigation unit tests is robotNavigationLaunchTestHarness.launch.
+* The launch file for the robot navigation unit tests is robotNavigationLaunchTestHarness.launch
 *       roslaunch unit_tests robotNavigationLaunchTestHarness.launch
+*
+* Author:  Birhanu Shimelis Girma, Carnegie Mellon University Africa
+* Email:   bgirmash@andrew.cmu.edu
+* Date:    June 05, 2025
+* Version: v1.0
 *
 * Author:   Birhanu Shimelis Girma, Carnegie Mellon University Africa
 * Email:    bgirmash@andrew.cmu.edu
-* Date:     January 10, 2025
-* Version:  v1.0
+* Date:     April 05, 2026
+* Version:  v1.1
 *
 */
 
@@ -109,8 +128,8 @@ int main(int argc, char **argv) {
     
 
     // Set the contents of the robot navigation test configuration
-    string environmentMapFileConfig            = "scenarioOneEnvironmentMap.dat";
-    string configurationMapFileConfig          = "scenarioOneConfigMap.dat";
+    string environmentMapFileConfig            = "environmentMap.png";
+    string configurationMapFileConfig          = "configurationSpaceMap.png";
     string robotTopicsFilename                 = "pepperTopics.dat";
     string verboseModeInput                    = "true";
     bool verboseMode = false;
@@ -136,6 +155,36 @@ int main(int argc, char **argv) {
         ROS_WARN("%s: %s service not available - pose setting may not work properly", nodeName.c_str(), resetPoseServiceName.c_str());
     } else {
         ROS_INFO("%s: %s service available.", nodeName.c_str(), resetPoseServiceName.c_str());
+    }
+
+    // Check if the /robotNavigation/set_pose service is available
+    std::string setPoseServiceName = "/robotNavigation/set_pose";
+    if(!isServiceAvailable(setPoseServiceName)){
+        ROS_WARN("%s: %s service not available - set_pose tests may not work", nodeName.c_str(), setPoseServiceName.c_str());
+    } else {
+        ROS_INFO("%s: %s service available.", nodeName.c_str(), setPoseServiceName.c_str());
+    }
+
+    // Check if action topics are available
+    {
+        ros::master::V_TopicInfo master_topics;
+        ros::master::getTopics(master_topics);
+        bool goalActionFound = false;
+        bool poseActionFound = false;
+        for (const auto& topic : master_topics) {
+            if (topic.name == "/robotNavigation/set_goal/goal") goalActionFound = true;
+            if (topic.name == "/robotNavigation/set_pose/goal") poseActionFound = true;
+        }
+        if (goalActionFound) {
+            ROS_INFO("%s: /robotNavigation/set_goal action available.", nodeName.c_str());
+        } else {
+            ROS_WARN("%s: /robotNavigation/set_goal action not yet available - action tests may need to wait", nodeName.c_str());
+        }
+        if (poseActionFound) {
+            ROS_INFO("%s: /robotNavigation/set_pose action available.", nodeName.c_str());
+        } else {
+            ROS_WARN("%s: /robotNavigation/set_pose action not yet available - setPose action tests may need to wait", nodeName.c_str());
+        }
     }
 
     // Construct the full path of the test report file
@@ -165,7 +214,7 @@ int main(int argc, char **argv) {
             testReport << "Configuration Map: " << configurationMapFileConfig << "\n";
             testReport << "Robot Topics: " << robotTopicsFilename << "\n";
             testReport << "Verbose Mode: " << (verboseMode ? "true" : "false") << "\n";
-            testReport << "Test Method: Service-based testing\n\n";
+            testReport << "Test Method: Service-based and Action-based testing\n\n";
         }
         ROS_INFO("%s: Test report file '%s' created.", nodeName.c_str(), testReportPathAndFile.c_str());
         testReport.close();
@@ -209,6 +258,10 @@ int main(int argc, char **argv) {
     ROS_INFO("%s: Path Planning A* Test: %s", nodeName.c_str(), runPathPlanningAstarTest ? "enabled" : "disabled");
     ROS_INFO("%s: Service Tests: %s", nodeName.c_str(), runServiceTests ? "enabled" : "disabled");
     ROS_INFO("%s: Boundary Tests: %s", nodeName.c_str(), runBoundaryTests ? "enabled" : "disabled");
+    ROS_INFO("%s: Action Tests: %s", nodeName.c_str(), runActionTests ? "enabled" : "disabled");
+    ROS_INFO("%s: Action Feedback Tests: %s", nodeName.c_str(), runActionFeedbackTests ? "enabled" : "disabled");
+    ROS_INFO("%s: Action Preemption Tests: %s", nodeName.c_str(), runActionPreemptionTests ? "enabled" : "disabled");
+    ROS_INFO("%s: Set Pose Tests: %s", nodeName.c_str(), runSetPoseTests ? "enabled" : "disabled");
 
     // Print the node ready message after initialization complete
     ROS_INFO("%s: ready.", nodeName.c_str());
@@ -251,8 +304,8 @@ int main(int argc, char **argv) {
     }
 
     // Rewrite the configuration file to its default values
-    environmentMapFileConfig    = "scenarioOneEnvironmentMap.dat";
-    configurationMapFileConfig  = "scenarioOneConfigMap.dat";
+    environmentMapFileConfig    = "environmentMap.png";
+    configurationMapFileConfig  = "configurationSpaceMap.png";
     verboseModeInput            = "false";
     if(writeRobotNavigationTestConfiguration(environmentMapFileConfig, configurationMapFileConfig, robotTopicsFilename, verboseModeInput) != 0){
         ROS_ERROR("%s: error writing the robot navigation test configuration file.", nodeName.c_str());

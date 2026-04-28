@@ -20,6 +20,7 @@ find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   image_transport
   message_generation
+  move_base_msgs
   nav_msgs
   roscpp
   roslib
@@ -184,6 +185,14 @@ add_service_files(
 ## Generate actions in the 'action' folder
 add_action_files(
   DIRECTORY
+  robotNavigation/action
+  FILES
+  setGoal.action
+  setPose.action
+)
+
+add_action_files(
+  DIRECTORY
   speech_event/action
   FILES
   recognise_speech.action
@@ -212,7 +221,7 @@ generate_messages(
 catkin_package(
   INCLUDE_DIRS animateBehaviour behaviorController gestureExecution mapGeneration overtAttention robotLocalization robotNavigation
   LIBRARIES ${PROJECT_NAME}
-  CATKIN_DEPENDS actionlib actionlib_msgs angles cv_bridge geometry_msgs image_transport message_runtime nav_msgs roscpp roslib rospy sensor_msgs std_msgs std_srvs tf tf2 tf2_ros trajectory_msgs
+  CATKIN_DEPENDS actionlib actionlib_msgs angles cv_bridge geometry_msgs image_transport message_runtime move_base_msgs nav_msgs roscpp roslib rospy sensor_msgs std_msgs std_srvs tf tf2 tf2_ros trajectory_msgs
   DEPENDS OpenCV yaml-cpp
 )
 

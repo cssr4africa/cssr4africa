@@ -1,0 +1,32 @@
+# setGoal.action - Action definition for robot navigation goal setting
+#
+# Author:  Birhanu Shimelis Girma, Carnegie Mellon University Africa
+# Email:   bgirmash@andrew.cmu.edu
+# Date:    February 05, 2026
+# Version: v1.1
+#
+# Copyright (C) 2023 CSSR4Africa Consortium
+#
+# This project is funded by the African Engineering and Technology Network (Afretec)
+# Inclusive Digital Transformation Research Grant Programme.
+#
+# Website: www.cssr4africa.org
+#
+# This program comes with ABSOLUTELY NO WARRANTY.
+
+# Goal definition
+float64 goal_x
+float64 goal_y
+float64 goal_theta
+---
+# Result definition
+uint8 navigation_goal_success
+float64 final_x
+float64 final_y
+float64 final_theta
+---
+# Feedback definition
+float64 distance_remaining
+float64 current_x
+float64 current_y
+float64 current_theta

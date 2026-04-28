@@ -4,6 +4,11 @@
  * Email:   bgirmash@andrew.cmu.edu
  * Date:    June 05, 2025
  * Version: v1.0
+ * 
+ * Author:  Birhanu Shimelis Girma, Carnegie Mellon University Africa
+ * Email:   bgirmash@andrew.cmu.edu
+ * Date:    April 05, 2026
+ * Version: v1.1
  *
  * Copyright (C) 2023 CSSR4Africa Consortium
  *
@@ -51,6 +56,11 @@
 
 #include "cssr_system/setGoal.h"  // Include for the setGoal service
 #include "geometry_msgs/Pose2D.h"       // For geometry_msgs::Pose2D
+
+// Action server and action message includes
+#include <actionlib/server/simple_action_server.h>
+#include <cssr_system/setGoalAction.h>
+#include <cssr_system/setPoseAction.h>
 #include <boost/algorithm/string.hpp>
 #include <std_msgs/Float64.h>  // Include for publishing Float64 messages
 #include <fstream>
@@ -64,6 +74,10 @@
 
 #include <thread>
 #include <atomic>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
+#include <signal.h>
 
 #include <queue>
 #include <vector>
@@ -80,6 +94,13 @@
 #include <opencv2/opencv.hpp>
 #include <stack>
 
+#include <geometry_msgs/PoseStamped.h>
+#include <geometry_msgs/PoseWithCovarianceStamped.h>
+
+
+#include <actionlib/client/simple_action_client.h>
+#include <move_base_msgs/MoveBaseAction.h>
+
 using namespace std;
 using namespace cv;
 using namespace boost::algorithm;
@@ -92,7 +113,7 @@ using namespace boost::algorithm;
 #define ROS_PACKAGE_NAME    "cssr_system"              // Changed to cssr_system for integration
 
 // Software version
-#define SOFTWARE_VERSION                    "v1.0"
+#define SOFTWARE_VERSION                    "v1.1"
 /***************************************************************************************************************************
 
    General purpose definitions 
@@ -113,6 +134,8 @@ using namespace boost::algorithm;
 #define ASTAR    2
 #define DFS      3
 
+// Feedback publishing rate (Hz) for action-based navigation
+#define FEEDBACK_RATE 1.0
 
 extern std::string nodeName;   
 // Directory where the package is located
@@ -127,10 +150,28 @@ extern std::string environmentMapFile;
 extern std::string configurationMapFile;
 extern int pathPlanningAlgorithm;
 extern bool socialDistanceMode;
+extern double socialDistanceValue;  // Passing distance value from cultureKnowledgeBaseInput.dat (in cm)
 extern std::string robot_topics;
 extern string topics_filename;
 extern bool verbose_mode;
 extern std::string robot_type;
+
+//#######################################################
+// To add navigation mode related variables
+extern std::string navigation_mode;
+
+// SLAM mode publishers 
+extern ros::Publisher slam_goal_publisher;
+extern ros::Publisher slam_initialpose_publisher;
+
+// SLAM mode action client
+typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
+extern MoveBaseClient* move_base_client;
+
+// SLAM navigation stack subprocess PID (-1 = not launched)
+extern pid_t navigation_stack_pid;
+
+//#####################################################
 
 
 // Publisher for the velocity commands
@@ -287,13 +328,17 @@ double calculateOptimalApproachAngle(const std::vector<pointType>& path, int cur
 std::vector<waypointType> optimizeWaypointSequence(const std::vector<waypointType>& candidates, double min_turning_radius);
 
 // New smooth navigation function
-int executeSmoothWaypointNavigation(double start_x, double start_y, double start_theta, 
+int executeSmoothWaypointNavigation(double start_x, double start_y, double start_theta,
                                    double goal_x, double goal_y, double goal_theta,
                                    ros::Publisher velocity_publisher, ros::Rate rate, bool debug);
 
+// Action-based smooth navigation function with preemption and feedback support
+int executeSmoothWaypointNavigationWithFeedback(double start_x, double start_y, double start_theta,
+                                                double goal_x, double goal_y, double goal_theta,
+                                                ros::Publisher velocity_publisher, ros::Rate rate, bool debug,
+                                                actionlib::SimpleActionServer<cssr_system::setGoalAction>* action_server);
 
 
-                                   
 /***************************************************************************************************************************
 
    Function declarations for mapping between the world and map coordinates
@@ -327,6 +372,26 @@ void goToPoseMIMO   (double x, double y, double theta, locomotionParameterDataTy
 ****************************************************************************************************************************/
 
 bool setGoal(cssr_system::setGoal::Request  &service_request, cssr_system::setGoal::Response &service_response);
+
+/***************************************************************************************************************************
+// SLAM mode service callback function declaration
+
+****************************************************************************************************************************/
+
+bool setPose(cssr_system::setGoal::Request  &service_request, cssr_system::setGoal::Response &service_response);
+
+/***************************************************************************************************************************
+
+   Action server callback function declarations
+
+****************************************************************************************************************************/
+
+void setGoalActionCallback(const cssr_system::setGoalGoalConstPtr &goal,
+                           actionlib::SimpleActionServer<cssr_system::setGoalAction>* action_server);
+
+void setPoseActionCallback(const cssr_system::setPoseGoalConstPtr &goal,
+                           actionlib::SimpleActionServer<cssr_system::setPoseAction>* action_server);
+
 
 /***************************************************************************************************************************
 
@@ -377,9 +442,22 @@ int extractTopic(string key, string topic_file_name, string *topic_name);
 void moveToPosition(ControlClientPtr& client, const std::vector<std::string>& joint_names, double duration, 
                         bool open_hand, string hand, string hand_topic, 
                         const std::string& position_name, std::vector<double> positions);
-int readConfigurationFile(string* environmentMapFile, string* configurationMapFile, int* pathPlanningAlgorithm, bool* socialDistanceMode, string* robot_topics, string* topics_filename, bool* debug_mode, string* robot_type);
+int readConfigurationFile(string* environmentMapFile, string* configurationMapFile, int* pathPlanningAlgorithm, bool* socialDistanceMode, string* robot_topics, string* topics_filename, bool* debug_mode, string* robot_type, string* navigation_mode);
 
-void printConfiguration(string environmentMapFile, string configurationMapFile, int pathPlanningAlgorithm, bool socialDistanceMode, string robot_topics, string topics_filename, bool debug_mode, string robot_type);
+void printConfiguration(string environmentMapFile, string configurationMapFile, int pathPlanningAlgorithm, bool socialDistanceMode, string robot_topics, string topics_filename, bool debug_mode, string robot_type, string navigation_mode);
+
+// #######################################################
+// SLAM mode utility functions
+void publishSlamGoal(double goal_x, double goal_y, double goal_theta);
+
+void publishSlamInitialPose(double pose_x, double pose_y, double pose_theta);
+
+int executeSlamNavigation(double goal_x, double goal_y, double goal_theta);
+
+// SLAM navigation with action feedback support
+int executeSlamNavigationWithFeedback(double goal_x, double goal_y, double goal_theta,
+                                      actionlib::SimpleActionServer<cssr_system::setGoalAction>* action_server);
+// #######################################################
 
 void saveWaypointMap(vector<int> compressionParams, Mat mapImageLarge, string fileName);
 
@@ -397,11 +475,21 @@ void stabilizeWaistContinuously();
 
 int navigateToGoal(double start_x, double start_y, double start_theta, double goal_x, double goal_y, double goal_theta, int pathPlanningAlgorithm, Mat mapImage, Mat configurationSpaceImage, ros::Publisher velocity_publisher, bool debug);
 
+// Action-based navigation function with feedback support
+int navigateToGoalWithFeedback(double start_x, double start_y, double start_theta, double goal_x, double goal_y, double goal_theta,
+                               int pathPlanningAlgorithm, Mat mapImage, Mat configurationSpaceImage, ros::Publisher velocity_publisher, bool debug,
+                               actionlib::SimpleActionServer<cssr_system::setGoalAction>* action_server);
+
 ControlClientPtr createClient(const std::string& topic_name);
 
 int goToHome(std::string actuator, std::string topics_filename, bool debug);
 
 int moveRobot(double start_x, double start_y, double start_theta, double goal_x, double goal_y, double goal_theta, ros::Publisher velocity_publisher, ros::Rate rate, bool debug);
+
+// Action-based move robot function with feedback support
+int moveRobotWithFeedback(double start_x, double start_y, double start_theta, double goal_x, double goal_y, double goal_theta,
+                          ros::Publisher velocity_publisher, ros::Rate rate, bool debug,
+                          actionlib::SimpleActionServer<cssr_system::setGoalAction>* action_server);
 
 /*
  *   Function to round a doubleing point number to a specified number of decimal places
@@ -475,4 +563,8 @@ void moveOneActuatorToPosition(ControlClientPtr& client, const std::vector<std::
 ControlClientPtr createClient(const std::string& topic_name) ;
 
 void moveRobotActuatorsToDefault();
+
+// Read passing distance from cultureKnowledgeBaseInput.dat
+int readPassingDistanceFromCultureKnowledgeBase(double* passingDistance);
+
 #endif // ROBOT_NAVIGATION_H

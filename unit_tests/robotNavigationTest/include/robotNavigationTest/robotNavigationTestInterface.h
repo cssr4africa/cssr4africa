@@ -1,9 +1,14 @@
 /* robotNavigationTestInterface.h - robot navigation unit test interfaceing and library importing that help the unit test ROS Node.
 *
+* Author:  Birhanu Shimelis Girma, Carnegie Mellon University Africa
+* Email:   bgirmash@andrew.cmu.edu
+* Date:    June 05, 2025
+* Version: v1.0
+*
 * Author:   Birhanu Shimelis Girma, Carnegie Mellon University Africa
 * Email:    bgirmash@andrew.cmu.edu
-* Date:     June 05, 2025
-* Version:  v1.0
+* Date:     April 05, 2026
+* Version:  v1.1
 *
 * Copyright (C) 2023 CSSR4Africa Consortium
 *
@@ -55,7 +60,7 @@
 #include <opencv2/opencv.hpp>
 
 // Test-specific constants
-#define SOFTWARE_VERSION                "v1.0"
+#define SOFTWARE_VERSION                "v1.1"
 #define INITIALIZATION_INFO_PERIOD      5.0
 #define ROS_PACKAGE_NAME                "unit_tests"
 #define CSSR_SYSTEM_PACKAGE_NAME        "cssr_system"
@@ -84,6 +89,10 @@ extern bool runServiceTests;
 extern bool runBoundaryTests;
 extern bool runConfigurationTests;
 extern bool runAlgorithmComparisonTest;
+extern bool runActionTests;
+extern bool runActionFeedbackTests;
+extern bool runActionPreemptionTests;
+extern bool runSetPoseTests;
 
 extern std::string nodeName;
 
@@ -121,6 +130,7 @@ void logPathPlanningTestResult(const std::string& testName, const std::string& a
 void logBoundaryTestResult(const std::string& testName, double goalX, double goalY, double goalTheta, bool result);
 void logServiceTestResult(const std::string& testName, double goalX, double goalY, double goalTheta, bool result);
 void logPerformanceTestResult(const std::string& algorithm, int executionTimeMs, bool pathFound, int waypointCount);
+void logActionTestResult(const std::string& testName, double goalX, double goalY, double goalTheta, bool result);
 
 // Utility function for string trimming
 inline void trim(std::string &s) {
@@ -142,9 +152,11 @@ protected:
     bool validateTestEnvironment();
     void waitForSystemReady(double timeout = 5.0);
     bool performBasicNavigationTest(double goalX, double goalY, double goalTheta);
-    bool testAlgorithmViaService(const std::string& algorithm, 
+    bool testAlgorithmViaService(const std::string& algorithm,
                                 double startX, double startY, double startTheta,
                                 double goalX, double goalY, double goalTheta);
+    bool performActionNavigationTest(double goalX, double goalY, double goalTheta);
+    bool isActionTopicAvailable(const std::string& actionName);
 };
 
 
