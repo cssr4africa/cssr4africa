@@ -77,7 +77,7 @@ The following entries must be present in `cssr_system/package.xml` for the SLAM 
 
 ### Installing Dependencies
 
-The following ROS packages are required but are **not** included in `ros-noetic-desktop-full` or the current CSSR4Africa Software Installation Manual (D3.3). They must be installed explicitly:
+The following ROS packages are required but are **not** included in `ros-noetic-desktop-full`. They must be installed explicitly:
 
 ```bash
 sudo apt-get install ros-noetic-navigation ros-noetic-teb-local-planner

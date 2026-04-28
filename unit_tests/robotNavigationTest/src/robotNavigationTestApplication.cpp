@@ -68,6 +68,7 @@
 *      None
 *
 * Input Data Files
+*       actionNavigationInput.dat
 *       astarAlgorithmInput.dat
 *       bfsAlgorithmInput.dat
 *       boundaryTestInput.dat
