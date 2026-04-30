@@ -47,6 +47,7 @@ Accompanying this code is the deliverable report that provides a detailed explan
    | `nod` | Test nod gestures | `true`, `false` |
    | `symbolic` | Test symbolic gestures | `true`, `false` |
    | `verboseMode` | Set the diagnostics message printing | `true`, `false` |
+   | `interface` | Sets the ROS interfacing mechanism with the main node | `service`, `action` |
 
    <!-- - To execute the gestures on the physical platform, change the first line of `gestureExecutionTestConfiguration.ini` file in the config folder to “`platform robot`”.  -->
    - To test any specific gesture, change the value to `true` and for any gesture to be excluded in the test, change the value to `false`.
@@ -286,7 +287,7 @@ Nod Gesture
 
 For issues or questions:
 - Create an issue on GitHub
-- Contact: <a href="mailto:david@vernon.eu">david@vernon.eu</a>, <a href="mailto:africa-robotics@andrew.cmu.edu">africa-robotics@andrew.cmu.edu</a><br>, <a href="mailto:aakinade@andrew.cmu.edu">aakinade@andrew.cmu.edu</a><br>
+- Contact: <a href="mailto:david@vernon.eu">david@vernon.eu</a>, <a href="mailto:africa-robotics@andrew.cmu.edu">africa-robotics@andrew.cmu.edu</a><br>, <a href="mailto:dvernon@andrew.cmu.edu">dvernon@andrew.cmu.edu</a>, <a href="mailto:aakinade@andrew.cmu.edu">aakinade@andrew.cmu.edu</a>, <a href="mailto:ttefferi@andrew.cmu.edu">tteferi@andrew.cmu.edu</a><br>
 - Visit: <a href="http://www.cssr4africa.org">www.cssr4africa.org</a>
 
 

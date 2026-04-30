@@ -67,6 +67,8 @@ extern std::string node_name;                                                 //
 extern ros::Publisher speech_pub;                                            // Publisher for speech commands
 extern std_msgs::String speech_msg;                                            // Message for speech commands
 
+extern std::string interface;
+
 
 // The gesture execution unit test class
 class GestureExecutionUnitTest : public ::testing::Test {
@@ -207,9 +209,9 @@ int write_configuration_file(std::string platform, std::string interpolation, st
  *     cmd: the service command to run
  * 
  * @return
- *    result: the response from the service
+ *    result: the response from the command
  */
-std::string invoke_service(const char* cmd);
+std::string invoke_command(const char* cmd);
 
 
 /* 

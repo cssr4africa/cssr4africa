@@ -106,18 +106,40 @@ Accompanying this code is the deliverable report that provides a detailed explan
          </div>
 
 ## Executing Gestures
-Upon launching the node, the hosted service (`/gestureExecution/perform_gesture`) is available and ready to be invoked. This can be verified by running the following command in a new terminal:
+Upon launching the node, the hosted service (`/gestureExecution/perform_gesture`) and the action server (`/gestureExecution/perform_gesture`) are available and ready to be invoked. This can be verified by running the following commands in a new terminal:
 
    ```bash
    rosservice list | grep /gestureExecution/perform_gesture
    ```
 
+   ```bash
+   rostopic list | grep /gestureExecution/perform_gesture
+   ```
+
 The command below invokes the service to execute a gesture (run in a new terminal) with the request parameters defined below:
 
    ```bash
-   rosservice call /gestureExecution/perform_gesture -- <gesture_type> <gesture_id> <gesture_duration> <bow_nod_angle> <point_location_x> <point_location_y> <point_location_z>
+   rosservice call /gestureExecution/perform_gesture -- <gesture_type> <gesture_id> <gesture_arm> <palm_orientation> <gesture_duration> <bow_nod_angle> <point_location_x> <point_location_y> <point_location_z>
    ```
-### Service Request Parameters
+
+The command below invokes the action server to execute a gesture (run in a new terminal) with the request parameters defined below:
+   ```bash
+   rostopic pub /gestureExecution/perform_gesture/goal cssr_system/gestureActionGoal 
+   "header:
+      seq: 0
+      stamp:
+         secs: 0
+         nsecs: 0
+      frame_id: ''
+      goal_id:
+      stamp:
+         secs: 0
+         nsecs: 0
+      id: ''
+   goal: {gesture_type: <gesture type>, gesture_id: <gesture id>, arm: <gestire arm>, deictic_shape: <palm orientation>, gesture_duration: <gesture duration>,
+      bow_nod_angle: 0, location_x: <point_location_x>, location_y: <point_location_y>, location_z: <point_location_z>}" 
+   ```
+### Request Parameters
 #### 1. Gesture Types (gesture_type)
 - `deictic`: Point at a location/object in the environment, specified by the 3D coordinates of the location/object.
 - `iconic`: Communicate with/without speech, specified by the ID.
@@ -131,52 +153,87 @@ The command below invokes the service to execute a gesture (run in a new termina
 - `04`: Handshake iconic gesture
 - `05`: Handshake iconic gesture
 
-#### 3. Gesture Duration (gesture_duration)
+#### 3. Gesture Arm (arm)
+This value defines the preferred arm to perform a deictic gesture.
+- `EITHER`: The closest arm to the gesture goal will be automatically selected
+- `LEFT`: The left arm will be selected for all deictic gestures
+- `RIGHT`: The right arm will be selected for all deictic gestures
+
+#### 4. Palm Orientation (deictic_shape)
+This value defines the orientation of the palm when performing deictic gestures.
+- `PALM_UPWARDS`: The palm will be oriented upwards
+- `PALM_DOWNWARDS`: The palm will be oriented downwards
+
+#### 4. Gesture Duration (gesture_duration)
 This value defines the duration of the gesture (from start to end) and is specified in `milliseconds`. The minimum duration is `1000 ms` and the maximum duration is `10000 ms`.
 
-#### 4. Bow/Nod Angle (bow_nod_angle)
+#### 5. Bow/Nod Angle (bow_nod_angle)
 This value is specified in degrees and indicates the degree to which the robot will bow (if bow gesture) or nod (if nod gesture). The minimum angle is `0 degrees` and the maximum angle is `45 degrees`
 
-#### 5. Pointing Location (point_location_x, point_location_y, point_location_z)
+#### 6. Pointing Location (location_x, location_y, location_z)
 These three values specify the location in the world (`in meters`) for the robot to point at in deictic gestures.
 
 ### Sample Invocations
 - <span style="color: #cccccc; font-weight: bold;">Deictic (Pointing) gesture at (`3, 3, 0.82`) for `2000 ms`: </span>
    ```sh
-   rosservice call /gestureExecution/perform_gesture -- deictic 01 2000 0 3 3 0.82
+   rosservice call /gestureExecution/perform_gesture -- deictic 01 LEFT PALM_UPWARDS 2000 0 3 3 0.82
+   ```
+   ```sh
+   rostopic pub --once /gestureExecution/perform_gesture/goal cssr_system/gestureActionGoal "header: {seq: 0, stamp: {secs: 0, nsecs: 0}, frame_id: ''} goal_id: {stamp: {secs: 0, nsecs: 0}, id: ''} goal: {gesture_type: 'deictic', gesture_id: 1, arm: 'LEFT', deictic_shape: 'PALM_UPWARDS', gesture_duration: 2000, bow_nod_angle: 0, location_x: 3.0, location_y: 3.0, location_z: 0.82}"
    ```
 
 * <span style="color: #cccccc; font-weight: bold;">Iconic open hands (`welcome`) gesture for `3000 ms`: </span>
    ```sh
-   rosservice call /gestureExecution/perform_gesture -- iconic 01 3000 0 0 0 0 
+   rosservice call /gestureExecution/perform_gesture -- iconic 01 '' '' 3000 0 0 0 0 
+   ```
+   ```sh
+   rostopic pub --once /gestureExecution/perform_gesture/goal cssr_system/gestureActionGoal "header: {seq: 0, stamp: {secs: 0, nsecs: 0}, frame_id: ''} goal_id: {stamp: {secs: 0, nsecs: 0}, id: ''} goal: {gesture_type: 'iconic', gesture_id: 1, arm: '', deictic_shape: '', gesture_duration: 3000, bow_nod_angle: 0, location_x: 0, location_y: 0, location_z: 0}"
    ```
    <span style="color: #cccccc; font-weight: bold;">or</span>
    ```sh
-   rosservice call /gestureExecution/perform_gesture -- iconic 02 3000 0 0 0 0 
+   rosservice call /gestureExecution/perform_gesture -- iconic 02 '' '' 3000 0 0 0 0 
+   ```
+   ```sh
+   rostopic pub --once /gestureExecution/perform_gesture/goal cssr_system/gestureActionGoal "header: {seq: 0, stamp: {secs: 0, nsecs: 0}, frame_id: ''} goal_id: {stamp: {secs: 0, nsecs: 0}, id: ''} goal: {gesture_type: 'iconic', gesture_id: 02, arm: '', deictic_shape: '', gesture_duration: 3000, bow_nod_angle: 0, location_x: 0, location_y: 0, location_z: 0}"
    ```
 
 - <span style="color: #cccccc; font-weight: bold;">Iconic wave (`goodbye`) gesture for `4000 ms`: </span>
    ```sh
-   rosservice call /gestureExecution/perform_gesture -- iconic 03 4000 0 0 0 0 
+   rosservice call /gestureExecution/perform_gesture -- iconic 03 '' '' 4000 0 0 0 0 
+   ```
+   ```sh
+   rostopic pub --once /gestureExecution/perform_gesture/goal cssr_system/gestureActionGoal "goal: {gesture_type: 'iconic', gesture_id: 03, gesture_arm: '', palm_orientation: '', gesture_duration: 4000, bow_nod_angle: 0, point_location_x: 0, point_location_y: 0, point_location_z: 0}"
    ```
 
 - <span style="color: #cccccc; font-weight: bold;">Iconic `handshake` gesture for `3000 ms`: </span>
    ```sh
-   rosservice call /gestureExecution/perform_gesture -- iconic 04 3000 0 0 0 0 
+   rosservice call /gestureExecution/perform_gesture -- iconic 04 '' '' 3000 0 0 0 0 
+   ```
+   ```sh
+   rostopic pub --once /gestureExecution/perform_gesture/goal cssr_system/gestureActionGoal "header: {seq: 0, stamp: {secs: 0, nsecs: 0}, frame_id: ''} goal_id: {stamp: {secs: 0, nsecs: 0}, id: ''} goal: {gesture_type: 'iconic', gesture_id: 04, arm: '', deictic_shape: '', gesture_duration: 3000, bow_nod_angle: 0, location_x: 0, location_y: 0, location_z: 0}"
    ```
    <span style="color: #cccccc; font-weight: bold;">or</span>
    ```sh
-   rosservice call /gestureExecution/perform_gesture -- iconic 05 3000 0 0 0 0 
+   rosservice call /gestureExecution/perform_gesture -- iconic 05 '' '' 3000 0 0 0 0 
+   ```
+   ```sh
+   rostopic pub --once /gestureExecution/perform_gesture/goal cssr_system/gestureActionGoal "header: {seq: 0, stamp: {secs: 0, nsecs: 0}, frame_id: ''} goal_id: {stamp: {secs: 0, nsecs: 0}, id: ''} goal: {gesture_type: 'iconic', gesture_id: 05, arm: '', deictic_shape: '', gesture_duration: 3000, bow_nod_angle: 0, location_x: 0, location_y: 0, location_z: 0}"
    ```
 
 - <span style="color: #cccccc; font-weight: bold;">Bowing at `30 degrees` for `2000 ms`: </span>
    ```sh
-   rosservice call /gestureExecution/perform_gesture -- bow 01 2000 30 0 0 0
+   rosservice call /gestureExecution/perform_gesture -- bow 01 '' '' 2000 30 0 0 0
+   ```
+   ```sh
+   rostopic pub --once /gestureExecution/perform_gesture/goal cssr_system/gestureActionGoal "header: {seq: 0, stamp: {secs: 0, nsecs: 0}, frame_id: ''} goal_id: {stamp: {secs: 0, nsecs: 0}, id: ''} goal: {gesture_type: 'bow', gesture_id: 01, arm: '', deictic_shape: '', gesture_duration: 2000, bow_nod_angle: 30, location_x: 0, location_y: 0, location_z: 0}"
    ```
 
 - <span style="color: #cccccc; font-weight: bold;">Nodding at `15 degrees` for `1000 ms`: </span>
    ```sh
-   rosservice call /gestureExecution/perform_gesture -- nod 01 1000 15 0 0 0 
+   rosservice call /gestureExecution/perform_gesture -- nod 01 '' '' 1000 15 0 0 0 
+   ```
+   ```sh
+   rostopic pub --once /gestureExecution/perform_gesture/goal cssr_system/gestureActionGoal "header: {seq: 0, stamp: {secs: 0, nsecs: 0}, frame_id: ''} goal_id: {stamp: {secs: 0, nsecs: 0}, id: ''} goal: {gesture_type: 'nod', gesture_id: 01, arm: '', deictic_shape: '', gesture_duration: 1000, bow_nod_angle: 15, location_x: 0, location_y: 0, location_z: 0}"
    ```
 
 
@@ -190,7 +247,7 @@ These three values specify the location in the world (`in meters`) for the robot
 
 For issues or questions:
 - Create an issue on GitHub
-- Contact: <a href="mailto:david@vernon.eu">david@vernon.eu</a>, <a href="mailto:africa-robotics@andrew.cmu.edu">africa-robotics@andrew.cmu.edu</a><br>, <a href="mailto:dvernon@andrew.cmu.edu">dvernon@andrew.cmu.edu</a>, <a href="mailto:aakinade@andrew.cmu.edu">aakinade@andrew.cmu.edu</a><br>
+- Contact: <a href="mailto:david@vernon.eu">david@vernon.eu</a>, <a href="mailto:africa-robotics@andrew.cmu.edu">africa-robotics@andrew.cmu.edu</a><br>, <a href="mailto:dvernon@andrew.cmu.edu">dvernon@andrew.cmu.edu</a>, <a href="mailto:aakinade@andrew.cmu.edu">aakinade@andrew.cmu.edu</a>, <a href="mailto:aakinade@andrew.cmu.edu">ttefferi@andrew.cmu.edu</a><br>
 - Visit: <a href="http://www.cssr4africa.org">www.cssr4africa.org</a>
 
 ## License  
