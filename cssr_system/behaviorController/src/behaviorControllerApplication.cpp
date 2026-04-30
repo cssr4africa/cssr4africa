@@ -1,5 +1,5 @@
 /* behaviorControllerApplication.cpp
-* 
+*
 * <detailed functional description>
 * The component starts the 'Robot Mission Interpreter' ROS Node. This node is the starting point for the robot to execute the mission selected.
 * Though, this component exists as a standalone and can be started as such, without the set of ROS nodes that are part of the CSSR4Afica system architecture(see D3.1 System Architecture), it will not be able function.
@@ -36,7 +36,7 @@
 * None
 ...
 * Advertised Services
-* 
+*
 * None
 ...
 * Services Invoked
@@ -49,14 +49,23 @@
 * /speechEvent/set_language
 * /speechEvent/set_enabled
 * /tabletEvent/prompt_and_get_response
-* /textToSpeech/say_text                                    
+* /textToSpeech/say_text
+*
+*
+* Actions Invoked
+* *
+* /gestureExecution/perform_gesture
+* /textToSpeech/say_text
+* /robotNavigation/set_goal
+* /speechEvent/recognise_speech_action
+*
 ...
 * Input Data Files
 *
 * lab_tour.xml
 ...
 * Output Data Files
-* 
+*
 * None
 ...
 * Configuration Files
@@ -72,6 +81,11 @@
 * Email: ttefferi@andrew.cmu.edu
 * Date: April 08, 2025
 * Version: v1.0
+*
+* Author: Tsegazeab Taye Tefferi, Carnegie Mellon University Africa
+* Email: ttefferi@andrew.cmu.edu
+* Date: April 20, 2026
+* Version: v1.1
 * *
 */
 
@@ -92,32 +106,23 @@ int main(int argc, char** argv)
     BT::Tree tree;
     ros::NodeHandle nodeHandle;
     nh = &nodeHandle;
-    
+
     std::string scenario;
     nodeName = ros::this_node::getName().substr(1);
     std::string softwareVersion = "1.0";
     std::string leftIndent = "\n\t\t";
-    ROS_INFO_STREAM(nodeName<<": startup");
-    ROS_INFO_STREAM("\n"
-         + leftIndent + nodeName + "\t" + softwareVersion
-         + leftIndent + "Copyright (C) 2023 CSSR4Africa Consortium"
-         + leftIndent + "This project is funded by the African Engineering and Technology Network (Afretec)"
-         + leftIndent + "Inclusive Digital Transformation Research Grant Program.\n"
-         + leftIndent + "Website: www.cssr4africa.org\n"
-         + leftIndent + "This program comes with ABSOLUTELY NO WARRANTY.\n"
-    );
+    ROS_INFO_STREAM(nodeName << ": startup");
+    ROS_INFO_STREAM("\n" + leftIndent + nodeName + "\t" + softwareVersion + leftIndent + "Copyright (C) 2023 CSSR4Africa Consortium" + leftIndent + "This project is funded by the African Engineering and Technology Network (Afretec)" + leftIndent + "Inclusive Digital Transformation Research Grant Program.\n" + leftIndent + "Website: www.cssr4africa.org\n" + leftIndent + "This program comes with ABSOLUTELY NO WARRANTY.\n");
 
     /* Retrieve the values from the configuration file       */
     /* Display the error and exit, if the file is unreadable */
-    try
-    {
+    try {
         scenario = getValueFromConfig("scenarioSpecification");
         verboseMode = (getValueFromConfig("verboseMode") == "true");
         asrEnabled = (getValueFromConfig("asrEnabled") == "true");
         audioDebugMode = (getValueFromConfig("audioDebugMode") == "true");
-    }
-    catch (const std::exception& e) {
-        ROS_ERROR_STREAM(nodeName<<": Fatal Error: "<<e.what());
+    } catch (const std::exception& e) {
+        ROS_ERROR_STREAM(nodeName << ": Fatal Error: " << e.what());
         ros::shutdown();
         return 0;
     }
@@ -125,14 +130,14 @@ int main(int argc, char** argv)
     /* Get the currently set language from the knowledge base*/
     missionLanguage = getMissionLanguage();
 
-    if(audioDebugMode && (std::system("command -v espeak >/dev/null 2>&1") != 0)){
-        ROS_WARN_STREAM(nodeName<<": eSpeak is missing from the system. Audio Debug mode will be set to 'Off'");
+    if (audioDebugMode && (std::system("command -v espeak >/dev/null 2>&1") != 0)) {
+        ROS_WARN_STREAM(nodeName << ": eSpeak is missing from the system. Audio Debug mode will be set to 'Off'");
         audioDebugMode = false;
     }
 
-    ROS_INFO_STREAM(nodeName<<": Scenario Specification: "<< scenario);
-    ROS_INFO_STREAM(nodeName<<": Mission Language: "<<missionLanguage);
-    ROS_INFO_STREAM(nodeName<<": Audio Debug: "<<(audioDebugMode ? "On" : "Off"));
+    ROS_INFO_STREAM(nodeName << ": Scenario Specification: " << scenario);
+    ROS_INFO_STREAM(nodeName << ": Mission Language: " << missionLanguage);
+    ROS_INFO_STREAM(nodeName << ": Audio Debug: " << (audioDebugMode ? "On" : "Off"));
 
     /* List of services to check for life*/
     std::vector<std::string> services = {
@@ -144,41 +149,54 @@ int main(int argc, char** argv)
         "/speechEvent/set_language",
         "/speechEvent/set_enabled",
         "/tabletEvent/prompt_and_get_response",
-        "/textToSpeech/say_text"
-    };
-    
+        "/textToSpeech/say_text"};
+
     /* List of topics to check for life*/
     std::vector<std::string> topics = {
         "/overtAttention/mode",
-        "/speechEvent/text",
+        // "/speechEvent/text",
     };
 
+    std::vector<std::string> actions = {
+        "/gestureExecution/perform_gesture",
+        "/robotNavigation/set_goal",
+        "/textToSpeech/say_text",
+        "/speechEvent/recognise_speech_action"};
+
     /* If any of the services from above isn't alive, exit program */
-    ROS_INFO_STREAM(nodeName<<": Checking Services...");
-    while(ros::ok()&&!checkServices(services)){
+    ROS_INFO_STREAM(nodeName << ": Checking Services...");
+    while (ros::ok() && !checkServices(services)) {
         ros::Duration(3).sleep();
-        ROS_INFO_STREAM(nodeName<<": Checking Services...");
+        ROS_INFO_STREAM(nodeName << ": Checking Services...");
     }
-    ROS_INFO_STREAM(nodeName<<": All services available");
+    ROS_INFO_STREAM(nodeName << ": All services available");
 
     /* If any of the topics from above isn't alive, exit program */
-    ROS_INFO_STREAM(nodeName<<": Checking Topics...");
-    while(ros::ok()&&!checkTopics(topics)){
+    ROS_INFO_STREAM(nodeName << ": Checking Topics...");
+    while (ros::ok() && !checkTopics(topics)) {
         ros::Duration(3).sleep();
-        ROS_INFO_STREAM(nodeName<<": Checking Topics...");
+        ROS_INFO_STREAM(nodeName << ": Checking Topics...");
     }
-    ROS_INFO_STREAM(nodeName<<": All topics available");
+    ROS_INFO_STREAM(nodeName << ": All topics available");
+
+    /* If any of the action servers from above isn't alive, exit program */
+    ROS_INFO_STREAM(nodeName << ": Checking Actions...");
+    while (ros::ok() && !checkActions(actions)) {
+        ros::Duration(3).sleep();
+        ROS_INFO_STREAM(nodeName << ": Checking Actions...");
+    }
+    ROS_INFO_STREAM(nodeName << ": All actions available");
 
     /* Use the mission specification file to create the tree and initiate the mission*/
     tree = initializeTree(scenario);
     BT::Groot2Publisher Groot2Publisher(tree);
     ros::Rate rate(1);
-    ROS_INFO_STREAM(nodeName<<": Starting Misssion Execution ....");
+    ROS_INFO_STREAM(nodeName << ": Starting Misssion Execution ....");
     while (ros::ok()) {
         tree.tickWhileRunning();
         ros::spinOnce();
         rate.sleep();
-        ROS_INFO_STREAM(nodeName<<": running");
+        ROS_INFO_STREAM(nodeName << ": running");
     }
 
     return 0;

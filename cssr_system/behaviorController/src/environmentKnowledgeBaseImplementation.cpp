@@ -499,7 +499,7 @@ int EnvironmentKnowledgeBase::inorder_print_to_file(BinaryTreeType tree, int n, 
 	     tree->keyValue.robotLocationDescription,
 	     tree->keyValue.robotLocation.x, tree->keyValue.robotLocation.y, tree->keyValue.robotLocation.theta,
 	     tree->keyValue.gestureTarget.x, tree->keyValue.gestureTarget.y, tree->keyValue.gestureTarget.z,
-      	     tree->keyValue.preGestureMessageEnglish,
+        tree->keyValue.preGestureMessageEnglish,
              tree->keyValue.preGestureMessageIsiZulu,
              tree->keyValue.preGestureMessageKinyarwanda,
              tree->keyValue.postGestureMessageEnglish,
@@ -547,7 +547,7 @@ int EnvironmentKnowledgeBase::inorder_print_to_screen(BinaryTreeType tree, int n
 	      tree->keyValue.robotLocationDescription,
 	      tree->keyValue.robotLocation.x, tree->keyValue.robotLocation.y, tree->keyValue.robotLocation.theta,
 	      tree->keyValue.gestureTarget.x, tree->keyValue.gestureTarget.y, tree->keyValue.gestureTarget.z,
-	      tree->keyValue.preGestureMessageEnglish,
+         tree->keyValue.preGestureMessageEnglish,
 	      tree->keyValue.preGestureMessageIsiZulu,
 	      tree->keyValue.preGestureMessageKinyarwanda,
 	      tree->keyValue.postGestureMessageEnglish,
@@ -957,7 +957,6 @@ void EnvironmentKnowledgeBase::readKnowledgeBase() {
 		    
                        break;
 
-		    
 	       /* preGestureMessageEnglish idNumber text */
 		    
                case 3: if (sscanf(input_string, "%s %d", key, &(keyValue.key))) { // read the alphanumberic key and the idNumber; the latter is used as the key in the BST

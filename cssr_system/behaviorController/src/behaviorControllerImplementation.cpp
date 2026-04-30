@@ -4,6 +4,11 @@
  * Date: April 25, 2025
  * Version: 1.0
  *
+ * Author: Tsegazeab Taye Tefferi, Muhammed Danso, Carnegie Mellon University Africa
+ * Email: ttefferi@andrew.cmu.edu, mdanso@andrew.cmu.edu
+ * Date: April 20, 2026
+ * Version: v1.1
+ *
  * Copyright (C) 2023 CSSR4Africa Consortium
  *
  * This project is funded by the African Engineering and Technology Network (Afretec)
@@ -41,7 +46,7 @@ Culture::Keyword key;
 class HandleFallBack : public BT::SyncActionNode
 {
    public:
-    HandleFallBack(const std::string &name, const BT::NodeConfiguration &config)
+    HandleFallBack(const std::string& name, const BT::NodeConfiguration& config)
         : BT::SyncActionNode(name, config)
     {
     }
@@ -71,7 +76,7 @@ class HandleFallBack : public BT::SyncActionNode
 class SetAnimateBehavior : public BT::SyncActionNode
 {
    public:
-    SetAnimateBehavior(const std::string &name, const BT::NodeConfiguration &config) : BT::SyncActionNode(name, config)
+    SetAnimateBehavior(const std::string& name, const BT::NodeConfiguration& config) : BT::SyncActionNode(name, config)
     {
         /* Define a service client */
         client = nh->serviceClient<cssr_system::animateBehaviorSetActivation>("/animateBehaviour/setActivation");
@@ -120,7 +125,7 @@ class SetAnimateBehavior : public BT::SyncActionNode
 class SetOvertAttentionMode : public BT::SyncActionNode
 {
    public:
-    SetOvertAttentionMode(const std::string &name, const BT::NodeConfiguration &config)
+    SetOvertAttentionMode(const std::string& name, const BT::NodeConfiguration& config)
         : BT::SyncActionNode(name, config)
     {
         /* Define a service client */
@@ -176,6 +181,16 @@ class SetOvertAttentionMode : public BT::SyncActionNode
             storeResult(treeNodeName, 0);
             return BT::NodeStatus::FAILURE;
         }
+
+        if (state == "location") {
+            // Return back
+            srv.request.state = "disabled";
+            srv.request.location_x = 0;
+            srv.request.location_y = 0;
+            srv.request.location_z = 0;
+            client.call(srv);
+        }
+
         storeResult(treeNodeName, 1);
         return BT::NodeStatus::SUCCESS;
     }
@@ -191,7 +206,7 @@ class SetOvertAttentionMode : public BT::SyncActionNode
 class SetSpeechEvent : public BT::SyncActionNode
 {
    public:
-    SetSpeechEvent(const std::string &name, const BT::NodeConfiguration &config)
+    SetSpeechEvent(const std::string& name, const BT::NodeConfiguration& config)
         : BT::SyncActionNode(name, config)
     {
         /* Define a service client */
@@ -240,7 +255,7 @@ class SetSpeechEvent : public BT::SyncActionNode
 class IsVisitorDiscovered : public BT::ConditionNode
 {
    public:
-    IsVisitorDiscovered(const std::string &name, const BT::NodeConfiguration &config)
+    IsVisitorDiscovered(const std::string& name, const BT::NodeConfiguration& config)
         : BT::ConditionNode(name, config), visitorDiscovered(false)
     {
         /* Define a subscriber to the topic */
@@ -280,7 +295,7 @@ class IsVisitorDiscovered : public BT::ConditionNode
     }
 
    private:
-    void callback(const cssr_system::overtAttentionMode::ConstPtr &msg)
+    void callback(const cssr_system::overtAttentionMode::ConstPtr& msg)
     {
         /*
             Values 2 indicates success
@@ -302,7 +317,7 @@ class IsVisitorDiscovered : public BT::ConditionNode
 class IsVisitorPresent : public BT::ConditionNode
 {
    public:
-    IsVisitorPresent(const std::string &name, const BT::NodeConfiguration &config)
+    IsVisitorPresent(const std::string& name, const BT::NodeConfiguration& config)
         : BT::ConditionNode(name, config), visitorPresent(false)
     {
         /* Define a subscriber to the topic */
@@ -342,13 +357,13 @@ class IsVisitorPresent : public BT::ConditionNode
     }
 
    private:
-    void callback(const cssr_system::overtAttentionMode::ConstPtr &msg)
+    void callback(const cssr_system::overtAttentionMode::ConstPtr& msg)
     {
         /*
             Values 2 indicates success
         */
         visitorPresent = false;
-        if (msg->state == "social" && msg->value == 2) {
+        if (msg->state == "scanning" && msg->value == 2) {
             visitorPresent = true;
         }
     }
@@ -364,7 +379,7 @@ class IsVisitorPresent : public BT::ConditionNode
 class IsMutualGazeDiscovered : public BT::ConditionNode
 {
    public:
-    IsMutualGazeDiscovered(const std::string &name, const BT::NodeConfiguration &config)
+    IsMutualGazeDiscovered(const std::string& name, const BT::NodeConfiguration& config)
         : BT::ConditionNode(name, config), seekingStatus("RUNNING")
     {
         /* Define a subscriber to the topic */
@@ -406,7 +421,7 @@ class IsMutualGazeDiscovered : public BT::ConditionNode
     }
 
    private:
-    void callback(const cssr_system::overtAttentionMode::ConstPtr &msg)
+    void callback(const cssr_system::overtAttentionMode::ConstPtr& msg)
     {
         /*
             Values 2 & 3, indicating success & failure respectively are how
@@ -434,7 +449,7 @@ class IsMutualGazeDiscovered : public BT::ConditionNode
 class DescribeExhibitSpeech : public BT::SyncActionNode
 {
    public:
-    DescribeExhibitSpeech(const std::string &name, const BT::NodeConfiguration &config)
+    DescribeExhibitSpeech(const std::string& name, const BT::NodeConfiguration& config)
         : BT::SyncActionNode(name, config)
     {
         /* Define a service client */
@@ -459,13 +474,13 @@ class DescribeExhibitSpeech : public BT::SyncActionNode
 
         /* '1' indicates Pre-Gesture Message */
         if (nodeInstance == "1") {
-            if (!config().blackboard->get("exhibitPreGestureMessage", message)) {
+            if (!config().blackboard->rootBlackboard()->get("exhibitPreGestureMessage", message)) {
                 printMsg(ERROR_MSG, "Unable to retrieve from blackboard");
                 storeResult(treeNodeName, 0);
                 return BT::NodeStatus::FAILURE;
             }
         } else if (nodeInstance == "2") {  // '2' indicates Post-Gesture message
-            if (!config().blackboard->get("exhibitPostGestureMessage", message)) {
+            if (!config().blackboard->rootBlackboard()->get("exhibitPostGestureMessage", message)) {
                 printMsg(ERROR_MSG, "Unable to retrieve from blackboard");
                 storeResult(treeNodeName, 0);
                 return BT::NodeStatus::FAILURE;
@@ -491,9 +506,9 @@ class DescribeExhibitSpeech : public BT::SyncActionNode
             return BT::NodeStatus::FAILURE;
         }
         storeResult(treeNodeName, 1);
-        if (missionLanguage=="English"){
-            ros::Duration(wordCount/3.0).sleep();
-        }
+        // if (missionLanguage=="English"){
+        //     ros::Duration(wordCount/3.0).sleep();
+        // }
         return BT::NodeStatus::SUCCESS;
     }
 
@@ -508,7 +523,7 @@ class DescribeExhibitSpeech : public BT::SyncActionNode
 class SayText : public BT::SyncActionNode
 {
    public:
-    SayText(const std::string &name, const BT::NodeConfiguration &config)
+    SayText(const std::string& name, const BT::NodeConfiguration& config)
         : BT::SyncActionNode(name, config)
     {
         /* Define a service client */
@@ -532,7 +547,7 @@ class SayText : public BT::SyncActionNode
 
         srv.request.message = getUtilityPhrase(utilityPhraseId, missionLanguage);
         int wordCount = countWords(srv.request.message);
-        
+
         /* Make a service call to the node and act according to the response*/
         if (client.call(srv)) {
             if (!srv.response.success) {
@@ -563,7 +578,7 @@ class SayText : public BT::SyncActionNode
 class PerformDeicticGesture : public BT::SyncActionNode
 {
    public:
-    PerformDeicticGesture(const std::string &name, const BT::NodeConfiguration &config)
+    PerformDeicticGesture(const std::string& name, const BT::NodeConfiguration& config)
         : BT::SyncActionNode(name, config)
     {
         /* Define a service client */
@@ -579,6 +594,7 @@ class PerformDeicticGesture : public BT::SyncActionNode
     {
         cssr_system::gestureExecutionPerformGesture srv;
         Environment::GestureTargetType gestureTarget;
+        std::string gestureArm;
         std::string treeNodeName = "PerformDeicticGesture";
 
         printMsg(INFO_MSG, treeNodeName + "Action Node");
@@ -602,6 +618,8 @@ class PerformDeicticGesture : public BT::SyncActionNode
         srv.request.location_x = gestureTarget.x;
         srv.request.location_y = gestureTarget.y;
         srv.request.location_z = gestureTarget.z;
+        srv.request.arm = getGestureArm();
+        srv.request.deictic_shape = getPalmOrientation();
 
         /* Make a service call to the node and act according to the response*/
         if (client.call(srv)) {
@@ -615,6 +633,7 @@ class PerformDeicticGesture : public BT::SyncActionNode
             storeResult(treeNodeName, 0);
             return BT::NodeStatus::FAILURE;
         }
+        printMsg(INFO_MSG, "Done.");
         storeResult(treeNodeName, 1);
         return BT::NodeStatus::SUCCESS;
     }
@@ -630,7 +649,7 @@ class PerformDeicticGesture : public BT::SyncActionNode
 class PerformIconicGesture : public BT::SyncActionNode
 {
    public:
-    PerformIconicGesture(const std::string &name, const BT::NodeConfiguration &config)
+    PerformIconicGesture(const std::string& name, const BT::NodeConfiguration& config)
         : BT::SyncActionNode(name, config)
     {
         /* Define a service client */
@@ -700,7 +719,7 @@ class PerformIconicGesture : public BT::SyncActionNode
 class PressYesNoDialogue : public BT::SyncActionNode
 {
    public:
-    PressYesNoDialogue(const std::string &name, const BT::NodeConfiguration &config)
+    PressYesNoDialogue(const std::string& name, const BT::NodeConfiguration& config)
         : BT::SyncActionNode(name, config)
     {
         /* Define a service client */
@@ -748,7 +767,7 @@ class PressYesNoDialogue : public BT::SyncActionNode
 class RetrieveListOfExhibits : public BT::SyncActionNode
 {
    public:
-    RetrieveListOfExhibits(const std::string &name, const BT::NodeConfiguration &config)
+    RetrieveListOfExhibits(const std::string& name, const BT::NodeConfiguration& config)
         : BT::SyncActionNode(name, config)
     {
     }
@@ -775,7 +794,7 @@ class RetrieveListOfExhibits : public BT::SyncActionNode
             return BT::NodeStatus::FAILURE;
         }
 
-        config().blackboard->set("visits", 0);
+        config().blackboard->rootBlackboard()->set("visits", 0);
         storeResult(treeNodeName, 1);
         return BT::NodeStatus::SUCCESS;
     }
@@ -788,7 +807,7 @@ class RetrieveListOfExhibits : public BT::SyncActionNode
 class SelectExhibit : public BT::SyncActionNode
 {
    public:
-    SelectExhibit(const std::string &name, const BT::NodeConfiguration &config)
+    SelectExhibit(const std::string& name, const BT::NodeConfiguration& config)
         : BT::SyncActionNode(name, config)
     {
     }
@@ -809,11 +828,12 @@ class SelectExhibit : public BT::SyncActionNode
         std::string preGestureMessage;
         std::string postGestureMessage;
 
-        if (!config().blackboard->get("visits", visits)) {
+        if (!config().blackboard->rootBlackboard()->get("visits", visits)) {
             printMsg(WARNING_MSG, "Exhibit list empty");
             storeResult(treeNodeName, 0);
             return BT::NodeStatus::FAILURE;
         }
+        printMsg(INFO_MSG, "Current Visit: ");
         // Select the next exhibit to visit
         environmentKnowledgeBase.getValue(tour.locationIdNumber[visits], &enviornmentKeyValue);
 
@@ -834,14 +854,14 @@ class SelectExhibit : public BT::SyncActionNode
         }
 
         // Store the values in the blackboard to be retrieved by other mission nodes
-        config().blackboard->set("exhibitPreGestureMessage", preGestureMessage);
-        config().blackboard->set("exhibitPostGestureMessage", postGestureMessage);
+        config().blackboard->rootBlackboard()->set("exhibitPreGestureMessage", preGestureMessage);
+        config().blackboard->rootBlackboard()->set("exhibitPostGestureMessage", postGestureMessage);
         config().blackboard->rootBlackboard()->set("exhibitLocation", enviornmentKeyValue.robotLocation);
         config().blackboard->rootBlackboard()->set("exhibitGestureTarget", enviornmentKeyValue.gestureTarget);
 
         printMsg(INFO_MSG, std::string("Visiting: ") + enviornmentKeyValue.robotLocationDescription);
 
-        config().blackboard->set("visits", ++visits);  // indicate that the current exhbit is already 'visitited', when checked later
+        config().blackboard->rootBlackboard()->set("visits", ++visits);  // indicate that the current exhbit is already 'visitited', when checked later
         storeResult(treeNodeName, 1);
         return BT::NodeStatus::SUCCESS;
     }
@@ -854,7 +874,7 @@ class SelectExhibit : public BT::SyncActionNode
 class IsListWithExhibit : public BT::ConditionNode
 {
    public:
-    IsListWithExhibit(const std::string &name, const BT::NodeConfiguration &config)
+    IsListWithExhibit(const std::string& name, const BT::NodeConfiguration& config)
         : BT::ConditionNode(name, config)
     {
     }
@@ -872,7 +892,7 @@ class IsListWithExhibit : public BT::ConditionNode
         speak(treeNodeName);
 
         int visits = 0;
-        if (!config().blackboard->get("visits", visits)) {
+        if (!config().blackboard->rootBlackboard()->get("visits", visits)) {
             printMsg(ERROR_MSG, "Unable to retrieve from blackboard");
             storeResult(treeNodeName, 0);
             return BT::NodeStatus::FAILURE;
@@ -896,7 +916,7 @@ class IsListWithExhibit : public BT::ConditionNode
 class Navigate : public BT::SyncActionNode
 {
    public:
-    Navigate(const std::string &name, const BT::NodeConfiguration &config)
+    Navigate(const std::string& name, const BT::NodeConfiguration& config)
         : BT::SyncActionNode(name, config)
     {
         /* Define a service client */
@@ -954,7 +974,7 @@ class Navigate : public BT::SyncActionNode
 class SetRobotPose : public BT::SyncActionNode
 {
    public:
-    SetRobotPose(const std::string &name, const BT::NodeConfiguration &config)
+    SetRobotPose(const std::string& name, const BT::NodeConfiguration& config)
         : BT::SyncActionNode(name, config)
     {
         /* Define a service client */
@@ -1009,7 +1029,7 @@ class SetRobotPose : public BT::SyncActionNode
 class RetrieveInitialLocation : public BT::SyncActionNode
 {
    public:
-    RetrieveInitialLocation(const std::string &name, const BT::NodeConfiguration &config)
+    RetrieveInitialLocation(const std::string& name, const BT::NodeConfiguration& config)
         : BT::SyncActionNode(name, config)
     {
     }
@@ -1049,10 +1069,10 @@ class RetrieveInitialLocation : public BT::SyncActionNode
 class GetVisitorResponse : public BT::SyncActionNode
 {
    public:
-    GetVisitorResponse(const std::string &name, const BT::NodeConfiguration &config)
+    GetVisitorResponse(const std::string& name, const BT::NodeConfiguration& config)
         : BT::SyncActionNode(name, config), isResponseReceived(false)
     {
-        subscriber = nh->subscribe("/speechEvent/text", 10, &GetVisitorResponse::callback, this);
+        subscriber = nh->subscribe("/speechEvent/text", 5, &GetVisitorResponse::callback, this);
     }
 
     static BT::PortsList providedPorts()
@@ -1090,7 +1110,7 @@ class GetVisitorResponse : public BT::SyncActionNode
                 negativeWords["Kinyarwanda"] = {"oya"};
 
                 /*If any of the 'affirmative' words are detected, set 'visitorResponse' as yes in the blackboard */
-                for (const string &affirmativeWord : affirmativeWords[missionLanguage]) {
+                for (const string& affirmativeWord : affirmativeWords[missionLanguage]) {
                     if (visitorResponse.find(affirmativeWord) != string::npos) {
                         blackboard->set("visitorResponse", "yes");
                         printMsg(INFO_MSG, "Visitor Response: " + visitorResponse);
@@ -1101,7 +1121,7 @@ class GetVisitorResponse : public BT::SyncActionNode
                 }
 
                 /*If any of the 'negative' words are detected, set 'visitorResponse' as no in the blackboard */
-                for (const string &affirmativeWord : negativeWords[missionLanguage]) {
+                for (const string& affirmativeWord : negativeWords[missionLanguage]) {
                     if (visitorResponse.find(affirmativeWord) != string::npos) {
                         blackboard->set("visitorResponse", "no");
                         printMsg(WARNING_MSG, "Visitor Response: " + visitorResponse);
@@ -1110,12 +1130,16 @@ class GetVisitorResponse : public BT::SyncActionNode
                         return BT::NodeStatus::SUCCESS;
                     }
                 }
-
-                
             }
 
             /* If there is no response within 10 seconds, set 'visitorResponse' as empty in the blackboard*/
             if ((ros::Time::now() - startTime).toSec() > 10) {
+                // blackboard->set("visitorResponse", "yes");
+                // printMsg(INFO_MSG, "Visitor Response: " + visitorResponse);
+                // storeResult(treeNodeName, 1);
+                // isResponseReceived = false;
+                // return BT::NodeStatus::SUCCESS;
+
                 printMsg(WARNING_MSG, "No affirmative response received");
                 blackboard->set("visitorResponse", "");
                 storeResult(treeNodeName, 0);
@@ -1131,9 +1155,11 @@ class GetVisitorResponse : public BT::SyncActionNode
     }
 
    private:
-    void callback(const std_msgs::String::ConstPtr &msg)
+    void callback(const std_msgs::String::ConstPtr& msg)
     {
+        visitorResponse = "";
         visitorResponse = msg->data;
+        printMsg(INFO_MSG, "Visitor Response: " + visitorResponse);
         isResponseReceived = true;
     }
 
@@ -1150,7 +1176,7 @@ class GetVisitorResponse : public BT::SyncActionNode
 class IsVisitorResponseYes : public BT::ConditionNode
 {
    public:
-    IsVisitorResponseYes(const std::string &name, const BT::NodeConfiguration &config)
+    IsVisitorResponseYes(const std::string& name, const BT::NodeConfiguration& config)
         : BT::ConditionNode(name, config)
     {
     }
@@ -1171,10 +1197,13 @@ class IsVisitorResponseYes : public BT::ConditionNode
         std::string visitorResponse;
         if (blackboard->get("visitorResponse", visitorResponse)) {
             if (visitorResponse == "yes") {
+                printMsg(INFO_MSG, "Vistor Response is affirmative");
                 storeResult(treeNodeName, 1);
                 return BT::NodeStatus::SUCCESS;
             }
         }
+
+        printMsg(WARNING_MSG, "Vistor Response wasn't affirmative");
 
         storeResult(treeNodeName, 0);
         return BT::NodeStatus::FAILURE;
@@ -1189,7 +1218,7 @@ class IsVisitorResponseYes : public BT::ConditionNode
 class HasVisitorResponded : public BT::ConditionNode
 {
    public:
-    HasVisitorResponded(const std::string &name, const BT::NodeConfiguration &config)
+    HasVisitorResponded(const std::string& name, const BT::NodeConfiguration& config)
         : BT::ConditionNode(name, config)
     {
     }
@@ -1229,7 +1258,7 @@ class HasVisitorResponded : public BT::ConditionNode
 class StartOfTree : public BT::SyncActionNode
 {
    public:
-    StartOfTree(const std::string &name, const BT::NodeConfiguration &config)
+    StartOfTree(const std::string& name, const BT::NodeConfiguration& config)
         : BT::SyncActionNode(name, config), missionStarted(false), firstRun(true)
     {
         /* Define a service client */
@@ -1248,48 +1277,48 @@ class StartOfTree : public BT::SyncActionNode
                  "\n============================\n"
                  "\n\tSTART OF TREE\n"
                  "\n============================\n");
-                 speak("Start of Tree");
+        speak("Start of Tree");
         std::string userInput;
-        if(missionStarted){
-            missionStarted=false;
+        if (missionStarted) {
+            missionStarted = false;
             storeResult("MissionEnded", 1);
         }
-        if(firstRun){
-            ROS_INFO_STREAM(nodeName<<": Press 'Enter' to start the mission");
+        if (firstRun) {
+            ROS_INFO_STREAM(nodeName << ": Press 'Enter' to start the mission");
             std::getline(std::cin, userInput);
             firstRun = false;
-        }else{
-            ROS_INFO_STREAM(nodeName<<": Do you want to run the mission again(y/n)?");
+        } else {
+            ROS_INFO_STREAM(nodeName << ": Do you want to run the mission again(y/n)?");
             std::getline(std::cin, userInput);
-            if (userInput!="y"){
+            if (userInput != "y") {
                 ros::shutdown();
             }
         }
-        
-        missionStarted=true;
+
+        missionStarted = true;
         storeResult("MissionStarted", 1);
         // As this node is executed at the start of the mission, this is where
         // variables with mission execution lifetime are set
 
         // Setting the language for speechEvent if ASR is enabled
-        if (asrEnabled) {
-            cssr_system::speechEventSetLanguage srv;
-            srv.request.language = missionLanguage;
+        //  if (asrEnabled) {
+        //      cssr_system::speechEventSetLanguage srv;
+        //      srv.request.language = missionLanguage;
 
-            printMsg(INFO_MSG, "ASR Enabled. Setting language to: " + missionLanguage);
+        //     printMsg(INFO_MSG, "ASR Enabled. Setting language to: " + missionLanguage);
 
-            if (client.call(srv)) {
-                if (!srv.response.response) {
-                    printMsg(WARNING_MSG, "Called service returned failure");
-                    storeResult(treeNodeName, 0);
-                    return BT::NodeStatus::FAILURE;
-                }
-            } else {
-                printMsg(ERROR_MSG, "Failed to call service");
-                storeResult(treeNodeName, 0);
-                return BT::NodeStatus::FAILURE;
-            }
-        }
+        //     if (client.call(srv)) {
+        //         if (!srv.response.response) {
+        //             printMsg(WARNING_MSG, "Called service returned failure");
+        //             storeResult(treeNodeName, 0);
+        //             return BT::NodeStatus::FAILURE;
+        //         }
+        //     } else {
+        //         printMsg(ERROR_MSG, "Failed to call service");
+        //         storeResult(treeNodeName, 0);
+        //         return BT::NodeStatus::FAILURE;
+        //     }
+        // }
         storeResult(treeNodeName, 1);
         return BT::NodeStatus::SUCCESS;
     }
@@ -1307,7 +1336,7 @@ class StartOfTree : public BT::SyncActionNode
 class IsASREnabled : public BT::ConditionNode
 {
    public:
-    IsASREnabled(const std::string &name, const BT::NodeConfiguration &config)
+    IsASREnabled(const std::string& name, const BT::NodeConfiguration& config)
         : BT::ConditionNode(name, config)
     {
     }
@@ -1329,6 +1358,477 @@ class IsASREnabled : public BT::ConditionNode
     }
 };
 
+/*
+    Handler for the 'PerformDeicticGestureAsync' Action Node
+    Performs a deictic gesture via the gestureExecution ROS node
+*/
+class PerformDeicticGestureAsync : public BT::StatefulActionNode
+{
+   public:
+    PerformDeicticGestureAsync(const std::string& name, const BT::NodeConfiguration& config)
+        : BT::StatefulActionNode(name, config), client("/gestureExecution/perform_gesture", true)
+    {
+        client.waitForServer();
+    }
+
+    static BT::PortsList providedPorts()
+    {
+        return {};
+    }
+
+    BT::NodeStatus onStart() override
+    {
+        cssr_system::gestureExecutionPerformGestureGoal goal;
+        Environment::GestureTargetType gestureTarget;
+
+        printMsg(INFO_MSG, treeNodeName + "Action Node");
+        speak(treeNodeName);
+
+        /* Retrieve gesture values from the blackboard*/
+        if (!config().blackboard->rootBlackboard()->get("exhibitGestureTarget", gestureTarget)) {
+            printMsg(ERROR_MSG, "Unable to retrieve from blackboard");
+            storeResult(treeNodeName, 0);
+            return BT::NodeStatus::FAILURE;
+        }
+
+        if (!(gestureTarget.x + gestureTarget.y + gestureTarget.z)) {
+            return BT::NodeStatus::SUCCESS;
+        }
+
+        goal.gesture_type = "deictic";
+        goal.gesture_id = 01;
+        goal.gesture_duration = 3000;
+        goal.bow_nod_angle = 0;
+        goal.location_x = gestureTarget.x;
+        goal.location_y = gestureTarget.y;
+        goal.location_z = gestureTarget.z;
+        goal.arm = getGestureArm();
+        goal.deictic_shape = getPalmOrientation();
+
+        client.sendGoal(goal);
+        printMsg(INFO_MSG, "Deictic Gesture started");
+        return BT::NodeStatus::RUNNING;
+    }
+
+    BT::NodeStatus onRunning() override
+    {
+        actionlib::SimpleClientGoalState state = client.getState();
+        if (state.isDone()) {
+            if (state == actionlib::SimpleClientGoalState::SUCCEEDED) {
+                printMsg(INFO_MSG, "Gesture execution succeeded");
+                storeResult(treeNodeName, 1);
+                return BT::NodeStatus::SUCCESS;
+            } else {
+                printMsg(ERROR_MSG, "Action failed with state: " + state.toString());
+                storeResult(treeNodeName, 0);
+                return BT::NodeStatus::FAILURE;
+            }
+        }
+
+        return BT::NodeStatus::RUNNING;
+    }
+
+    void onHalted() override
+    {
+        printMsg(WARNING_MSG, "Action Halted");
+        client.cancelGoal();
+    }
+
+   private:
+    actionlib::SimpleActionClient<cssr_system::gestureExecutionPerformGestureAction> client;
+    std::string treeNodeName = "PerformDeicticGestureAsync";
+};
+
+/*
+    Handler for the 'PerformIconicGestureAsync' Action Node
+    Performs an iconic gesture via the gestureExecution ROS node
+*/
+class PerformIconicGestureAsync : public BT::StatefulActionNode
+{
+   public:
+    PerformIconicGestureAsync(const std::string& name, const BT::NodeConfiguration& config)
+        : BT::StatefulActionNode(name, config), client("/gestureExecution/perform_gesture", true)
+    {
+        client.waitForServer();
+    }
+
+    static BT::PortsList providedPorts()
+    {
+        return {};
+    }
+
+    BT::NodeStatus onStart() override
+    {
+        cssr_system::gestureExecutionPerformGestureGoal goal;
+        std::string iconicGestureType = name();
+        printMsg(INFO_MSG, treeNodeName + " Action Node");
+        printMsg(INFO_MSG, "Gesture: " + iconicGestureType);
+        speak(treeNodeName);
+
+        goal.gesture_type = "iconic";
+        goal.gesture_duration = 3000;
+        goal.bow_nod_angle = 0;
+        goal.location_x = 0;
+        goal.location_y = 0;
+        goal.location_z = 0;
+
+        /*
+            '1' and '3' represent the 'welcome' and 'goodbye'
+            iconic gestures in the gestureExecution node
+        */
+        if (iconicGestureType == "welcome") {
+            goal.gesture_id = 1;
+        } else if (iconicGestureType == "goodbye") {
+            goal.gesture_id = 3;
+        } else {
+            printMsg(ERROR_MSG, "Undefined Iconic Gesture Type");
+            storeResult(treeNodeName, 0);
+            return BT::NodeStatus::FAILURE;
+        }
+
+        client.sendGoal(goal);
+        printMsg(INFO_MSG, "Iconic Gesture started");
+        return BT::NodeStatus::RUNNING;
+    }
+
+    BT::NodeStatus onRunning() override
+    {
+        actionlib::SimpleClientGoalState state = client.getState();
+        if (state.isDone()) {
+            if (state == actionlib::SimpleClientGoalState::SUCCEEDED) {
+                printMsg(INFO_MSG, "Gesture execution succeeded");
+                storeResult(treeNodeName, 1);
+                return BT::NodeStatus::SUCCESS;
+            } else {
+                printMsg(ERROR_MSG, "Action failed with state: " + state.toString());
+                storeResult(treeNodeName, 0);
+                return BT::NodeStatus::FAILURE;
+            }
+        }
+        return BT::NodeStatus::RUNNING;
+    }
+
+    void onHalted() override
+    {
+        printMsg(WARNING_MSG, "Action Halted");
+        client.cancelGoal();
+    }
+
+   private:
+    actionlib::SimpleActionClient<cssr_system::gestureExecutionPerformGestureAction> client;
+    std::string treeNodeName = "PerformIconicGestureAsync";
+};
+
+/*
+    Handler for the 'NavigateAsync' Action Node
+    Performs navigation via the robotNavigation ROS node
+*/
+class NavigateAsync : public BT::StatefulActionNode
+{
+   public:
+    NavigateAsync(const std::string& name, const BT::NodeConfiguration& config)
+        : BT::StatefulActionNode(name, config), client("/robotNavigation/set_goal", true)
+    {
+        client.waitForServer();
+    }
+
+    static BT::PortsList providedPorts()
+    {
+        return {};
+    }
+
+    BT::NodeStatus onStart() override
+    {
+        cssr_system::robotNavigationSetGoalGoal goal;
+        Environment::RobotLocationType location;
+        printMsg(INFO_MSG, treeNodeName + " Action Node");
+        speak(treeNodeName);
+
+        // Retrieve location values from the blackboard
+        if (!config().blackboard->rootBlackboard()->get("exhibitLocation", location)) {
+            printMsg(ERROR_MSG, "Unable to retrieve from blackboard");
+            storeResult(treeNodeName, 0);
+            return BT::NodeStatus::FAILURE;
+        }
+
+        goal.goal_x = location.x;
+        goal.goal_y = location.y;
+        goal.goal_theta = location.theta;
+
+        client.sendGoal(goal);
+        printMsg(INFO_MSG, "Navigation started");
+        return BT::NodeStatus::RUNNING;
+    }
+
+    BT::NodeStatus onRunning() override
+    {
+        actionlib::SimpleClientGoalState state = client.getState();
+        if (state.isDone()) {
+            if (state == actionlib::SimpleClientGoalState::SUCCEEDED) {
+                printMsg(INFO_MSG, "Navigation succeeded");
+                storeResult(treeNodeName, 1);
+                return BT::NodeStatus::SUCCESS;
+            } else {
+                printMsg(ERROR_MSG, "Action failed with state: " + state.toString());
+                storeResult(treeNodeName, 0);
+                return BT::NodeStatus::FAILURE;
+            }
+        }
+        return BT::NodeStatus::RUNNING;
+    }
+
+    void onHalted() override
+    {
+        printMsg(WARNING_MSG, "Action Halted");
+        client.cancelGoal();
+    }
+
+   private:
+    actionlib::SimpleActionClient<cssr_system::robotNavigationSetGoalAction> client;
+    std::string treeNodeName = "NavigateAsync";
+};
+
+/*
+    Handler for the 'DescribeExhibitSpeechAsync' Action Node
+    Sends exhibit description to be uttered by the textToSpeech ROS node
+    The exhibit selected changes as the mission execution loops over the list of exhibits
+*/
+class DescribeExhibitSpeechAsync : public BT::StatefulActionNode
+{
+   public:
+    DescribeExhibitSpeechAsync(const std::string& name, const BT::NodeConfiguration& config)
+        : BT::StatefulActionNode(name, config), client("/textToSpeech/say_text", true)
+    {
+        client.waitForServer();
+    }
+
+    static BT::PortsList providedPorts()
+    {
+        return {};
+    }
+
+    BT::NodeStatus onStart() override
+    {
+        cssr_system::textToSpeechSayTextGoal goal;
+        std::string nodeInstance = name();
+        std::string message1, message2;
+        printMsg(INFO_MSG, treeNodeName + " Action Node");
+        speak(treeNodeName);
+
+        /* '1' indicates Pre-Gesture Message */
+        if (!config().blackboard->rootBlackboard()->get("exhibitPreGestureMessage", message1)) {
+            printMsg(ERROR_MSG, "Unable to retrieve from blackboard");
+            storeResult(treeNodeName, 0);
+            return BT::NodeStatus::FAILURE;
+        }
+
+        if (!config().blackboard->rootBlackboard()->get("exhibitPostGestureMessage", message2)) {
+            printMsg(ERROR_MSG, "Unable to retrieve from blackboard");
+            storeResult(treeNodeName, 0);
+            return BT::NodeStatus::FAILURE;
+        }
+
+        goal.language = missionLanguage;
+        goal.text = message1 + " " + message2;
+
+        client.sendGoal(goal);
+        printMsg(INFO_MSG, "Speech started");
+        return BT::NodeStatus::RUNNING;
+    }
+
+    BT::NodeStatus onRunning() override
+    {
+        actionlib::SimpleClientGoalState state = client.getState();
+        if (state.isDone()) {
+            if (state == actionlib::SimpleClientGoalState::SUCCEEDED) {
+                printMsg(INFO_MSG, "Speech succeeded");
+                storeResult(treeNodeName, 1);
+                return BT::NodeStatus::SUCCESS;
+            } else {
+                printMsg(ERROR_MSG, "Action failed with state: " + state.toString());
+                storeResult(treeNodeName, 0);
+                return BT::NodeStatus::FAILURE;
+            }
+        }
+        return BT::NodeStatus::RUNNING;
+    }
+
+    void onHalted() override
+    {
+        printMsg(WARNING_MSG, "Action Halted");
+        client.cancelGoal();
+    }
+
+   private:
+    actionlib::SimpleActionClient<cssr_system::textToSpeechSayTextAction> client;
+    std::string treeNodeName = "DescribeExhibitSpeechAsync";
+};
+
+/*
+    Handler for the 'SayTextAsync' Action Node
+    Sends text to be uttered by the textToSpeech ROS node
+*/
+class SayTextAsync : public BT::StatefulActionNode
+{
+   public:
+    SayTextAsync(const std::string& name, const BT::NodeConfiguration& config)
+        : BT::StatefulActionNode(name, config), client("/textToSpeech/say_text", true)
+    {
+        client.waitForServer();
+    }
+
+    static BT::PortsList providedPorts()
+    {
+        return {};
+    }
+
+    BT::NodeStatus onStart() override
+    {
+        cssr_system::textToSpeechSayTextGoal goal;
+        std::string utilityPhraseId = name();
+        printMsg(INFO_MSG, treeNodeName + " Action Node");
+        speak(treeNodeName);
+
+        goal.language = missionLanguage;
+        goal.text = getUtilityPhrase(utilityPhraseId, missionLanguage);
+
+        client.sendGoal(goal);
+        printMsg(INFO_MSG, "Text-to-Speech started");
+        return BT::NodeStatus::RUNNING;
+    }
+
+    BT::NodeStatus onRunning() override
+    {
+        actionlib::SimpleClientGoalState state = client.getState();
+        if (state.isDone()) {
+            if (state == actionlib::SimpleClientGoalState::SUCCEEDED) {
+                printMsg(INFO_MSG, "Text-To-Speech succeeded");
+                storeResult(treeNodeName, 1);
+                return BT::NodeStatus::SUCCESS;
+            } else {
+                printMsg(ERROR_MSG, "Action failed with state: " + state.toString());
+                storeResult(treeNodeName, 0);
+                return BT::NodeStatus::FAILURE;
+            }
+        }
+        return BT::NodeStatus::RUNNING;
+    }
+
+    void onHalted() override
+    {
+        printMsg(WARNING_MSG, "Action Halted");
+        client.cancelGoal();
+    }
+
+   private:
+    actionlib::SimpleActionClient<cssr_system::textToSpeechSayTextAction> client;
+    std::string treeNodeName = "SayTextAsync";
+};
+
+/*
+    Handler for the 'GetVisitorResponseAsync' Action Node
+    Retrieves visitor responses via the speechEvent ROS node
+*/
+class GetVisitorResponseAsync : public BT::StatefulActionNode
+{
+   public:
+    GetVisitorResponseAsync(const std::string& name, const BT::NodeConfiguration& config)
+        : BT::StatefulActionNode(name, config), client("/speechEvent/recognise_speech_action", true)
+    {
+        client.waitForServer();
+    }
+
+    static BT::PortsList providedPorts()
+    {
+        return {};
+    }
+
+    BT::NodeStatus onStart() override
+    {
+        cssr_system::speechEventRecogniseSpeechGoal goal;
+        printMsg(INFO_MSG, treeNodeName + " Action Node");
+        speak(treeNodeName);
+
+        goal.wait = 10.0;  // mirrors the 10-second timeout in the sync version
+
+        client.sendGoal(goal);
+        printMsg(INFO_MSG, "Listening for visitor response");
+        return BT::NodeStatus::RUNNING;
+    }
+
+    BT::NodeStatus onRunning() override
+    {
+        actionlib::SimpleClientGoalState state = client.getState();
+        if (state.isDone()) {
+            auto blackboard = config().blackboard->rootBlackboard();
+
+            if (state != actionlib::SimpleClientGoalState::SUCCEEDED) {
+                printMsg(ERROR_MSG, "Action failed with state: " + state.toString());
+                blackboard->set("visitorResponse", "");
+                storeResult(treeNodeName, 0);
+                return BT::NodeStatus::FAILURE;
+            }
+
+            std::string transcription = client.getResult()->transcription;
+            printMsg(INFO_MSG, "Visitor Response: " + transcription);
+
+            if (transcription.find("Error") != std::string::npos) {
+                printMsg(WARNING_MSG, "Error encountered");
+                blackboard->set("visitorResponse", "");
+                storeResult(treeNodeName, 0);
+                return BT::NodeStatus::FAILURE;
+            }
+
+            /** Set of words to check for an affirmative response from the visitor */
+            std::map<std::string, std::vector<std::string>> affirmativeWords;
+            affirmativeWords["English"] = {"yes", "great", "absolutely", "go", "happy", "good", "love"};
+            affirmativeWords["Kinyarwanda"] = {"yego", "ntakibazo", "nibyo"};
+
+            std::map<std::string, std::vector<std::string>> negativeWords;
+            negativeWords["English"] = {"no"};
+            negativeWords["Kinyarwanda"] = {"oya"};
+
+            std::transform(transcription.begin(), transcription.end(), transcription.begin(),
+                           [](unsigned char c) { return std::tolower(c); });
+
+            /* If any affirmative word is detected, set 'visitorResponse' as yes */
+            for (const std::string& word : affirmativeWords[missionLanguage]) {
+                if (transcription.find(word) != std::string::npos) {
+                    blackboard->set("visitorResponse", "yes");
+                    storeResult(treeNodeName, 1);
+                    return BT::NodeStatus::SUCCESS;
+                }
+            }
+
+            /* If any negative word is detected, set 'visitorResponse' as no */
+            for (const std::string& word : negativeWords[missionLanguage]) {
+                if (transcription.find(word) != std::string::npos) {
+                    blackboard->set("visitorResponse", "no");
+                    storeResult(treeNodeName, 1);
+                    return BT::NodeStatus::SUCCESS;
+                }
+            }
+
+            /* No recognisable response — mirrors the timeout path in the sync version */
+            printMsg(WARNING_MSG, "No affirmative response received");
+            blackboard->set("visitorResponse", "");
+            storeResult(treeNodeName, 0);
+            return BT::NodeStatus::SUCCESS;
+        }
+        return BT::NodeStatus::RUNNING;
+    }
+
+    void onHalted() override
+    {
+        printMsg(WARNING_MSG, "Action Halted");
+        client.cancelGoal();
+    }
+
+   private:
+    actionlib::SimpleActionClient<cssr_system::speechEventRecogniseSpeechAction> client;
+    std::string treeNodeName = "GetVisitorResponseAsync";
+};
+
 /*****************************************************/
 
 BT::Tree initializeTree(std::string scenario)
@@ -1336,7 +1836,9 @@ BT::Tree initializeTree(std::string scenario)
     BT::BehaviorTreeFactory factory;
     factory.registerNodeType<StartOfTree>("StartOfTree");
     factory.registerNodeType<DescribeExhibitSpeech>("DescribeExhibitSpeech");
+    factory.registerNodeType<DescribeExhibitSpeechAsync>("DescribeExhibitSpeechAsync");
     factory.registerNodeType<GetVisitorResponse>("GetVisitorResponse");
+    factory.registerNodeType<GetVisitorResponseAsync>("GetVisitorResponseAsync");
     factory.registerNodeType<HandleFallBack>("HandleFallBack");
     factory.registerNodeType<HasVisitorResponded>("HasVisitorResponded");
     factory.registerNodeType<IsASREnabled>("IsASREnabled");
@@ -1346,12 +1848,16 @@ BT::Tree initializeTree(std::string scenario)
     factory.registerNodeType<IsVisitorPresent>("IsVisitorPresent");
     factory.registerNodeType<IsVisitorResponseYes>("IsVisitorResponseYes");
     factory.registerNodeType<Navigate>("Navigate");
+    factory.registerNodeType<NavigateAsync>("NavigateAsync");
     factory.registerNodeType<PerformDeicticGesture>("PerformDeicticGesture");
+    factory.registerNodeType<PerformDeicticGestureAsync>("PerformDeicticGestureAsync");
     factory.registerNodeType<PerformIconicGesture>("PerformIconicGesture");
+    factory.registerNodeType<PerformIconicGestureAsync>("PerformIconicGestureAsync");
     factory.registerNodeType<PressYesNoDialogue>("PressYesNoDialogue");
     factory.registerNodeType<RetrieveInitialLocation>("RetrieveInitialLocation");
     factory.registerNodeType<RetrieveListOfExhibits>("RetrieveListOfExhibits");
     factory.registerNodeType<SayText>("SayText");
+    factory.registerNodeType<SayTextAsync>("SayTextAsync");
     factory.registerNodeType<SelectExhibit>("SelectExhibit");
     factory.registerNodeType<SetAnimateBehavior>("SetAnimateBehavior");
     factory.registerNodeType<SetOvertAttentionMode>("SetOvertAttentionMode");
@@ -1397,6 +1903,22 @@ std::string getMissionLanguage()
     return cultureKeyValue.alphanumericValue;
 }
 
+/* Returns the preferred arm selection from the knowledge base*/
+std::string getGestureArm()
+{
+    strcpy(key, "gestureArm");
+    culturalKnowledgeBase.getValue(key, &cultureKeyValue);
+    return cultureKeyValue.alphanumericValue;
+}
+
+/* Returns the palm orientation preference from the knowledge base*/
+std::string getPalmOrientation()
+{
+    strcpy(key, "deicticShape");
+    culturalKnowledgeBase.getValue(key, &cultureKeyValue);
+    return cultureKeyValue.alphanumericValue;
+}
+
 /* Fetches the utility phrase from the culture knowledge base using the id and language */
 std::string getUtilityPhrase(std::string phraseId, std::string language)
 {
@@ -1413,7 +1935,7 @@ static bool isNotSpace(unsigned char ch)
 }
 
 /* Trims whitespaces inplace */
-static inline void trim(std::string &s)
+static inline void trim(std::string& s)
 {
     // Trim leading spaces
     s.erase(s.begin(), std::find_if(s.begin(), s.end(), isNotSpace));
@@ -1423,7 +1945,7 @@ static inline void trim(std::string &s)
 }
 
 /* Returns the value of a key from the configuration file. */
-std::string getValueFromConfig(const std::string &key)
+std::string getValueFromConfig(const std::string& key)
 {
     std::string value;
     std::ifstream configFile(ros::package::getPath(ROS_PACKAGE_NAME) + "/behaviorController/config/behaviorControllerConfiguration.ini");
@@ -1461,7 +1983,7 @@ static bool isTopicAvailable(std::string topic)
     ros::master::getTopics(masterTopics);
 
     // Iterate through the topics to check if the topic is available
-    for (const auto &topicEntry : masterTopics) {
+    for (const auto& topicEntry : masterTopics) {
         if (topicEntry.name == topic) {
             return true;
         }
@@ -1470,7 +1992,7 @@ static bool isTopicAvailable(std::string topic)
 }
 
 /* Returns true if all the topics in a list are available*/
-bool checkTopics(std::vector<std::string> &topicsList)
+bool checkTopics(std::vector<std::string>& topicsList)
 {
     bool success = true;
     for (std::string topic : topicsList) {
@@ -1483,13 +2005,32 @@ bool checkTopics(std::vector<std::string> &topicsList)
 }
 
 /* Returns true if all the services in a list are available*/
-bool checkServices(std::vector<std::string> &servicesList)
+bool checkServices(std::vector<std::string>& servicesList)
 {
     bool success = true;
     for (std::string service : servicesList) {
         if (!ros::service::exists(service, false)) {
             success = false;
             ROS_ERROR_STREAM("[" << service << "] NOT FOUND");
+        }
+    }
+    return success;
+}
+
+/* Returns true if an action server is available */
+static bool isActionAvailable(std::string action)
+{
+    return isTopicAvailable(action + "/status");
+}
+
+/* Returns true if all the action servers in a list are available */
+bool checkActions(std::vector<std::string>& actionsList)
+{
+    bool success = true;
+    for (std::string action : actionsList) {
+        if (!isActionAvailable(action)) {
+            success = false;
+            ROS_ERROR_STREAM("[" << action << "] NOT FOUND");
         }
     }
     return success;
@@ -1505,23 +2046,23 @@ static void storeResult(std::string key, int value = -1)
     ros::param::set((testParameterPath + key), value);
 }
 
-
 /*
 Vocalizes a string using the system's speakers
 */
 static void speak(std::string text)
 {
-    if(!audioDebugMode){
+    if (!audioDebugMode) {
         return;
     }
-    std::string textToSay = "espeak '"+text+"'";
+    std::string textToSay = "espeak '" + text + "'";
     int i = system(textToSay.c_str());
 }
 
 /*
     Returns the number for words in a string
 */
-int countWords(const std::string input) {
+int countWords(const std::string input)
+{
     std::istringstream stream(input);
     std::string word;
     int count = 0;

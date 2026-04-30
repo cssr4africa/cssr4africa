@@ -1,5 +1,7 @@
 string      gesture_type
-uint8       gesture_id 
+uint8       gesture_id
+string      arm
+string      deictic_shape
 int64       gesture_duration
 uint32      bow_nod_angle
 float64     location_x

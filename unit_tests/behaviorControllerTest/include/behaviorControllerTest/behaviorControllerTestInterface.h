@@ -27,6 +27,8 @@
 #include <string>
 #include <vector>
 
+#include <actionlib/client/simple_action_client.h>
+#include <actionlib/server/simple_action_server.h>
 
 //Configuration variables
 extern bool verboseMode;
@@ -42,8 +44,7 @@ extern float failureRate;
 Logs the string (args) to the terminal based on the (type).
 Wrapper around the default ROS logging functions
 */
-template<typename T>
-void printMsg(int type,const T& args);
+void printMsg(int type, const std::string& args);
 
 /* Returns the value of a key from the configuration file. */
 std::string getValueFromConfig(const std::string &key);

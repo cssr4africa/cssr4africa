@@ -160,6 +160,18 @@ add_service_files(
 #   Action2.action
 # )
 
+add_action_files(
+  DIRECTORY
+  behaviorControllerTest/action
+  FILES
+  gestureExecutionPerformGesture.action
+  textToSpeechSayText.action
+  robotNavigationSetGoal.action
+  robotNavigationSetPose.action
+  speechEventRecogniseSpeech.action
+  actionlib_msgs
+)
+
 ## Generate added messages and services with any dependencies listed here
 generate_messages(
   DEPENDENCIES

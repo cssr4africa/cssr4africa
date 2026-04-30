@@ -189,6 +189,17 @@ add_action_files(
   recognise_speech.action
 )
 
+add_action_files(
+  DIRECTORY
+  behaviorController/action
+  FILES
+  gestureExecutionPerformGesture.action
+  textToSpeechSayText.action
+  robotNavigationSetGoal.action
+  robotNavigationSetPose.action
+  speechEventRecogniseSpeech.action
+)
+
 ## Generate added messages and services with any dependencies listed here
 generate_messages(
   DEPENDENCIES

@@ -19,6 +19,8 @@
 
 #include "ros/ros.h"
 #include <ros/package.h>
+#include <actionlib/client/simple_action_client.h>
+#include <actionlib/client/terminal_state.h>
 #include <std_msgs/Bool.h>
 #include <std_msgs/String.h>
 #include <cstdio>
@@ -47,6 +49,14 @@
 #include "cssr_system/speechEventSetLanguage.h"
 #include "cssr_system/tabletEventPromptAndGetResponse.h"
 #include "cssr_system/textToSpeechSayText.h"
+
+#include "cssr_system/gestureExecutionPerformGestureAction.h"
+#include "cssr_system/textToSpeechSayTextAction.h"
+#include "cssr_system/robotNavigationSetGoalAction.h"
+#include "cssr_system/robotNavigationSetPoseAction.h"
+#include "cssr_system/speechEventRecogniseSpeechAction.h"
+
+
 
 /* Configuration variables */
 extern bool verboseMode;
@@ -92,6 +102,9 @@ bool checkTopics(std::vector<std::string>& topicsList);
 /* Returns true if all the services in a list are available*/
 bool checkServices(std::vector<std::string>& servicesList);
 
+/* Returns true if all the action servers in a list are available*/
+bool checkActions(std::vector<std::string> &actionsList);
+
 /* Returns the value of a key from the configuration file. */
 std::string getValueFromConfig(const std::string &key);
 
@@ -103,4 +116,10 @@ BT::Tree initializeTree(std::string scenario);
 
 /* Returns the current language from the knowledge base*/
 std::string getMissionLanguage();
+
+/* Returns the preferred arm selection from the knowledge base*/
+std::string getGestureArm();
+
+/* Returns the palm orientation preference from the knowledge base*/
+std::string getPalmOrientation();
 #endif

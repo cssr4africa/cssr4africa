@@ -1,0 +1,12 @@
+# Goal
+string text          # Text to be spoken
+string language      # Language: "kinyarwanda" or "english"
+---
+# Result
+bool success                # True if speech was successful
+string message              # Status message
+string audio_file_path      # Path to generated audio file
+---
+# Feedback
+string status               # Current status (e.g., "Synthesizing", "Playing")
+float32 progress            # Progress from 0.0 to 1.0
