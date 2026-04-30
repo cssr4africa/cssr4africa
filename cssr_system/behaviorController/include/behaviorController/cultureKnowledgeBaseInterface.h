@@ -39,9 +39,9 @@ using namespace std;
 ****************************************************************************************************************************/
 #define TRUE                           1
 #define FALSE                          0
-#define MAX_FILENAME_LENGTH          200
-#define STRING_LENGTH                200
-#define KEY_LENGTH                   100
+#define MAX_FILENAME_LENGTH          600
+#define STRING_LENGTH                600
+#define KEY_LENGTH                   200
 
 
 /***************************************************************************************************************************
@@ -54,7 +54,7 @@ using namespace std;
 
 #define NUMBER_OF_VALUE_TYPES          4
 #define NUMBER_OF_CONFIGURATION_KEYS   3
-#define MAX_STRING_LENGTH            200
+#define MAX_STRING_LENGTH            600
 
 /* constant definitions for valueType flag to identify which element of the union is to be used */
 

@@ -3,6 +3,11 @@
  * Author: Tsegazeab Taye Tefferi
  * Date: April 25, 2025
  * Version: 1.0
+ * 
+ * Author: Tsegazeab Taye Tefferi, Carnegie Mellon University Africa
+ * Email: ttefferi@andrew.cmu.edu
+ * Date: April 20, 2026
+ * Version: v1.1
  *
  * Copyright (C) 2023 CSSR4Africa Consortium
  *
@@ -23,8 +28,7 @@ float failureRate;
 Logs the string (args) to the terminal based on the (type).
 Wrapper around the default ROS logging functions
 */
-template<typename T>
-void printMsg(int type,const T& args){
+void printMsg(int type, const std::string& args){
     if(!verboseMode){
         return;
     }
@@ -95,12 +99,3 @@ std::string getValueFromConfig(const std::string &key) {
     }
     return value;
 }
-
-
-// At the end of your .cpp file where printMsg is defined
-template void printMsg<std::string>(int, const std::string&);
-template void printMsg<char[22]>(int, const char(&)[22]);
-template void printMsg<char[49]>(int, const char(&)[49]);
-template void printMsg<char[50]>(int, const char(&)[50]);
-template void printMsg<char[24]>(int, const char(&)[24]);
-template void printMsg<char[27]>(int, const char(&)[27]);

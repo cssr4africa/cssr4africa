@@ -39,10 +39,10 @@ using namespace std;
 ****************************************************************************************************************************/
 #define TRUE                           1
 #define FALSE                          0
-#define MAX_STRING_LENGTH            200
-#define MAX_FILENAME_LENGTH          200
-#define STRING_LENGTH                200
-#define KEY_LENGTH                   100
+#define MAX_STRING_LENGTH            600
+#define MAX_FILENAME_LENGTH          600
+#define STRING_LENGTH                600
+#define KEY_LENGTH                   200
 #define MAX_CULTURE_KEYS               2
 #define NUMBER_OF_CONFIGURATION_KEYS   3
 

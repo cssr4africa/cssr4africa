@@ -4,6 +4,11 @@
  * Date: April 25, 2025
  * Version: 1.0
  *
+ * Author: Tsegazeab Taye Tefferi, Carnegie Mellon University Africa
+ * Email: ttefferi@andrew.cmu.edu
+ * Date: April 20, 2026
+ * Version: v1.1
+ * 
  * Copyright (C) 2023 CSSR4Africa Consortium
  *
  * This project is funded by the African Engineering and Technology Network (Afretec)
@@ -23,6 +28,7 @@
 
 #include "std_msgs/String.h"
 #include "unit_tests/overtAttentionMode.h"
+#include "unit_tests/speechEventRecogniseSpeechAction.h"
 
 int arrivalRate = 1000;
 std::string traversal = "complete";
@@ -73,7 +79,7 @@ static int getCount(int ari = 1, long int inc = 10000)
     return count;
 }
 
-void speechEventTextTopic(ros::Publisher &publisher)
+void speechEventTextTopic(ros::Publisher& publisher)
 {
     std::string detectedText;
     std::vector<std::string> possibleAffirmativeResponses = {
@@ -110,7 +116,61 @@ void speechEventTextTopic(ros::Publisher &publisher)
     }
 }
 
-void overtAttentionModeTopic(ros::Publisher &publisher)
+void speechEventRecogniseSpeechActionHandler(const actionlib::SimpleActionServer<unit_tests::speechEventRecogniseSpeechAction>::GoalConstPtr& goal, actionlib::SimpleActionServer<unit_tests::speechEventRecogniseSpeechAction>* as)
+{
+    unit_tests::speechEventRecogniseSpeechFeedback feedback;
+    unit_tests::speechEventRecogniseSpeechResult result;
+
+    std::vector<std::string> possibleAffirmativeResponses = {
+        "yes",
+        "i would love that",
+        "absolutely",
+        "go ahead",
+        "i'd be happy to",
+        "sounds good",
+        "sounds great"};
+
+    std::string detectedText;
+    int count = getCount(arrivalRate);
+
+    // Visitor is silent — no speech to report. Abort so the client
+    // doesn't sit waiting forever.
+    if (traversal == "partial02") {
+        printMsg(INFO_MSG, "[/speechEvent/recognise_speech (action)]: Visitor silent, aborting");
+        as->setAborted(result);
+        return;
+    }
+
+    // Visitor explicitly says no
+    if (traversal == "partial03") {
+        result.transcription = "no";  // <-- adjust field name to match your .action
+        as->setSucceeded(result);
+        return;
+    }
+
+    if (as->isPreemptRequested() || !ros::ok()) {
+        printMsg(INFO_MSG, "[/speechEvent/recognise_speech (action)]: Preempted");
+        as->setPreempted();
+        return;
+    }
+
+    if (count > 0) {
+        if (hasSucceeded()) {
+            int responseIndex = static_cast<int>(rand() % possibleAffirmativeResponses.size());
+            detectedText = possibleAffirmativeResponses[responseIndex];
+        } else {
+            detectedText = "no";
+        }
+
+        result.transcription = detectedText;  // <-- adjust field name
+        as->setSucceeded(result);
+    } else {
+        // No arrivals — nothing to recognise
+        as->setAborted(result);
+    }
+}
+
+void overtAttentionModeTopic(ros::Publisher& publisher)
 {
     std::string mode;
     static int modeValue = 1;
@@ -122,11 +182,11 @@ void overtAttentionModeTopic(ros::Publisher &publisher)
         msg.state = mode;
         msg.value = modeValue;
 
-    if (((msg.state == "seeking") || (msg.state == "scanning")) || ((msg.state == "social") && msg.value == 1)) {
-            if ((traversal == "partial01" && msg.state == "seeking")||(traversal == "partial04" && msg.state == "social"))  // Mutual gaze fails or Visitor leaves tour midway
+        if (((msg.state == "seeking") || (msg.state == "scanning")) || ((msg.state == "social") && msg.value == 1)) {
+            if ((traversal == "partial01" && msg.state == "seeking") || (traversal == "partial04" && msg.state == "social"))  // Mutual gaze fails or Visitor leaves tour midway
             {
                 modeValue = 3;  // FAILED
-                printMsg(WARNING_MSG,"[/overtAttention/mode]: <" + msg.state + "> failed");
+                printMsg(WARNING_MSG, "[/overtAttention/mode]: <" + msg.state + "> failed");
                 timerStarted = false;
             }
 
@@ -137,13 +197,13 @@ void overtAttentionModeTopic(ros::Publisher &publisher)
                 int count = getCount(arrivalRate);
                 if (count > 0) {
                     modeValue = 2;  // SUCCESS
-                    printMsg(INFO_MSG,"[/overtAttention/mode]: <"+ msg.state +"> succeeded");
+                    printMsg(INFO_MSG, "[/overtAttention/mode]: <" + msg.state + "> succeeded");
                     timerStarted = false;
                 }
             }
             if (time(NULL) - start >= 10 && msg.value == 1) {
                 modeValue = 3;  // FAILED
-                printMsg(WARNING_MSG,"[/overtAttention/mode]: <" + msg.state + "> failed");
+                printMsg(WARNING_MSG, "[/overtAttention/mode]: <" + msg.state + "> failed");
                 timerStarted = false;
             }
         }
@@ -155,7 +215,7 @@ void overtAttentionModeTopic(ros::Publisher &publisher)
     publisher.publish(msg);
 }
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
     ros::init(argc, argv, "behaviorControllerTestDriver");
     ros::NodeHandle nh;
@@ -167,24 +227,28 @@ int main(int argc, char **argv)
         failureRate = std::stof(getValueFromConfig("failureRate"));
         traversal = getValueFromConfig("traversal");
         verboseMode = (getValueFromConfig("verboseMode") == "true");
-    } catch (const std::exception &e) {
+    } catch (const std::exception& e) {
         ROS_ERROR_STREAM("Fatal Error: " << e.what());
         ros::shutdown();
         return 0;
     }
 
-    printMsg(INFO_MSG,"Traversal: " + traversal);
+    printMsg(INFO_MSG, "Traversal: " + traversal);
 
-    printMsg(INFO_MSG,"Incidence arrival rate set at: " + std::to_string(arrivalRate));
+    printMsg(INFO_MSG, "Incidence arrival rate set at: " + std::to_string(arrivalRate));
 
     ros::Publisher speechEventpublisher = nh.advertise<std_msgs::String>("/speechEvent/text", 10);
-    printMsg(INFO_MSG,"/speechEvent/text Ready");
+    printMsg(INFO_MSG, "/speechEvent/text Ready");
 
     ros::Publisher overtAttentionPublisher = nh.advertise<unit_tests::overtAttentionMode>("/overtAttention/mode", 10);
-    printMsg(INFO_MSG,"/overtAttention/mode Ready");
+    printMsg(INFO_MSG, "/overtAttention/mode Ready");
     ros::Rate rate(1);
 
     srand(time(0));
+
+    actionlib::SimpleActionServer<unit_tests::speechEventRecogniseSpeechAction> ses(nh, "/speechEvent/recognise_speech_action", boost::bind(&speechEventRecogniseSpeechActionHandler, _1, &ses), false);
+    ses.start();
+    ROS_INFO("speechEvent/recognise_speech Action server started. Waiting for goals...");
 
     while (ros::ok()) {
         speechEventTextTopic(speechEventpublisher);
