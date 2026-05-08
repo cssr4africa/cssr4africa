@@ -7,7 +7,7 @@
   <img src="CSSR4AfricaLogo.svg" alt="CSSR4Africa Logo" style="width:50%; height:auto;">
 </div>
 
-This module provides comprehensive unit tests for the `textToSpeech` node within the CSSR4Africa project (`cssr_system` package). The test suite validates multilingual text-to-speech functionality including English and Kinyarwanda language support, audio generation pipelines, robot communication pathways, and service interface robustness. The tests include application structure validation, integration testing with real audio output, and end-to-end system verification. The results ensure reliable TTS operation across different languages, platforms, and usage scenarios for Pepper robot applications.
+This module provides comprehensive unit tests for the `textToSpeech` node within the CSSR4Africa project (`cssr_system` package). The test suite validates multilingual text-to-speech functionality including English and Kinyarwanda language support, audio generation pipelines, robot communication pathways, and both the ROS service and ROS action server interface. The tests include application structure validation, integration testing with real audio output, action feedback sequence verification, and end-to-end system verification. Tests for each interface are skipped automatically when that interface is not advertised, so the suite runs correctly regardless of the `interface` setting in the configuration file (`service`, `action`, or `both`). The results ensure reliable TTS operation across different languages, platforms, and usage scenarios for Pepper robot applications.
 
 # Documentation
 Accompanying this code is the deliverable report that provides a detailed explanation of the TTS system architecture and testing methodology. The deliverable report can be found in [D5.5.2.4 Text-to-Speech ](https://cssr4africa.github.io/deliverables/CSSR4Africa_Deliverable_D5.5.2.4.pdf).
@@ -52,6 +52,7 @@ Accompanying this code is the deliverable report that provides a detailed explan
    | Parameter | Description | Values |
    |-----------|-------------|---------|
    | `language` | Default language for TTS | `english` or `kinyarwanda` |
+   | `interface` | ROS interface to expose | `service`, `action`, or `both` |
    | `verboseMode` | Enable detailed logging for testing | `True` or `False` |
    | `ip` | Pepper robot IP address | e.g., `172.29.111.240` |
    | `port` | Robot communication port | `9559` (default) |
@@ -59,6 +60,7 @@ Accompanying this code is the deliverable report that provides a detailed explan
 
 
    - To execute tests on the physical platform, ensure the IP address matches your robot's configuration
+   - Set `interface = both` to exercise both the service and action server tests in a single run
    - Enable verbose mode for detailed test output and debugging information
 
     <div style="background-color: #1e1e1e; padding: 15px; border-radius: 4px; border: 1px solid #404040; margin: 10px 0;">
@@ -128,57 +130,87 @@ The Application Tests validate the core TTS application structure and dependenci
 The robot/system is expected to have all dependencies properly configured and the TTS application structure correctly set up.
 
 ### Implementation Integration Tests
-The Implementation Integration Tests verify real TTS functionality with actual robot interaction:
-  - **English TTS Integration**: Tests English text-to-speech with real robot audio output and user verification
-  - **Kinyarwanda TTS Integration**: Tests Kinyarwanda neural synthesis with custom model audio generation and playback
-  - **Language Switching**: Validates seamless switching between different languages within the same session
-  - **Edge Case Handling**: Tests empty messages, unsupported languages, long text processing, and boundary conditions
-  - **Service Communication**: Verifies ROS service request/response handling and network communication protocols
+The Implementation Integration Tests verify real TTS functionality with actual robot interaction. Tests are organised into two groups that mirror the two ROS interfaces exposed by the `textToSpeech` node. Each group is skipped automatically when the corresponding interface is not advertised, so the suite is safe to run regardless of the `interface` configuration value.
 
-The robot is expected to speak test messages clearly in both English and Kinyarwanda, requiring user confirmation of audio quality and language accuracy.
+#### Service Interface Tests (Tests 1 – 6)
+  - **Test 1 – English TTS Integration (Service)**: Tests English text-to-speech via ROS service with real robot audio output and user verification
+  - **Test 2 – Kinyarwanda TTS Integration (Service)**: Tests Kinyarwanda neural synthesis via ROS service with custom model audio generation and playback
+  - **Test 3 – Language Switching (Service)**: Validates seamless switching between English and Kinyarwanda within the same session via the service
+  - **Test 4 – Empty Message (Service)**: Tests empty-string handling through the service interface
+  - **Test 5 – Unsupported Language (Service)**: Verifies the service correctly rejects an unsupported language (e.g., Spanish)
+  - **Test 6 – Long Message (Service)**: Tests extended English text processing and complete audio playback via the service
+
+#### Action Server Interface Tests (Tests 7 – 11)
+  - **Test 7 – English TTS Integration (Action)**: Tests English text-to-speech via the ROS action server with real robot audio output and user verification
+  - **Test 8 – Kinyarwanda TTS Integration (Action)**: Tests Kinyarwanda synthesis via the action server with audio playback and user verification
+  - **Test 9 – Action Feedback Sequence**: Verifies that the action server publishes the expected feedback status sequence (`Synthesizing` → `Playing audio` → `Completed`) with non-decreasing progress values in the range `[0.0, 1.0]`
+  - **Test 10 – Action Result Fields**: Validates that the action result contains the required fields (`success`, `message`) with correct types and non-empty values
+  - **Test 11 – Unsupported Language (Action)**: Verifies the action server correctly rejects an unsupported language and returns `success=False`
+
+The robot is expected to speak test messages clearly in both English and Kinyarwanda, requiring user confirmation of audio quality and language accuracy for the audio playback tests.
 
 
 ## Results
 The results of the tests are displayed in real-time console output and logged appropriately. Test results include detailed pass/fail status, execution times, and diagnostic information for debugging.
 
 ### Physical Robot Results:
-Console output is displayed in the terminal with colored status indicators for easy identification of test results:
+Console output is displayed in the terminal with colored status indicators for easy identification of test results. The example below shows a run with `interface = both`, so all 11 tests execute.
 
 ```
 ============================================================
 Text-to-Speech Implementation Integration Test Report
 ============================================================
-Date: 2025-06-18 15:52:29
+Date: 2026-05-08 15:52:29
 
-[2025-06-18 15:51:37] USER_INPUT: User started implementation testing
-[2025-06-18 15:51:37] TEST_START: Starting English TTS Implementation Integration test
-[2025-06-18 15:51:37] TEST_RESULT: Service call successful for message: 'world' in English
-[2025-06-18 15:51:42] TEST_RESULT: TEST 1.1 - English first message: PASSED
-[2025-06-18 15:51:43] TEST_RESULT: Service call successful for message: 'Hello' in English
-[2025-06-18 15:51:46] TEST_RESULT: TEST 1.2 - English second message: PASSED
-[2025-06-18 15:51:48] TEST_START: Starting Kinyarwanda TTS Implementation Integration test
-[2025-06-18 15:51:52] TEST_RESULT: Service call successful for message: 'Muraho neza' in Kinyarwanda
-[2025-06-18 15:51:55] TEST_RESULT: TEST 2 - Kinyarwanda TTS Integration: PASSED
-[2025-06-18 15:51:57] TEST_START: Starting Language Switching Implementation test
-[2025-06-18 15:52:14] TEST_RESULT: TEST 3 - Language Switching Implementation: PASSED
-[2025-06-18 15:52:16] TEST_START: Starting Empty Message Implementation test
-[2025-06-18 15:52:16] TEST_RESULT: TEST 4 - Empty Message Implementation: PASSED (processed successfully)
-[2025-06-18 15:52:17] TEST_START: Starting Unsupported Language Implementation test
-[2025-06-18 15:52:17] TEST_RESULT: TEST 5 - Unsupported Language Implementation: PASSED (correctly rejected)
-[2025-06-18 15:52:18] TEST_START: Starting Long Message Implementation test
-[2025-06-18 15:52:18] TEST_RESULT: Service call successful for long message (121 characters)
-[2025-06-18 15:52:29] TEST_RESULT: TEST 6 - Long Message Implementation: PASSED
-[2025-06-18 15:52:29] SUMMARY: FINAL TEST RESULTS:
-[2025-06-18 15:52:29] SUMMARY:  English TTS Implementation Integration - PASSED
-[2025-06-18 15:52:29] SUMMARY:  Kinyarwanda TTS Implementation Integration - PASSED
-[2025-06-18 15:52:29] SUMMARY:  Language Switching Implementation - PASSED
-[2025-06-18 15:52:29] SUMMARY:  Empty Message Implementation - PASSED
-[2025-06-18 15:52:29] SUMMARY:  Unsupported Language Implementation - PASSED
-[2025-06-18 15:52:29] SUMMARY:  Long Message Implementation - PASSED
-[2025-06-18 15:52:29] SUMMARY: Total tests run: 6
-[2025-06-18 15:52:29] SUMMARY: Passed: 6
-[2025-06-18 15:52:29] SUMMARY: Failed: 0
-[2025-06-18 15:52:29] FINAL_RESULT: FINAL RESULT: ALL IMPLEMENTATION TESTS PASSED
+[2026-05-08 15:51:37] USER_INPUT: User started implementation testing
+[2026-05-08 15:51:37] TEST_START: Starting English TTS Implementation Integration test (Service)
+[2026-05-08 15:51:37] TEST_RESULT: Service call successful for message: 'world' in English
+[2026-05-08 15:51:42] TEST_RESULT: TEST 1.1 - English first message: PASSED
+[2026-05-08 15:51:43] TEST_RESULT: Service call successful for message: 'Hello' in English
+[2026-05-08 15:51:46] TEST_RESULT: TEST 1.2 - English second message: PASSED
+[2026-05-08 15:51:48] TEST_START: Starting Kinyarwanda TTS Implementation Integration test (Service)
+[2026-05-08 15:51:52] TEST_RESULT: Service call successful for message: 'Muraho neza' in Kinyarwanda
+[2026-05-08 15:51:55] TEST_RESULT: TEST 2 - Kinyarwanda TTS Integration: PASSED
+[2026-05-08 15:51:57] TEST_START: Starting Language Switching Implementation test (Service)
+[2026-05-08 15:52:14] TEST_RESULT: TEST 3 - Language Switching Implementation: PASSED
+[2026-05-08 15:52:16] TEST_START: Starting Empty Message Implementation test (Service)
+[2026-05-08 15:52:16] TEST_RESULT: TEST 4 - Empty Message Implementation: PASSED (processed successfully)
+[2026-05-08 15:52:17] TEST_START: Starting Unsupported Language Implementation test (Service)
+[2026-05-08 15:52:17] TEST_RESULT: TEST 5 - Unsupported Language Implementation: PASSED (correctly rejected)
+[2026-05-08 15:52:18] TEST_START: Starting Long Message Implementation test (Service)
+[2026-05-08 15:52:18] TEST_RESULT: Service call successful for long message (121 characters)
+[2026-05-08 15:52:29] TEST_RESULT: TEST 6 - Long Message Implementation: PASSED
+[2026-05-08 15:52:31] TEST_START: Starting English TTS Integration test (Action)
+[2026-05-08 15:52:31] TEST_RESULT: Action goal successful for text: 'world' in English
+[2026-05-08 15:52:36] TEST_RESULT: TEST 7.1 - English action first message: PASSED
+[2026-05-08 15:52:37] TEST_RESULT: Action goal successful for text: 'Hello' in English
+[2026-05-08 15:52:40] TEST_RESULT: TEST 7.2 - English action second message: PASSED
+[2026-05-08 15:52:42] TEST_START: Starting Kinyarwanda TTS Integration test (Action)
+[2026-05-08 15:52:47] TEST_RESULT: Action goal successful for text: 'Muraho neza' in Kinyarwanda
+[2026-05-08 15:52:50] TEST_RESULT: TEST 8 - Kinyarwanda TTS Integration (Action): PASSED
+[2026-05-08 15:52:52] TEST_START: Starting Action Feedback Sequence test
+[2026-05-08 15:52:52] TEST_RESULT: TEST 9 - Action Feedback Sequence: PASSED (statuses=['Synthesizing', 'Playing audio', 'Completed'], progress=[0.2, 0.7, 1.0])
+[2026-05-08 15:52:53] TEST_START: Starting Action Result Fields test
+[2026-05-08 15:52:54] TEST_RESULT: TEST 10 - Action Result Fields: PASSED
+[2026-05-08 15:52:55] TEST_START: Starting Unsupported Language test (Action)
+[2026-05-08 15:52:55] TEST_RESULT: TEST 11 - Unsupported Language (Action): PASSED (correctly rejected)
+[2026-05-08 15:52:55] SUMMARY: FINAL TEST RESULTS:
+[2026-05-08 15:52:55] SUMMARY:  English TTS Implementation Integration (Service) - PASSED
+[2026-05-08 15:52:55] SUMMARY:  Kinyarwanda TTS Implementation Integration (Service) - PASSED
+[2026-05-08 15:52:55] SUMMARY:  Language Switching Implementation (Service) - PASSED
+[2026-05-08 15:52:55] SUMMARY:  Empty Message Implementation (Service) - PASSED
+[2026-05-08 15:52:55] SUMMARY:  Unsupported Language Implementation (Service) - PASSED
+[2026-05-08 15:52:55] SUMMARY:  Long Message Implementation (Service) - PASSED
+[2026-05-08 15:52:55] SUMMARY:  English TTS Implementation Integration (Action) - PASSED
+[2026-05-08 15:52:55] SUMMARY:  Kinyarwanda TTS Implementation Integration (Action) - PASSED
+[2026-05-08 15:52:55] SUMMARY:  Action Feedback Sequence - PASSED
+[2026-05-08 15:52:55] SUMMARY:  Action Result Fields - PASSED
+[2026-05-08 15:52:55] SUMMARY:  Unsupported Language Implementation (Action) - PASSED
+[2026-05-08 15:52:55] SUMMARY: Total tests run (excluding skipped): 11
+[2026-05-08 15:52:55] SUMMARY: Passed: 11
+[2026-05-08 15:52:55] SUMMARY: Failed: 0
+[2026-05-08 15:52:55] SUMMARY: Skipped: 0
+[2026-05-08 15:52:55] FINAL_RESULT: FINAL RESULT: ALL IMPLEMENTATION TESTS PASSED
 
 ```
 
@@ -206,4 +238,4 @@ Funded by African Engineering and Technology Network (Afretec)
 Inclusive Digital Transformation Research Grant Programme
 
 **Authors:** Muhirwa Richard, CSSR4Africa Consortium  
-**Date:** May 2025
+**Date:** May 2026
