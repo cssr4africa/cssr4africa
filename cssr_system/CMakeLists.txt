@@ -155,7 +155,6 @@ add_service_files(
   speech_event/srv
   FILES
   set_language.srv
-  set_enabled.srv
 )
   
 add_service_files(
@@ -168,9 +167,14 @@ add_service_files(
 ## Generate actions in the 'action' folder
 add_action_files(
   DIRECTORY
+
   text_to_speech/action
   FILES
   TTS.action
+
+  speech_event/action
+  FILES
+  recognise_speech.action
 )
 
 ## Generate added messages and services with any dependencies listed here
