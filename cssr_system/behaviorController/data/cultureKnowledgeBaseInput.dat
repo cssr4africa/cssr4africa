@@ -1,0 +1,78 @@
+passingDistance 	                        100 
+passingPositionPreferred 	               BEHIND
+passingPositionAvoid                      BETWEEN 
+accompanyingDistanceLeading               100 
+accompanyingPositionLeading 	            FRONTSIDE
+accompanyingPositionOlder 	               SIDE
+accompanyingPositionSameAge               SIDE 
+accompanyingPositionYounger               SIDE  
+expressionLoudness                        40
+phraseLanguage                            English 
+phraseRhythmEnglish                       Nice
+phraseGreetingEnglish                     Greetings 
+phraseGreetingKinyarwanda                 Muraho 
+phraseTitleEnglish                        Excellency 
+phrasePreambleEnglish                     It is nice to meet you. How are you?
+phraseSocialEnglish                       I hope you are well
+phraseAddressOlderEnglish                 Hello  
+phraseAddressOlderKinyarwanda             Muraho  
+phraseAddressSameAgeEnglish               Hello
+phraseAddressSameAgeKinyarwanda           Muraho 
+phraseAddressYoungerEnglish               Hello 
+phraseAddressYoungerKinyarwanda           Muraho 
+phrasePassingEnglish                      Hello 
+phrasePassingKinyarwanda                  Muraho 
+pauseDuration                             2 
+turnTakingInitiationOrder                 WAIT 
+turnTakingAvoid                           INTERRUPT
+focusofAttentionTargetRespect             TORSO 
+focusofAttentionTargetAddressed           FACE 
+focusofAttentionTargetExplanationTo       FACE_AND_OBJECT 
+focusofAttentionTargetExplanationBy  	   FACE_AND_OBJECT 
+eyeContactDuration                        2 
+eyeContactFrequencyExplainingTo 	         5
+eyeContactFrequencyExplainingToOlder 	   5
+eyeContactFrequencyExplainingToYounger    5
+eyeContactFrequencyExplainingBy 	         5
+eyeContactFrequencyExplainingByOlder 	   5
+eyeContactFrequencyExplainingByYounger    5
+nodExtentAttention 	                     30 
+nodExtentGratitude 	                     30 
+nodExtentAgreement 	                     30 
+nodExtentRespect 	                        30 
+nodExtentFriendliness 	                  30 
+nodExtentComprehension                    30 
+nodExtentInterest 	                     30 
+deicticShape 	                           PALM_UPWARDS
+deicticAvoid 	                           PALM_FORWARDS 
+iconicShape 	                           ANIMATE_BEHAVIOR
+symbolicShapeRespect                      BOTH_HANDS_UP 
+symbolicShapeTurnTaking                   RIGHT_HAND_UP 
+symbolicShapeGratitude 	                  CLASP_HANDS
+symbolicShapeAgreement                    RIGHT_THUMB_UP
+symbolicShapeFriendliness                 HANDSHAKE 
+symbolicShapeConfusion 	                  RIGHT_HAND_UP
+symbolicShapeComprehension 	            RIGHT_THUMB_UP
+symbolicShapeInterest 	                  RIGHT_THUMB_UP
+symbolicShapeHandover 	                  BOTH_HANDS
+symbolicShapeHandShake 	                  POLITE_HANDSHAKE
+symbolicAvoidWave 	                     30
+symbolicAvoidHandover 	                  LEFT_HAND
+bowExtentGreeting 	                     10
+bowExtentRespect 	                        10
+bowExtentGratitude 	                     10
+swayIntensity 	                           ANIMATE_BEHAVIOR
+utilityPhraseEnglish1                     Please press Yes or No on my screen
+utilityPhraseKinyarwanda1                 Mukande Yego cyangwa Oya kuri ekara yanjye
+utilityPhraseEnglish2                     Please follow me as I move around.
+utilityPhraseKinyarwanda2                 Munkurikire
+utilityPhraseEnglish3                     Maybe another time
+utilityPhraseKinyarwanda3                 Ahari ikindi gihe
+utilityPhraseEnglish4                     Hello! Welcome to the Robotics Lab! I'm Pepper, your friendly robot tour guide.
+utilityPhraseKinyarwanda4                 Muraho! Murakazaneza muri robotikisi lab. Nitwa pepa nkaba ndi robo ifasha mugutembereza abashyitsi.
+utilityPhraseEnglish5                     Would you like a tour of the lab?
+utilityPhraseKinyarwanda5                 Wakwifuza gutemberezwa muri laboratwari?
+utilityPhraseEnglish6                     Here is the door
+utilityPhraseKinyarwanda6                 Umuryango uri hano
+utilityPhraseEnglish7                     Goodbye
+utilityPhraseKinyarwanda7                 Murabeho

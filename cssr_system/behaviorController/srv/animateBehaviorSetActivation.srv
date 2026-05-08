@@ -1,0 +1,3 @@
+string state  # Request part ('enabled' or 'disabled')
+---
+string success  # Response part (1 for success, 0 for failure)
