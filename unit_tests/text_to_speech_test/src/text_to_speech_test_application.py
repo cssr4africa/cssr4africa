@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 
-""" 
-text_to_speech_test_application.py - ROS-based integration test application for validating Text-to-Speech (TTS) service implementation
+"""
+text_to_speech_test_application.py - ROS-based integration test application for validating Text-to-Speech (TTS) service and action server implementation
 
 Author:     Muhirwa Richard
-Date:       2025-04-18
-Version:    v1.0
+Date:       2026-05-08
+Version:    v1.1
 
 Copyright (C) 2023 CSSR4Africa Consortium
 
@@ -17,15 +17,16 @@ This program comes with ABSOLUTELY NO WARRANTY.
 """
 
 """
-> text_to_speech_test_application.py - ROS-based integration test application for validating Text-to-Speech (TTS) service implementation.
+> text_to_speech_test_application.py - ROS-based integration test application for validating Text-to-Speech (TTS) service and action server implementation.
 
-This application serves as a comprehensive testing framework for validating the functionality and integration of a Text-to-Speech (TTS) service
+This application serves as a comprehensive testing framework for validating the functionality and integration of a Text-to-Speech (TTS) node
 within a ROS environment.
-The primary purpose is to ensure that the TTS implementation correctly processes text input in both English and Kinyarwanda languages and produces 
-appropriate audio output on pepper robot.
+The primary purpose is to ensure that the TTS implementation correctly processes text input in both English and Kinyarwanda languages and produces
+appropriate audio output on pepper robot. Tests cover both the ROS service interface and the ROS action server interface. Each interface is
+tested independently so that the suite still runs when only one is enabled via the interface configuration parameter.
 
 > Libraries
-    - rospy: ROS Python client library for node initialization and service handling
+    - rospy: ROS Python client library for node initialization and service/action handling
     - sys: System-specific parameters and functions for exit codes
     - text_to_speech_test_implementation: Custom module containing:
         - TTSImplementationIntegrationTest
@@ -48,6 +49,9 @@ appropriate audio output on pepper robot.
 > Services Invoked
     - /textToSpeech/say_text (cssr_system.srv.TTS): Text-to-speech service for converting text to audio output
 
+> Actions Invoked
+    - /textToSpeech/say_text (cssr_system/TTSAction): Text-to-speech action server with feedback and result
+
 > Services Advertised and Request Message
     - None (no services advertised)
 
@@ -65,8 +69,8 @@ appropriate audio output on pepper robot.
 
 - Author:  Muhirwa Richard, Carnegie Mellon University Africa
 - Email:   muhirwarichard1@gmail.com
-- Date:    2025-04-18
-- Version: v1.0
+- Date:    2026-05-08
+- Version: v1.1
 """
 
 import rospy
@@ -81,7 +85,7 @@ from text_to_speech_test_implementation import (
     print_header
 )
 
-software_version = "version v1.0"
+software_version = "version v1.1"
 
 class TTSTestApplication:
     """Main application class for running TTS tests"""
@@ -103,13 +107,12 @@ class TTSTestApplication:
         print_info(copyright_message)
         
         print_info("textToSpeechTest: startup.")
-        print_info("textToSpeechTest: publishing to /speech.")
-        print_info("textToSpeechTest: /textToSpeech/say_text service advertised")
+        print_info("textToSpeechTest: connecting to /textToSpeech/say_text (service and/or action).")
         print("\n")
         print_header("TTS IMPLEMENTATION INTEGRATION TESTS")
-        print_info("This test will verify the TTS implementation with actual service calls.")
-        print_info("The test will check if the implementation correctly processes all test scenarios.")
-        print_warning("Make sure the TTS service is running before proceeding.")
+        print_info("This test will verify the TTS implementation via both the ROS service and action server interfaces.")
+        print_info("Tests for an interface are skipped automatically when that interface is not advertised.")
+        print_warning("Make sure the TTS node is running before proceeding.")
 
     def get_user_confirmation_to_start(self):
         """Get user confirmation to start testing"""
@@ -119,31 +122,41 @@ class TTSTestApplication:
     def display_test_summary(self, test_results):
         """Display comprehensive test summary"""
         print_header("IMPLEMENTATION TEST SUMMARY")
-        
+
         passed_tests = 0
-        total_tests = len(test_results)
-        
+        failed_tests = 0
+        skipped_tests = 0
+
         self.logger.log("FINAL TEST RESULTS:", "SUMMARY")
         for test_name, result in test_results:
-            if result:
+            if result is None:
+                print_warning(f" - {test_name} - SKIPPED")
+                self.logger.log(f"SUMMARY: {test_name} - SKIPPED", "SUMMARY")
+                skipped_tests += 1
+            elif result:
                 print_success(f" ✓ {test_name} - PASSED")
                 self.logger.log(f"{test_name} - PASSED", "SUMMARY")
                 passed_tests += 1
             else:
                 print_error(f" ✗ {test_name} - FAILED")
                 self.logger.log(f"SUMMARY: {test_name} - FAILED", "SUMMARY")
-        
+                failed_tests += 1
+
+        total_run = passed_tests + failed_tests
+
         # Log test statistics
-        self.logger.log(f"Total tests run: {total_tests}", "SUMMARY")
+        self.logger.log(f"Total tests run (excluding skipped): {total_run}", "SUMMARY")
         self.logger.log(f"Passed: {passed_tests}", "SUMMARY")
-        self.logger.log(f"Failed: {total_tests - passed_tests}", "SUMMARY")
-        
+        self.logger.log(f"Failed: {failed_tests}", "SUMMARY")
+        self.logger.log(f"Skipped: {skipped_tests}", "SUMMARY")
+
         # Display test statistics
-        print(f"\nTotal tests run: {total_tests}")
+        print(f"\nTotal tests run (excluding skipped): {total_run}")
         print(f"Passed: {passed_tests}")
-        print(f"Failed: {total_tests - passed_tests}")
-        
-        return passed_tests, total_tests
+        print(f"Failed: {failed_tests}")
+        print(f"Skipped: {skipped_tests}")
+
+        return passed_tests, total_run
     
     def display_final_result(self, passed_tests, total_tests):
         """Display final test result"""
