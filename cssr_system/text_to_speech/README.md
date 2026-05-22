@@ -95,6 +95,7 @@ Accompanying this code is the deliverable report that provides a detailed explan
    # Download the XTTS v2 model (requires ~2 GB of disk space)
    pip install huggingface_hub
    python3 -c "
+   import os
    from huggingface_hub import snapshot_download
    snapshot_download(repo_id='coqui/XTTS-v2', local_dir=os.path.expanduser('~/models/v2.0.2'))
    "
