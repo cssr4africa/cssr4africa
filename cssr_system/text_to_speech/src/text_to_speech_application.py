@@ -18,33 +18,31 @@ This program comes with ABSOLUTELY NO WARRANTY.
 """
 
 """
-> text_to_speech_application.py - ROS node for multilingual TTS (Kinyarwanda / English)
+> HOW THIS NODE WORKS
 
-Supports two languages:
-  - Kinyarwanda : fine-tuned YourTTS model  (model/ directory)
-  - English     : XTTS v2 model             (englishModelPath in config)
+The textToSpeech node provides multilingual speech synthesis (Kinyarwanda and
+English) for the robot. On startup it loads both TTS models via
+TTSImplementation, then exposes one or both ROS interfaces depending on the
+'interface' setting in the configuration file.
 
-The communication interface and playback destination are controlled by the
-configuration file:
+  1. A client sends text + language through the service or action interface
+     (both bound to /textToSpeech/say_text).
 
-  interface     = service | action | both
-  playback_mode = naoqi   | local
+  2. TTSImplementation.synthesize() routes the request to the correct model:
+       - kinyarwanda -> fine-tuned YourTTS model (models/rw_model)
+       - english     -> XTTS v2 model (englishModelPath)
+     and writes the result to a temporary WAV file.
 
-> ROS interfaces (all at /textToSpeech/say_text)
-  Service (cssr_system/TTS):
-      Request:  { string message, string language }
-      Response: { bool success }
+  3. The WAV is played back according to 'playback_mode':
+       - naoqi -> streamed to the robot via the Python 2 helper
+                  (send_and_play_audio.py) over the configured IP/port
+       - local -> played on the host machine using paplay
 
-  Action (cssr_system/TTSAction):
-      Goal:     { string text, string language }
-      Feedback: { string status, float32 progress }
-      Result:   { bool success, string message, string audio_file_path }
+  4. The temporary audio file is deleted once playback finishes.
 
-> Published Topics
-  None (audio is played directly, not published)
-
-> Configuration File
-  text_to_speech_configuration.ini
+The service replies with a simple success flag, while the action interface adds
+progress feedback, preemption support, and the synthesized file path in its
+result.
 
 > Example
   rosrun cssr_system text_to_speech_application.py
@@ -217,7 +215,7 @@ if __name__ == '__main__':
 
     TTSImplementation.set_paths(
         config_file_path   = os.path.join(parent_dir, "config", "text_to_speech_configuration.ini"),
-        model_dir_path     = os.path.join(parent_dir, "model"),
+        model_dir_path     = os.path.join(parent_dir, "models", "rw_model"),
         python2_script_path= os.path.join(current_file_dir, "send_and_play_audio.py"),
     )
 

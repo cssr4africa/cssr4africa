@@ -59,7 +59,7 @@ class TTSImplementation:
             'port':                  '9559',
             'useCuda':               False,
             'kinyarwandaModelPath':  self._model_dir_path or '',
-            'englishModelPath':      str(Path.home() / 'models' / 'v2.0.2'),
+            'englishModelPath':      str(Path(self._model_dir_path or '').parent / 'en_model' / 'v2.0.2'),
             'englishSpeakerWav':     '',
         }
 
