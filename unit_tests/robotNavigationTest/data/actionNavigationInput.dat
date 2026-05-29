@@ -1,0 +1,11 @@
+# Action Navigation Test Input File
+# Format: goal_x goal_y goal_theta
+# Coordinates in meters, angles in degrees
+# Lines starting with # are comments and will be ignored
+# Note: All tests use fixed starting position (2.0, 7.8, 270.0)
+
+# Test Scenario 1: Simple navigation via action interface
+2.0 7.0 270.0
+
+# Test Scenario 2: Navigation with different orientation
+2.0 6.0 270.0

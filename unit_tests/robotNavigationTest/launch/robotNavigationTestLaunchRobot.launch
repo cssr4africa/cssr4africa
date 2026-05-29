@@ -2,7 +2,13 @@
 <launch>
     <arg name="robot_ip"          default="172.29.111.230" /> <!-- 127.0.0.1 -->
     <arg name="robot_port"        default="9559" />
-    <arg name="roscore_ip"        default="127.0.0.1" />
+    <arg name="roscore_ip"        default="$(eval optenv('ROS_MASTER_URI','http://127.0.0.1:11311').split('//')[1].split(':')[0])" />
+br@br:~$ rostopic echo -n 1 /robotLocalization/pose
+
+x: 2.0002130470134327
+y: 7.800000001365264
+theta: 269.99909372028264
+---
     <arg name="network_interface" default="wlp0s20f3" />
     <arg name="namespace"         default="naoqi_driver" />
     <arg name="camera"            default="pepper" doc="Set 'pepper' for Pepper, 'realsense' for RealSense" />

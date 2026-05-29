@@ -1,30 +1,41 @@
-<!-- robotNavigationLaunchTestHarness.launch -->
+<!-- robotNavigationTestLaunchTestHarness.launch -->
 <!--
- Complete Launch file for Robot Navigation Unit Tests
+ Complete Launch file for Robot Navigation Tests
  This launch file starts the complete robot navigation test harness including:
- 1. Robot Navigation Driver (pose management and localization services)
+ 1. Pose source: either robotNavigationDriver (default) or the real robotLocalization node
  2. Robot Navigation (path planning and navigation services)
  3. Robot Navigation Tests (unit test execution)
- 
- When tests complete, ALL nodes automatically terminate.
- 
+
+ When tests complete, ALL nodes automatically terminate (the test node is marked
+ required="true", so its exit shuts the launch down).
+
  Usage:
- roslaunch unit_tests robotNavigationLaunchTestHarness.launch
- 
+   roslaunch unit_tests robotNavigationTestLaunchTestHarness.launch
+
+ Run with the real robotLocalization node instead of the driver:
+   roslaunch unit_tests robotNavigationTestLaunchTestHarness.launch use_robot_localization:=true
+
+ Override the robot's initial (home) pose without editing this file:
+   roslaunch unit_tests robotNavigationTestLaunchTestHarness.launch \
+       initial_robot_x:=2.0 initial_robot_y:=7.8 initial_robot_theta:=270.0
+
  Parameters:
- - robot_ip: IP address of the robot (default: 172.29.111.240)
- - launch_test: whether to launch the actual test (default: true)
- - initial_robot_x: initial robot x position (default: 2.0)
- - initial_robot_y: initial robot y position (default: 7.8)
- - initial_robot_theta: initial robot orientation in degrees (default: 270.0)
- - test_output_screen: show test output on screen (default: true)
- - navigation_output_screen: show navigation output on screen (default: true)
+ - robot_ip:                IP address of the robot (default: 172.29.111.230)
+ - launch_test:             whether to launch the actual test (default: true)
+ - use_robot_localization:  use real robotLocalization node instead of the test driver (default: false)
+ - initial_robot_x:         initial robot x position in meters (default: 2.0)
+ - initial_robot_y:         initial robot y position in meters (default: 7.8)
+ - initial_robot_theta:     initial robot orientation in degrees (default: 270.0)
+ - test_output_screen:      show test output on screen (default: true)
+ - navigation_output_screen:show navigation output on screen (default: false)
+ - driver_output_screen:    show driver/localization output on screen (default: false)
 -->
 
 <launch>
     <!-- Launch file parameters -->
-    <arg name="robot_ip" default="172.29.111.240" />
+    <arg name="robot_ip" default="172.29.111.230" />
     <arg name="launch_test" default="true" />
+    <arg name="use_robot_localization" default="false" />
     <arg name="initial_robot_x" default="2.0" />
     <arg name="initial_robot_y" default="7.8" />
     <arg name="initial_robot_theta" default="270.0" />
@@ -38,32 +49,48 @@
     <param name="initial_robot_y" value="$(arg initial_robot_y)" />
     <param name="initial_robot_theta" value="$(arg initial_robot_theta)" />
 
-    <!-- 1. Launch Robot Navigation Driver (Localization and Pose Services) -->
-    <node pkg="unit_tests" type="robotNavigationDriver" name="robotNavigationTestDriver"
-          required="true" 
-          output="$(eval 'screen' if arg('driver_output_screen') else 'log')"
-          launch-prefix="bash -c 'sleep 2; $0 $@'">
-        <param name="robot_ip" value="$(arg robot_ip)" />
-        <rosparam>
-            initial_robot_x: $(arg initial_robot_x)
-            initial_robot_y: $(arg initial_robot_y)
-            initial_robot_theta: $(arg initial_robot_theta)
-        </rosparam>
-    </node>
+    <!-- 1a. Pose source: Robot Navigation Driver (default) -->
+    <group unless="$(arg use_robot_localization)">
+        <node pkg="unit_tests" type="robotNavigationDriver" name="robotNavigationTestDriver"
+              required="true"
+              output="$(eval 'screen' if arg('driver_output_screen') else 'log')"
+              launch-prefix="bash -c 'sleep 2; $0 $@'">
+            <param name="robot_ip" value="$(arg robot_ip)" />
+            <rosparam subst_value="true">
+                initial_robot_x: $(arg initial_robot_x)
+                initial_robot_y: $(arg initial_robot_y)
+                initial_robot_theta: $(arg initial_robot_theta)
+            </rosparam>
+        </node>
+    </group>
+
+    <!-- 1b. Pose source: real robotLocalization node (opt-in) -->
+    <group if="$(arg use_robot_localization)">
+        <node pkg="cssr_system" type="robotLocalization" name="robotLocalization"
+              required="true"
+              output="$(eval 'screen' if arg('driver_output_screen') else 'log')"
+              launch-prefix="bash -c 'sleep 2; $0 $@'" />
+
+        <!-- Set the initial (home) pose once robotLocalization is up -->
+        <node pkg="rosservice" type="rosservice" name="setInitialPose"
+              args="call --wait /robotLocalization/set_pose $(arg initial_robot_x) $(arg initial_robot_y) $(arg initial_robot_theta)"
+              launch-prefix="bash -c 'sleep 5; $0 $@'"
+              output="$(eval 'screen' if arg('driver_output_screen') else 'log')" />
+    </group>
 
     <!-- 2. Launch Robot Navigation (Path Planning and Navigation Services) -->
     <node pkg="cssr_system" type="robotNavigation" name="robotNavigation"
-          required="true" 
+          required="true"
           output="$(eval 'screen' if arg('navigation_output_screen') else 'log')"
           launch-prefix="bash -c 'sleep 5; $0 $@'">
         <param name="robot_ip" value="$(arg robot_ip)" />
     </node>
 
-    <!-- 3. Launch Robot Navigation Unit Tests -->
+    <!-- 3. Launch Robot Navigation Tests -->
     <!-- This node controls shutdown: when tests finish, everything terminates -->
     <group if="$(arg launch_test)">
-        <node pkg="unit_tests" type="robotNavigationTest" name="robotNavigationUnitTest"
-              required="true" 
+        <node pkg="unit_tests" type="robotNavigationTest" name="robotNavigationTest"
+              required="true"
               output="$(eval 'screen' if arg('test_output_screen') else 'log')"
               launch-prefix="bash -c 'sleep 10; $0 $@'">
             <param name="robot_ip" value="$(arg robot_ip)" />

@@ -37,6 +37,7 @@
   <build_depend>geometry_msgs</build_depend>
   <build_depend>image_transport</build_depend>
   <build_depend>message_generation</build_depend>
+  <build_depend>move_base_msgs</build_depend>
   <build_depend>naoqi_dcm_driver</build_depend>
   <build_depend>naoqi_driver</build_depend>
   <build_depend>nav_msgs</build_depend>
@@ -60,6 +61,7 @@
   <exec_depend>geometry_msgs</exec_depend>
   <exec_depend>image_transport</exec_depend>
   <exec_depend>message_runtime</exec_depend>
+  <exec_depend>move_base_msgs</exec_depend>
   <exec_depend>naoqi_dcm_driver</exec_depend>
   <exec_depend>naoqi_driver</exec_depend>
   <exec_depend>nav_msgs</exec_depend>
@@ -82,6 +84,14 @@
   <build_export_depend>std_msgs</build_export_depend>
 
   <exec_depend>OpenCV</exec_depend>
+
+  <!-- SLAM navigation stack dependencies (runtime, for robotNavigation SLAM mode) -->
+  <exec_depend>map_server</exec_depend>
+  <exec_depend>amcl</exec_depend>
+  <exec_depend>move_base</exec_depend>
+  <exec_depend>teb_local_planner</exec_depend>
+  <exec_depend>global_planner</exec_depend>
+  <exec_depend>rviz</exec_depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>

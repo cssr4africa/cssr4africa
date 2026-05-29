@@ -1,0 +1,53 @@
+<launch>
+
+  <!-- Map server -->
+  <arg name="map_file" default="$(find cssr_system)/robotNavigation/slam/maps/environmentMap.yaml"/>
+  <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)" />
+
+  <!-- Frames / topics -->
+  <arg name="odom_topic" default="/naoqi_driver/odom"/>
+  <arg name="local_costmap_frame" default="odom"/>
+  <arg name="amcl_base_frame_id" default="base_footprint"/>
+
+  <!-- Laser pipeline -->
+  <arg name="laser_topic_raw" default="/scan"/>
+  <arg name="laser_topic" default="/scan_clean"/>
+  <arg name="use_scan_sanitizer" default="true"/>
+
+  <!-- AMCL -->
+  <arg name="custom_amcl_launch_file" default="$(find cssr_system)/robotNavigation/slam/launch/includes/amcl/asus_xtion_pro_amcl.launch.xml"/>
+  <arg name="initial_pose_x" default="2.0"/>
+  <arg name="initial_pose_y" default="7.8"/>
+  <arg name="initial_pose_a" default="270.0"/>
+  <include file="$(arg custom_amcl_launch_file)">
+    <arg name="initial_pose_x" value="$(arg initial_pose_x)"/>
+    <arg name="initial_pose_y" value="$(arg initial_pose_y)"/>
+    <arg name="initial_pose_a" value="$(arg initial_pose_a)"/>
+    <arg name="base_frame_id" value="$(arg amcl_base_frame_id)"/>
+    <arg name="scan_topic" value="$(arg laser_topic)"/>
+  </include>
+
+  <node if="$(arg use_scan_sanitizer)" name="scan_sanitizer" pkg="csi_nav_nodes"
+        type="scan_sanitizer.py" output="log" respawn="true">
+    <param name="input_scan" value="$(arg laser_topic_raw)"/>
+    <param name="output_scan" value="$(arg laser_topic)"/>
+    <param name="zero_to_inf" value="true"/>
+    <param name="nan_to_inf" value="true"/>
+    <param name="spike_filter_enabled" value="true"/>
+    <param name="spike_diff_threshold" value="0.45"/>
+    <param name="clamp_out_of_range" value="true"/>
+  </node>
+
+  <!-- Move base -->
+  <arg name="custom_param_file" default="$(find cssr_system)/robotNavigation/slam/param/move_base_params.yaml"/>
+  <include file="$(find cssr_system)/robotNavigation/slam/launch/includes/pepper_move_base.xml">
+    <arg name="custom_param_file" value="$(arg custom_param_file)"/>
+    <arg name="odom_frame_id" value="$(arg local_costmap_frame)"/>
+    <arg name="odom_topic" value="$(arg odom_topic)"/>
+    <arg name="laser_topic" value="$(arg laser_topic)"/>
+  </include>
+
+  <!-- RViz -->
+  <node pkg="rviz" type="rviz" name="rviz" args="-d $(find cssr_system)/robotNavigation/slam/config/pepper.rviz" />
+
+</launch>

@@ -1,0 +1,54 @@
+<!--
+ ROS navigation stack optimized for TEB + Global planner with external lidar
+-->
+<launch>
+<arg name="odom_frame_id" default="odom"/>
+<arg name="base_frame_id" default="base_footprint"/>
+<arg name="global_frame_id" default="map"/>
+<arg name="odom_topic" default="/naoqi_driver/odom" />
+<arg name="laser_topic" default="/scan_clean" />
+<arg name="custom_param_file" default="$(find cssr_system)/robotNavigation/slam/param/dummy.yaml"/>
+
+<node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
+
+  <!-- 1. Load costmap common parameters -->
+  <rosparam file="$(find cssr_system)/robotNavigation/slam/param/costmap_common_params.yaml" command="load" ns="global_costmap" />
+  <rosparam file="$(find cssr_system)/robotNavigation/slam/param/costmap_common_params.yaml" command="load" ns="local_costmap" />
+
+  <!-- 2. Load specific costmap parameters -->
+  <rosparam file="$(find cssr_system)/robotNavigation/slam/param/local_costmap_params.yaml" command="load" />
+  <rosparam file="$(find cssr_system)/robotNavigation/slam/param/global_costmap_params.yaml" command="load" />
+
+  <!-- 3. Load move_base parameters -->
+  <rosparam file="$(find cssr_system)/robotNavigation/slam/param/move_base_params.yaml" command="load" />
+
+  <!-- 4. Load TEB Local Planner Parameters -->
+  <rosparam file="$(find cssr_system)/robotNavigation/slam/param/base_local_planner_params.yaml" command="load" />
+
+  <!-- 5. Load global planner parameters -->
+  <rosparam file="$(find cssr_system)/robotNavigation/slam/param/global_planner_params.yaml" command="load" />
+
+  <!-- 6. External custom parameters loaded last -->
+  <rosparam file="$(arg custom_param_file)" command="load" />
+
+  <param name="base_local_planner" value="teb_local_planner/TebLocalPlannerROS" />
+  <param name="base_global_planner" value="global_planner/GlobalPlanner" />
+
+  <param name="global_costmap/global_frame" value="$(arg global_frame_id)"/>
+  <param name="global_costmap/robot_base_frame" value="base_footprint"/>
+  <param name="local_costmap/global_frame" value="$(arg odom_frame_id)"/>
+  <param name="local_costmap/robot_base_frame" value="base_footprint"/>
+
+  <param name="TebLocalPlannerROS/map_frame" value="$(arg global_frame_id)"/>
+  <param name="TebLocalPlannerROS/odom_topic" value="$(arg odom_topic)"/>
+
+  <param name="GlobalPlanner/allow_unknown" value="false"/>
+  <param name="GlobalPlanner/use_dijkstra" value="true"/>
+  <param name="GlobalPlanner/cost_factor" value="5.0"/>
+  <param name="GlobalPlanner/default_tolerance" value="0.1"/>
+
+  <remap from="cmd_vel" to="cmd_vel"/>
+  <remap from="odom" to="$(arg odom_topic)"/>
+  <remap from="scan" to="$(arg laser_topic)"/>
+</node>
+</launch>
